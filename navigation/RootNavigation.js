@@ -13,9 +13,13 @@ const RootStackNavigator = StackNavigator(
       Main: {
           screen: MainTabNavigator,
       },
+      // Login: {
+      //     screen: LoginNavigator,
+      // },
 
   },
   {
+     // initialRouteName: 'Login',
     // navigationOptions: () => ({
     //   headerTitleStyle: {
     //     fontWeight: 'normal',
@@ -33,17 +37,14 @@ const LoginNav = StackNavigator(
 );
 
 export default class RootNavigator extends React.Component {
+    constructor(props){
+        super(props);
+        //console.log(props.loggedIn);
+    }
+
   componentDidMount() {
     this._notificationSubscription = this._registerForPushNotifications();
-      let config = {
-          apiKey: "AIzaSyCSDDrtqnaP6YkRHQqZZ3Bd8BSGvANDPDA",
-          authDomain: "tinko-64673.firebaseapp.com",
-          databaseURL: "https://tinko-64673.firebaseio.com",
-          projectId: "tinko-64673",
-          storageBucket: "tinko-64673.appspot.com",
-          messagingSenderId: "793640773525"
-      };
-      firebase.initializeApp(config);
+
 
   }
 
@@ -51,30 +52,14 @@ export default class RootNavigator extends React.Component {
     this._notificationSubscription && this._notificationSubscription.remove();
   }
 
-  // renderOption(){
-  //     const user = firebase.auth().currentUser
-  //     if(user){
-  //         return <RootStackNavigator/>;
-  //     } else {
-  //         return <LoginNav/>;
-  //     }
-  //     // firebase.auth().onAuthStateChanged((user) => {
-  //     //     if(user){
-  //     //         console.log('user is logged in');
-  //     //     } else {
-  //     //         console.log('user is not logged in');
-  //     //     }
-  //     // });
-  // }
 
   render() {
-      return <RootStackNavigator/>;
-      // const user = firebase.auth().currentUser
-      // if(user){
-      //     return <RootStackNavigator/>;
-      // } else {
-      //     return <LoginNav/>;
-      // }
+        if(this.props.loggedIn){
+            return <RootStackNavigator/>
+        } else {
+            return <LoginNav/>
+        }
+      //return <RootStackNavigator/>;
   }
 
   _registerForPushNotifications() {

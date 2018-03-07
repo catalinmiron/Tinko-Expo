@@ -3,11 +3,13 @@ import { Platform, StatusBar, StyleSheet, View } from 'react-native';
 import { AppLoading, Asset, Font } from 'expo';
 import { Ionicons } from '@expo/vector-icons';
 import RootNavigation from './navigation/RootNavigation';
+import firebase from "firebase";
 
 
 export default class App extends React.Component {
   state = {
     isLoadingComplete: false,
+    loggedIn:false
   };
 
   render() {
@@ -24,7 +26,7 @@ export default class App extends React.Component {
         <View style={styles.container}>
           {Platform.OS === 'ios' && <StatusBar barStyle="default" />}
           {Platform.OS === 'android' && <View style={styles.statusBarUnderlay} />}
-          <RootNavigation />
+          <RootNavigation loggedIn={this.state.loggedIn}/>
         </View>
       );
     }
@@ -53,7 +55,23 @@ export default class App extends React.Component {
   };
 
   _handleFinishLoading = () => {
-    this.setState({ isLoadingComplete: true });
+      let config = {
+          apiKey: "AIzaSyCSDDrtqnaP6YkRHQqZZ3Bd8BSGvANDPDA",
+          authDomain: "tinko-64673.firebaseapp.com",
+          databaseURL: "https://tinko-64673.firebaseio.com",
+          projectId: "tinko-64673",
+          storageBucket: "tinko-64673.appspot.com",
+          messagingSenderId: "793640773525"
+      };
+      firebase.initializeApp(config);
+      firebase.auth().onAuthStateChanged((user) => {
+        if(user){
+          this.setState({loggedIn:true});
+        } else {
+          this.setState({loggedIn:false});
+        }
+          this.setState({ isLoadingComplete: true });
+      });
   };
 }
 
