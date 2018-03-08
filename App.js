@@ -9,7 +9,9 @@ import firebase from "firebase";
 export default class App extends React.Component {
   state = {
     isLoadingComplete: false,
-    loggedIn:false
+    loggedIn:false,
+      firstTimeLoading:true
+
   };
 
   render() {
@@ -26,7 +28,9 @@ export default class App extends React.Component {
         <View style={styles.container}>
           {Platform.OS === 'ios' && <StatusBar barStyle="default" />}
           {Platform.OS === 'android' && <View style={styles.statusBarUnderlay} />}
-          <RootNavigation loggedIn={this.state.loggedIn}/>
+          <RootNavigation
+              loggedIn={this.state.loggedIn}
+              handleUserLoggedIn={this.handleUserLoggedIn.bind(this)}/>
         </View>
       );
     }
@@ -66,13 +70,18 @@ export default class App extends React.Component {
       firebase.initializeApp(config);
       firebase.auth().onAuthStateChanged((user) => {
         if(user){
-          this.setState({loggedIn:true});
+            if(this.state.firstTimeLoading){
+                this.setState({firstTimeLoading:false, isLoadingComplete: true, loggedIn:true});
+            }
         } else {
-          this.setState({loggedIn:false});
+            this.setState({firstTimeLoading:false, isLoadingComplete: true, loggedIn:false});
         }
-          this.setState({ isLoadingComplete: true });
       });
   };
+
+  handleUserLoggedIn(){
+      this.setState({loggedIn:true});
+  }
 }
 
 const styles = StyleSheet.create({

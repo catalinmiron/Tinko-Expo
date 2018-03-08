@@ -1,11 +1,12 @@
 import { Notifications } from 'expo';
 import React from 'react';
 import { StackNavigator } from 'react-navigation';
-
-import MainTabNavigator from './MainTabNavigator';
 import LoginScreen from '../screens/login/LoginScreen';
+import MainTabNavigator from './MainTabNavigator';
+import SignInScreen from '../screens/login/SignInScreen';
+import RegisterScreen from '../screens/login/RegisterScreen';
 
-const LoginStackNavigator = StackNavigator(
+export default LoginStackNavigator = StackNavigator(
     {
         Login: {
             screen: LoginScreen,
@@ -14,6 +15,13 @@ const LoginStackNavigator = StackNavigator(
                 header: false
             }),
         },
+        SignIn: {
+            screen:SignInScreen,
+        },
+        Register:{
+            screen:RegisterScreen,
+            mode:'modal'
+        }
     },{
         initialRouteName: 'Login',
     }, {
@@ -25,10 +33,13 @@ const LoginStackNavigator = StackNavigator(
     }
 );
 
-export default class LoginNavigator extends React.Component {
-
-    render() {
-        return <LoginStackNavigator />;
-    }
-
-}
+// export default class LoginNavigator extends React.Component {
+//     constructor(props){
+//         super(props);
+//         console.log(props);
+//     }
+//     render() {
+//         return <LoginStackNavigator />;
+//     }
+//
+// }

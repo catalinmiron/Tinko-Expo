@@ -5,41 +5,12 @@ import { StackNavigator } from 'react-navigation';
 import MainTabNavigator from './MainTabNavigator';
 import LoginNavigator from './LoginNavigaor';
 import registerForPushNotificationsAsync from '../api/registerForPushNotificationsAsync';
-import firebase from 'firebase';
 
-const RootStackNavigator = StackNavigator(
-  {
-
-      Main: {
-          screen: MainTabNavigator,
-      },
-      // Login: {
-      //     screen: LoginNavigator,
-      // },
-
-  },
-  {
-     // initialRouteName: 'Login',
-    // navigationOptions: () => ({
-    //   headerTitleStyle: {
-    //     fontWeight: 'normal',
-    //   },
-    // }),
-  }
-);
-
-const LoginNav = StackNavigator(
-    {
-        Login: {
-            screen: LoginNavigator,
-        },
-    }
-);
 
 export default class RootNavigator extends React.Component {
     constructor(props){
         super(props);
-        //console.log(props.loggedIn);
+        console.log(props);
     }
 
   componentDidMount() {
@@ -55,9 +26,9 @@ export default class RootNavigator extends React.Component {
 
   render() {
         if(this.props.loggedIn){
-            return <RootStackNavigator/>
+            return <MainTabNavigator/>
         } else {
-            return <LoginNav/>
+            return <LoginNavigator screenProps={this.props}/>
         }
       //return <RootStackNavigator/>;
   }
