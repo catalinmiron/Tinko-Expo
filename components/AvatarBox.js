@@ -8,7 +8,7 @@ export default class AvatarBox extends React.Component {
                 <Image
                     style={styles.image}
                     source={require('../assets/images/snapchat.jpg')}/>
-                <Text style={{marginTop:10,fontSize:22,color:"rgb(54,53,59)",fontWeight:"bold"}}>Danielvs</Text>
+                <Text style={{marginTop:5,fontSize:22,color:"rgb(54,53,59)",fontWeight:"bold"}}>Danielvs</Text>
             </View>
         );
     }

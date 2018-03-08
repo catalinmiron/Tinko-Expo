@@ -16,8 +16,7 @@ import firebase from 'firebase'
 
 export default class LoginScreen extends React.Component {
     static navigationOptions = {
-        //header: null,
-        title: 'login'
+        header: null
     };
 
     async logInFB() {
