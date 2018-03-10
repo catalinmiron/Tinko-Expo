@@ -11,9 +11,11 @@
     "@expo/samples": "2.1.1",
     "expo": "^25.0.0",
     "firebase": "^4.10.1",
+    "native-base": "^2.3.10",
     "react": "16.2.0",
     "react-native": "https://github.com/expo/react-native/archive/sdk-25.0.0.tar.gz",
-    "react-native-elements": "beta",
+    "react-native-elements": "^1.0.0-beta2",
+    "react-native-gifted-chat": "^0.4.1",
     "react-navigation": "^1.4.0",
     "socket.io-client": "^2.0.4"
   },

@@ -27,19 +27,19 @@ export default class FriendDiv extends Component {
             sqlRows: [],
             loadCache:false
         };
-        db.transaction(tx => {
-            tx.executeSql(
-                'create table if not exists friend_list (id integer primary key not null, userId int, avatarUrl text , username text);'
-            );
-        });
+        this.initTable();
     }
 
     // firestore 获取数据   之后全部从sqlite获取
     insertFriendList(){
         let db = firebase.firestore();
         let list = [];
-        let docRef = db.collection("Users").doc("107771053169905").collection("Friends_List");
+        let user = firebase.auth().currentUser;
+        let uid = user.providerData[0].uid;
+        let docRef = db.collection("Users").doc(uid).collection("Friends_List");
         docRef.get().then((querySnapshot)=>{
+            this.deleteTable();
+            this.initTable();
             querySnapshot.forEach((doc)=>{
                 if ('email' in doc.data()){
                     if (doc.data().username!==undefined){
@@ -49,10 +49,8 @@ export default class FriendDiv extends Component {
                             title:doc.data().username
                         };
                         list.push(mapping);
-                        if (friendList.indexOf(mapping.key) === -1){
-                           this.insertSql(mapping.key,mapping.avatar,mapping.title);
-                           needReRender = true;
-                        }
+                        this.insertSql(mapping.key,mapping.avatar,mapping.title);
+                        needReRender = true;
                     }
                 }
             });
@@ -62,6 +60,26 @@ export default class FriendDiv extends Component {
                 });
             }
         });
+    }
+
+    deleteTable(){
+        db.transaction(
+            tx => {
+                tx.executeSql('drop table friend_list');
+            },
+            null,
+            this.update
+        );
+    }
+
+    initTable(){
+        db.transaction(
+            tx => {
+                tx.executeSql('create table if not exists friend_list (id integer primary key not null, userId int, avatarUrl text , username text);');
+            },
+            null,
+            this.update
+        );
     }
 
     insertSql(friendId,avatarUrl,friendName){
