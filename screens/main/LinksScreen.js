@@ -72,7 +72,7 @@ export default class FriendChatListView extends Component {
     getData(){
         db.transaction(
             tx => {
-                tx.executeSql('SELECT MAX(id) id FROM db'+uid+" GROUP BY fromId", [], (_, { rows }) => {
+                tx.executeSql("SELECT id,msg,toId,fromId From db"+uid+"  where id = ANY(SELECT MAX(id) FROM db"+uid+" GROUP BY fromId)", [], (_, { rows }) => {
                     console.log(rows['_array']);
                     lastUpdateArr = rows['_array'];
                 });
@@ -85,13 +85,6 @@ export default class FriendChatListView extends Component {
     render() {
         return (
             <Content>
-                <Header searchBar rounded>
-                    <Item>
-                        <Icon name="ios-search" />
-                        <Input placeholder="Search" />
-                        <Icon name="ios-people" />
-                    </Item>
-                </Header>
                 <List>
                     <ListItem avatar>
                         <Left>
