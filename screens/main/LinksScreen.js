@@ -4,44 +4,77 @@ import React, {
 import {
     View,Text,StyleSheet
 } from 'react-native'
-import { Container, Header, Content, List, ListItem, Left, Body, Right, Thumbnail } from 'native-base';
+import { Container, Header, Content, List, ListItem, Left, Body, Right, Thumbnail, Item, Input, Icon, Button} from 'native-base';
 import SocketIOClient from 'socket.io-client';
 import Expo, { SQLite } from 'expo';
+import FriendListView from '../../components/FriendListView';
+import * as firebase from "firebase";
 
 const db = SQLite.openDatabase('db.db');
 
 require("firebase/firestore");
 
 let friendList = [];
+let uid = "";
+let lastUpdateArr = [];
 
-export default class FriendListView extends Component {
+export default class FriendChatListView extends Component {
 
     constructor(){
         super();
+        let user = firebase.auth().currentUser;
+        uid = user.providerData[0].uid;
+        // this.dropTable();
+        this.initTable();
+        // this.insertSql("123321","你好1");
+        // this.insertSql("123321","你好2");
+        // this.insertSql("123321","你好3");
+        // this.insertSql("123333","你好1");
+        // this.insertSql("123333","你好2");
+        // this.insertSql("12331","你好3");
+        this.getData();
         this.state = {
             messages: [],
             sqlRows:[]
         };
     }
 
-    getSql(){
+    dropTable(){
         db.transaction(
             tx => {
-                tx.executeSql('select * from friend_list', [], (_, { rows }) => {
-                    let dataArr =  rows['_array'],
-                        rtnArr = [];
-                    for (let i = 0; i <dataArr.length;i++){
-                        rtnArr.push({
-                            avatar:dataArr[i].avatarUrl,
-                            key:dataArr[i].userId,
-                            title:dataArr[i].username
-                        });
-                        friendList.push(dataArr[i].userId)
-                    }
-                    this.setState({
-                        sqlRows: rtnArr,
-                        loadCache: true
-                    });
+                tx.executeSql('drop table db'+ uid);
+            },
+            null,
+            this.update
+        );
+    }
+
+    initTable(){
+        db.transaction(
+            tx => {
+                tx.executeSql('create table if not exists db'+ uid +' (id integer primary key not null , fromId int, msg text , status int);');
+            },
+            null,
+            this.update
+        );
+    }
+
+    insertSql(fromId,msg){
+        db.transaction(
+            tx => {
+                tx.executeSql("INSERT INTO db"+uid+"(fromId,msg,status) VALUES (?,?,?)",[fromId,msg,0]);
+            },
+            null,
+            this.update
+        );
+    }
+
+    getData(){
+        db.transaction(
+            tx => {
+                tx.executeSql('SELECT MAX(id) id FROM db'+uid+" GROUP BY fromId", [], (_, { rows }) => {
+                    console.log(rows['_array']);
+                    lastUpdateArr = rows['_array'];
                 });
             },
             null,
@@ -50,28 +83,19 @@ export default class FriendListView extends Component {
     }
 
     render() {
-        // let friendList = [];
-        // if (this.state.sqlRows.length === 0){
-        //     this.getSql();
-        // }else{
-        //     for (let i = 0;i<this.state.sqlRows.length ; i++){
-        //         friendList.push(
-        //             <ListItem
-        //                 roundAvatar
-        //                 avatar={this.state.sqlRows[i].avatar}
-        //                 key={this.state.sqlRows[i].key}
-        //                 title={this.state.sqlRows[i].title}
-        //                 subtitle={"https://s3.amazonaws.com/uifaces/faces/twitter/adhamdannaway/128.jpg"}
-        //             />
-        //         )
-        //     }
-        // }
         return (
-            <Content style={{marginTop:60}}>
+            <Content>
+                <Header searchBar rounded>
+                    <Item>
+                        <Icon name="ios-search" />
+                        <Input placeholder="Search" />
+                        <Icon name="ios-people" />
+                    </Item>
+                </Header>
                 <List>
                     <ListItem avatar>
                         <Left>
-                            <Thumbnail source={{ uri: 'https://s3.amazonaws.com/uifaces/faces/twitter/adhamdannaway/128.jpg' }} />
+                            <Thumbnail source={{ uri: 'Image URL' }} />
                         </Left>
                         <Body>
                         <Text>Kumar Pratik</Text>

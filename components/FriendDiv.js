@@ -75,7 +75,7 @@ export default class FriendDiv extends Component {
     initTable(){
         db.transaction(
             tx => {
-                tx.executeSql('create table if not exists friend_list (id integer primary key not null, userId int, avatarUrl text , username text);');
+                tx.executeSql('create table if not exists friend_list (id integer primary key not null , userId int, avatarUrl text , username text);');
             },
             null,
             this.update
