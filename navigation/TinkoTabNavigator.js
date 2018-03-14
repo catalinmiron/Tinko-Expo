@@ -42,7 +42,7 @@ export default class LoginTabNavigator extends React.Component {
                                 headerStyle:{ position: 'absolute',
                                         backgroundColor: 'transparent',
                                                 zIndex: 100, top: 0, left: 0, right: 0,
-                                    boarderBottomWidth: 0,
+                                    borderBottomWidth: 0,
                                     borderBottomColor: 'transparent',
                                             shadowColor: 'transparent',
                                                 elevation:0,

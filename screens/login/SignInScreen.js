@@ -13,7 +13,7 @@ const SCREEN_HEIGHT = Dimensions.get('window').height;
 const BG_IMAGE = require('../../assets/images/bg_screen1.jpg');
 
 export default class SignInScreen extends Component {
-    static navigationOptions = {headerStyle:{ position: 'absolute', backgroundColor: 'transparent', zIndex: 100, top: 0, left: 0, right: 0, boarderBottomWidth: 0,borderBottomColor: 'transparent',shadowColor: 'transparent', elevation:0, shadowOpacity: 0 }};
+    static navigationOptions = {headerStyle:{ position: 'absolute', backgroundColor: 'transparent', zIndex: 100, top: 0, left: 0, right: 0, borderBottomWidth: 0,borderBottomColor: 'transparent',shadowColor: 'transparent', elevation:0, shadowOpacity: 0 }};
 
     constructor(props) {
         super(props);
