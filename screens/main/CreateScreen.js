@@ -24,6 +24,7 @@ import {
 } from 'react-native-elements';
 import  DatePicker from 'react-native-datepicker';
 import {Font} from "expo";
+import { NavigationActions } from 'react-navigation';
 
 const SCREEN_WIDTH = Dimensions.get('window').width;
 
@@ -64,6 +65,8 @@ export default class CreateScreen extends React.Component {
     }
 
     async componentDidMount() {
+        this.props.navigation.setParams({post:this.onPostButtonPressed.bind(this), cancel:this.onCancelButtonPressed.bind(this)});
+
         await Font.loadAsync({
             'georgia': require('../../assets/fonts/Georgia.ttf'),
             'regular': require('../../assets/fonts/Montserrat-Regular.ttf'),
@@ -88,16 +91,13 @@ export default class CreateScreen extends React.Component {
     };
 
     onPostButtonPressed(){
-        this.props.navigation.goBack();
+        this.props.navigation.dispatch(NavigationActions.back())
     }
 
     onCancelButtonPressed(){
-        this.props.navigation.goBack();
+        this.props.navigation.dispatch(NavigationActions.back())
     }
 
-    componentDidMount(){
-        this.props.navigation.setParams({post:this.onPostButtonPressed.bind(this), cancel:this.onCancelButtonPressed.bind(this)});
-    }
 
     render() {
         const {title, startTime, placeName, description, inputHeight} = this.state;
@@ -165,6 +165,7 @@ export default class CreateScreen extends React.Component {
                         <ListItem
                             containerStyle={styles.listStyle}
                             title='Invitation Range'
+                            onPress={() => this.props.navigation.navigate('InvitationRange')}
                         />
                         <ListItem
                             containerStyle={styles.listStyle}
