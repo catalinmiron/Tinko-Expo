@@ -2,7 +2,6 @@ import { Notifications } from 'expo';
 import React from 'react';
 import { StackNavigator } from 'react-navigation';
 import LoginScreen from '../screens/login/LoginScreen';
-import MainTabNavigator from './MainTabNavigator';
 import SignInScreen from '../screens/login/SignInScreen';
 import RegisterScreen from '../screens/login/RegisterScreen';
 
@@ -24,6 +23,11 @@ export default LoginStackNavigator = StackNavigator(
         }
     },{
         initialRouteName: 'Login',
+        transitionConfig : () => ({
+            transitionSpec: {
+                duration: 0,
+            },
+        }),
     }, {
         headerMode:'screen',
         navigationOptions: {

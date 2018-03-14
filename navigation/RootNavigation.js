@@ -1,5 +1,6 @@
 import { Notifications } from 'expo';
 import React from 'react';
+import { StyleSheet, SafeAreaView } from 'react-native';
 import { StackNavigator } from 'react-navigation';
 
 import MainTabNavigator from './MainTabNavigator';
@@ -10,7 +11,6 @@ import registerForPushNotificationsAsync from '../api/registerForPushNotificatio
 export default class RootNavigator extends React.Component {
     constructor(props){
         super(props);
-        console.log(props);
     }
 
   componentDidMount() {
@@ -27,6 +27,10 @@ export default class RootNavigator extends React.Component {
   render() {
         if(this.props.loggedIn){
             return <MainTabNavigator/>
+            // return (
+            //     <SafeAreaView style={styles.safeArea}>
+            //         <MainTabNavigator/>
+            //     </SafeAreaView>)
         } else {
             return <LoginNavigator screenProps={this.props}/>
         }
@@ -48,3 +52,4 @@ export default class RootNavigator extends React.Component {
     console.log(`Push notification ${origin} with data: ${JSON.stringify(data)}`);
   };
 }
+

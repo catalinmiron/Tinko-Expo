@@ -13,6 +13,7 @@ import {
 import FullButton from '../../components/FullButton';
 import { Facebook } from 'expo';
 import firebase from 'firebase'
+import { NavigationActions } from 'react-navigation';
 import MainTabNavigator from '../../navigation/MainTabNavigator';
 
 export default class LoginScreen extends React.Component {
@@ -22,6 +23,16 @@ export default class LoginScreen extends React.Component {
 
     constructor(props){
         super(props);
+    }
+
+    resetNavigation(targetRoute, email) {
+        const resetAction = NavigationActions.reset({
+            index: 0,
+            actions: [
+                NavigationActions.navigate({ routeName: targetRoute, params: {email: email} }),
+            ],
+        });
+        this.props.navigation.dispatch(resetAction);
     }
 
     initializeNewUser = async (token, uid) => {
@@ -36,6 +47,8 @@ export default class LoginScreen extends React.Component {
         const {email} = dict;
         console.log(email);
 
+        this.resetNavigation('Register', email);
+
         fetch('https://us-central1-tinko-64673.cloudfunctions.net/initializeNewUser', {
             method:'POST',
             headers: {
@@ -45,7 +58,7 @@ export default class LoginScreen extends React.Component {
             body: JSON.stringify(dict),
         }).then ((response) => {
             console.log(response);
-            this.props.navigation.navigate('Register', {email:email});
+
         }).catch((error) => {
             console.log(error);
             Alert.alert('Error ' + error);

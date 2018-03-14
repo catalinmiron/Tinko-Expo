@@ -1,19 +1,64 @@
 import React, { Component } from 'react';
-import {StyleSheet , View , Text ,Image ,TouchableWithoutFeedback, Alert, Button, TextInput} from 'react-native';
-//import { Container, Header, Content, Form, Item, Input, Label ,Button} from 'native-base';
-import firebase from 'firebase'
+import {StyleSheet, Text, View, ImageBackground, Dimensions, TouchableWithoutFeedback, Alert} from 'react-native';
+import { Input, Button } from 'react-native-elements'
+
+import {Facebook, Font} from 'expo';
+import firebase from "firebase";
+//import Icon from 'react-native-vector-icons/FontAwesome';
+
+const SCREEN_WIDTH = Dimensions.get('window').width;
+const SCREEN_HEIGHT = Dimensions.get('window').height;
+
+const BG_IMAGE = require('../../assets/images/bg_screen1.jpg');
+
 
 export default class RegisterScreen extends Component {
-    static navigationOptions = { header: null,gesturesEnabled: false,animationEnabled: false };
+    static navigationOptions = ({ navigation }) => {
+        const params = navigation.state.params || {};
+
+        return {
+            headerRight:(<Button text='SKIP' buttonStyle={{backgroundColor: 'transparent', borderWidth: 0,}} onPress={params.skip}/>),
+            headerStyle:{ position: 'absolute', backgroundColor: 'transparent', zIndex: 100, top: 0, left: 0, right: 0, headerLeft:null, boarderBottomWidth: 0,borderBottomColor: 'transparent',}
+        };
+    };
+
+
 
     constructor(props) {
         super(props);
-        this.state = {email: props.navigation.state.params.email, password: '', repeatPassword:''};
+        console.log(props)
+        this.state = {
+            fontLoaded: false,
+            email: props.navigation.state.params.email,
+            email_valid: true,
+            password: '',
+            login_failed: false,
+            showLoading: false,
+            repeatPassword: ''
+        };
     }
 
+    skipRegister(){
+        this.props.screenProps.handleUserLoggedIn();
+    }
+
+    async componentDidMount() {
+        this.props.navigation.setParams({skip:this.skipRegister.bind(this)});
+        await Font.loadAsync({
+            'georgia': require('../../assets/fonts/Georgia.ttf'),
+            'regular': require('../../assets/fonts/Montserrat-Regular.ttf'),
+            'light': require('../../assets/fonts/Montserrat-Light.ttf'),
+            'bold': require('../../assets/fonts/Montserrat-Bold.ttf'),
+        });
+
+        this.setState({ fontLoaded: true });
+    }
+
+
+
     onRegisterButtonPressed(){
-        //console.log(this.state.email);
-        //console.log(this.state.password);
+        //console.log('onRegisterButtonPressed')
+        this.setState({ showLoading: true });
         const {email, password, repeatPassword} = this.state;
         if(password.localeCompare(repeatPassword)===0){
             //Alert.alert('Good', 'Password are same');
@@ -23,87 +68,169 @@ export default class RegisterScreen extends Component {
                     console.log("Account linking success", user);
                     this.props.screenProps.handleUserLoggedIn();
                 }).catch((error) => {
-                    Alert.alert("Email Linking Failed", error);
-                });
+                Alert.alert("Email Linking Failed", error);
+            });
         } else {
+            this.setState({ showLoading: false });
             Alert.alert('Error', 'Password are not same');
         }
 
     }
 
 
+
     render() {
+        const { email, password, email_valid, showLoading, repeatPassword } = this.state;
+
         return (
-            <View>
-                <Text>hold</Text>
-                <Text>hold</Text>
-                <Text>hold</Text>
-                <Text>hold</Text>
-                <Text>hold</Text>
-                <TouchableWithoutFeedback onPress={() => this.props.screenProps.handleUserLoggedIn()}>
-                    <Text>Skip</Text>
-                </TouchableWithoutFeedback>
-                <Text>hold</Text>
-                <Text>hold</Text>
-                <Text>hold</Text>
-                <Text>hold</Text>
-                <Text>hold</Text>
-                <TextInput
-                    onChangeText={(email)=>this.setState({email})}
-                    value={this.state.email}/>
-                <Text>hold</Text>
-                <Text>hold</Text>
-                <Text>hold</Text>
-                <Text>hold</Text>
-                <Text>hold</Text>
-                <TextInput onChangeText={(password)=>this.setState({password})}/>
-                <Text>hold</Text>
-                <Text>hold</Text>
-                <Text>hold</Text>
-                <Text>hold</Text>
-                <Text>hold</Text>
-                <TextInput onChangeText={(repeatPassword)=>this.setState({repeatPassword})}/>
-                <Text>hold</Text>
-                <Text>hold</Text>
-                <Text>hold</Text>
-                <Text>hold</Text>
-                <Text>hold</Text>
-                <Button
-                    onPress={() => this.onRegisterButtonPressed()}
-                    title="Register"
-                    color="#841584"
-                />
-                {/*<Form style={styles.form}>*/}
-                {/*<Item stackedLabel>*/}
-                {/*<Label>Email</Label>*/}
-                {/*<Input onChangeText={(email) => this.setState({email})}/>*/}
-                {/*</Item>*/}
-                {/*<Item stackedLabel last>*/}
-                {/*<Label>Password</Label>*/}
-                {/*<Input*/}
-                {/*onChangeText={(password) => this.setState({password})}*/}
-                {/*secureTextEntry={true}/>*/}
-                {/*</Item>*/}
-                {/*</Form>*/}
-                {/*<Button*/}
-                {/*block info style={styles.btn}*/}
-                {/*onPress={() => this.onSignInButtonPressed()}>*/}
-                {/*<Text style={{color:"white"}}>Login</Text>*/}
-                {/*</Button>*/}
+            <View style={styles.container}>
+                <ImageBackground
+                    source={BG_IMAGE}
+                    style={styles.bgImage}
+                >
+                    { this.state.fontLoaded ?
+                        <View style={styles.loginView}>
+                            <View style={styles.loginTitle}>
+                                <Text style={styles.travelText}>TINKO</Text>
+                            </View>
+                            <View style={styles.loginInput}>
+                                <View style={{marginVertical: 10}}>
+                                    <Input
+                                        width={230}
+                                        onChangeText={email => this.setState({email})}
+                                        value={email}
+                                        inputStyle={{marginLeft: 10, color: 'white'}}
+                                        keyboardAppearance="light"
+                                        placeholder="Email"
+                                        autoFocus={false}
+                                        autoCapitalize="none"
+                                        autoCorrect={false}
+                                        keyboardType="email-address"
+                                        returnKeyType="next"
+                                        ref={ input => this.emailInput = input }
+                                        onSubmitEditing={() => {
+                                            this.passwordInput.focus();
+                                        }}
+                                        blurOnSubmit={false}
+                                        placeholderTextColor="white"
+                                        displayError={!email_valid}
+                                        errorStyle={{textAlign: 'center', fontSize: 12}}
+                                        errorMessage="Please enter a valid email address"
+                                    />
+                                </View>
+                                <View style={{marginVertical: 10}}>
+                                    <Input
+                                        width={230}
+                                        onChangeText={(password) => this.setState({password})}
+                                        value={password}
+                                        inputStyle={{marginLeft: 10, color: 'white'}}
+                                        secureTextEntry={true}
+                                        keyboardAppearance="light"
+                                        placeholder="Password"
+                                        autoCapitalize="none"
+                                        autoCorrect={false}
+                                        keyboardType="default"
+                                        returnKeyType="done"
+                                        ref={ input => this.passwordInput = input}
+                                        blurOnSubmit={true}
+                                        placeholderTextColor="white"
+                                        displayError={false}
+                                        errorStyle={{textAlign: 'center', fontSize: 12}}
+                                        errorMessage="The email and password you entered did not match out records. Please try again!"
+                                    />
+                                </View>
+                                <View style={{marginVertical: 10}}>
+                                    <Input
+                                        width={230}
+                                        onChangeText={(repeatPassword) => this.setState({repeatPassword})}
+                                        value={repeatPassword}
+                                        inputStyle={{marginLeft: 10, color: 'white'}}
+                                        secureTextEntry={true}
+                                        keyboardAppearance="light"
+                                        placeholder="Repeat Password"
+                                        autoCapitalize="none"
+                                        autoCorrect={false}
+                                        keyboardType="default"
+                                        returnKeyType="done"
+                                        ref={ input => this.passwordInput = input}
+                                        blurOnSubmit={true}
+                                        placeholderTextColor="white"
+                                        displayError={false}
+                                        errorStyle={{textAlign: 'center', fontSize: 12}}
+                                        errorMessage="The email and password you entered did not match out records. Please try again!"
+                                    />
+                                </View>
+                                <View style={{marginVertical: 10}}>
+                                    <Button
+                                        text ='REGISTER'
+                                        activeOpacity={1}
+                                        underlayColor="transparent"
+                                        onPress={() => this.onRegisterButtonPressed()}
+                                        loading={showLoading}
+                                        loadingProps={{size: 'small', color: 'white'}}
+                                        disabled={ !email_valid && password.length < 8}
+                                        buttonStyle={{height: 50, width: 250, backgroundColor: 'transparent', borderWidth: 2, borderColor: 'white', borderRadius: 30}}
+                                        containerStyle={{marginVertical: 10}}
+                                        textStyle={{fontWeight: 'bold', color: 'white'}}
+                                    />
+                                </View>
+                            </View>
+
+                        </View> :
+                        <Text>Loading...</Text>
+                    }
+                </ImageBackground>
             </View>
         );
     }
 }
 
 const styles = StyleSheet.create({
-    returnBtn: {
-        marginTop:30,
-        marginLeft:5
+    container: {
+        flex: 1
     },
-    form: {
-        marginTop:10
+    bgImage: {
+        flex: 1,
+        top: 0,
+        left: 0,
+        width: SCREEN_WIDTH,
+        height: SCREEN_HEIGHT,
+        justifyContent: 'center',
+        alignItems: 'center'
     },
-    btn: {
-        marginTop:20
+    loginView: {
+        marginTop: 0,
+        backgroundColor: 'transparent',
+        width: 250,
+        height: 350,
+        justifyContent: 'center',
+        alignItems: 'center'
+    },
+    loginTitle: {
+        flex: 1,
+    },
+    travelText: {
+        color: 'white',
+        fontSize: 30,
+        fontFamily: 'bold'
+    },
+    plusText: {
+        color: 'white',
+        fontSize: 30,
+        fontFamily: 'regular'
+    },
+    loginInput: {
+        flex: 1,
+        justifyContent: 'center',
+        alignItems: 'center'
+    },
+    loginButton: {
+        flex: 1,
+    },
+    footerView: {
+        marginTop: 20,
+        flex: 0.5,
+        justifyContent: 'center',
+        alignItems: 'center',
     }
 });

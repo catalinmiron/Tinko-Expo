@@ -1,24 +1,28 @@
 import React from 'react';
 import { Platform } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
-import { TabNavigator, TabBarBottom } from 'react-navigation';
+import { TabNavigator, TabBarBottom, StackNavigator } from 'react-navigation';
 
 import Colors from '../constants/Colors';
 
 import HomeScreen from '../screens/main/HomeScreen';
 import LinksScreen from '../screens/main/LinksScreen';
 import SettingsScreen from '../screens/main/SettingsScreen';
+import MeNavigator from './MeNavigator';
+import TinkoTabNavigator from './TinkoTabNavigator';
+import CreateScreen from '../screens/main/CreateScreen';
+import GooglePlacesInputScreen from '../screens/main/common/GooglePlacesInput';
 
-export default TabNavigator(
+const MainTabNavigator = TabNavigator(
   {
     Home: {
-      screen: HomeScreen,
+      screen: TinkoTabNavigator,
     },
     Links: {
       screen: LinksScreen,
     },
     Settings: {
-      screen: SettingsScreen,
+      screen: MeNavigator,
     },
   },
   {
@@ -55,4 +59,21 @@ export default TabNavigator(
     animationEnabled: false,
     swipeEnabled: false,
   }
+);
+
+export default StackNavigator(
+    {
+        Main: {
+            screen: MainTabNavigator,
+        },
+        Create: {
+            screen: CreateScreen,
+        },
+        GooglePlacesAutocomplete: {
+            screen: GooglePlacesInputScreen,
+        }
+    },
+    {
+        mode: 'modal',
+    }
 );
