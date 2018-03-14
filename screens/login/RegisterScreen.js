@@ -18,7 +18,7 @@ export default class RegisterScreen extends Component {
 
         return {
             headerRight:(<Button text='SKIP' buttonStyle={{backgroundColor: 'transparent', borderWidth: 0,}} onPress={params.skip}/>),
-            headerStyle:{ position: 'absolute', backgroundColor: 'transparent', zIndex: 100, top: 0, left: 0, right: 0, headerLeft:null, boarderBottomWidth: 0,borderBottomColor: 'transparent',}
+            headerStyle:{ position: 'absolute', backgroundColor: 'transparent', zIndex: 100, top: 0, left: 0, right: 0, headerLeft:null, boaderBottomWidth: 0,borderBottomColor: 'transparent',}
         };
     };
 
