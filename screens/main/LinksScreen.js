@@ -2,21 +2,24 @@ import React, {
     Component
 } from 'react'
 import {
-    View,Text,StyleSheet
+    TouchableWithoutFeedback,Text,StyleSheet
 } from 'react-native'
-import { Container, Header, Content, List, ListItem, Left, Body, Right, Thumbnail, Item, Input, Icon, Button} from 'native-base';
-import SocketIOClient from 'socket.io-client';
+import {Content, List, ListItem, Left, Body, Right, Thumbnail } from 'native-base';
 import Expo, { SQLite } from 'expo';
-import FriendListView from '../../components/FriendListView';
 import * as firebase from "firebase";
+import {GiftedChat} from "react-native-gifted-chat";
 
 const db = SQLite.openDatabase('db.db');
 
 require("firebase/firestore");
+import SocketIOClient from 'socket.io-client';
 
 let friendList = [];
 let uid = "";
-let lastUpdateArr = [];
+let lastUpdateArr = [],
+    personalInfo = {},
+    alreadyInList = [];
+
 
 export default class FriendChatListView extends Component {
 
@@ -24,45 +27,40 @@ export default class FriendChatListView extends Component {
         super();
         let user = firebase.auth().currentUser;
         uid = user.providerData[0].uid;
-        // this.dropTable();
-        this.initTable();
-        // this.insertSql("123321","你好1");
-        // this.insertSql("123321","你好2");
-        // this.insertSql("123321","你好3");
-        // this.insertSql("123333","你好1");
-        // this.insertSql("123333","你好2");
-        // this.insertSql("12331","你好3");
+        this.socket = SocketIOClient('http://127.0.0.1:3333');
+        this.getAvatar();
         this.getData();
         this.state = {
             messages: [],
-            sqlRows:[]
+            friendInfo:[]
         };
+        this.socket.on("connect" + uid,msg=>{
+            let data = JSON.parse(msg);
+            if (alreadyInList.indexOf(data.from) === -1){
+                console.log("not yet");
+            }else{
+              //  lastUpdateArr.push(dataArr[i]);
+                console.log("already has");
+                lastUpdateArr[0].msg = data.message;
+            }
+            this.setState({
+                messages:lastUpdateArr
+            });
+        });
     }
 
-    dropTable(){
+    getAvatar(){
         db.transaction(
             tx => {
-                tx.executeSql('drop table db'+ uid);
-            },
-            null,
-            this.update
-        );
-    }
-
-    initTable(){
-        db.transaction(
-            tx => {
-                tx.executeSql('create table if not exists db'+ uid +' (id integer primary key not null , fromId int, msg text , status int);');
-            },
-            null,
-            this.update
-        );
-    }
-
-    insertSql(fromId,msg){
-        db.transaction(
-            tx => {
-                tx.executeSql("INSERT INTO db"+uid+"(fromId,msg,status) VALUES (?,?,?)",[fromId,msg,0]);
+                tx.executeSql('select * from friend_list', [], (_, { rows }) => {
+                    let dataArr =  rows['_array'];
+                    for (let i = 0;i<dataArr.length;i++){
+                        personalInfo[dataArr[i].userId] = [dataArr[i].avatarUrl,dataArr[i].username];
+                    }
+                    this.setState({
+                        friendInfo:personalInfo
+                    });
+                });
             },
             null,
             this.update
@@ -72,9 +70,19 @@ export default class FriendChatListView extends Component {
     getData(){
         db.transaction(
             tx => {
-                tx.executeSql("SELECT id,msg,toId,fromId From db"+uid+"  where id = ANY(SELECT MAX(id) FROM db"+uid+" GROUP BY fromId)", [], (_, { rows }) => {
-                    console.log(rows['_array']);
-                    lastUpdateArr = rows['_array'];
+                tx.executeSql('select * from db'+uid, [], (_, { rows }) => {
+                    let dataArr =  rows['_array'];
+                    for (let i = dataArr.length-1;i>0;i--){
+                        if (alreadyInList.indexOf(dataArr[i].fromId) === -1){
+                            alreadyInList.push(dataArr[i].fromId);
+                            let time = dataArr[i].timeStamp.split(" ")[1].split(":");
+                            dataArr[i].postTime = time[0]+":"+time[1];
+                            lastUpdateArr.push(dataArr[i]);
+                        }
+                    }
+                    this.setState({
+                        messages:lastUpdateArr
+                    });
                 });
             },
             null,
@@ -83,21 +91,32 @@ export default class FriendChatListView extends Component {
     }
 
     render() {
+        let friendList = [];
+        if (this.state.messages.length!==0&&this.state.friendInfo.length!==0){
+            for (let i = 0;i<this.state.messages.length ; i++){
+                let personalId = this.state.messages[i].fromId,
+                    ImageURL = this.state.friendInfo[personalId][0],
+                    PersonName = this.state.friendInfo[personalId][1];
+                friendList.push(
+                    <TouchableWithoutFeedback key={personalId}>
+                        <ListItem>
+                            <Thumbnail size={60} source={{ uri: ImageURL }} />
+                            <Body style={{left:10}}>
+                            <Text>{PersonName}</Text>
+                            <Text note>{this.state.messages[i].msg}</Text>
+                            </Body>
+                            <Right>
+                                <Text note>{this.state.messages[i].postTime}</Text>
+                            </Right>
+                        </ListItem>
+                    </TouchableWithoutFeedback>
+                );
+            }
+        }
         return (
             <Content>
                 <List>
-                    <ListItem avatar>
-                        <Left>
-                            <Thumbnail source={{ uri: 'Image URL' }} />
-                        </Left>
-                        <Body>
-                        <Text>Kumar Pratik</Text>
-                        <Text note>Doing what you like will always keep you happy . .</Text>
-                        </Body>
-                        <Right>
-                            <Text note>3:43 pm</Text>
-                        </Right>
-                    </ListItem>
+                    {friendList}
                 </List>
             </Content>
         )

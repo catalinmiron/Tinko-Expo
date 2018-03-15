@@ -5,13 +5,12 @@ import React, {
 import {
     View,Text,StyleSheet
 } from 'react-native'
-import { List, ListItem } from 'react-native-elements';
 import SocketIOClient from 'socket.io-client';
 import { GiftedChat } from 'react-native-gifted-chat'
 
-require("firebase/firestore");
+// require("firebase/firestore");
 
-export default class FriendListView extends Component {
+export default class PrivateChat extends Component {
 
     constructor(){
         super();

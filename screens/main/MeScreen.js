@@ -4,7 +4,7 @@ import Avatar from "../../components/AvatarBox";
 import SettingBox from '../../components/SettingMenu';
 import InfoMenu from '../../components/InfoMenu';
 import CreateStoryButton from '../../components/CreateStoryButton';
-import FriendListView from '../../components/FriendListView';
+import FriendDiv from '../../components/FriendListView';
 import firebase from 'firebase';
 
 
@@ -35,7 +35,7 @@ export default class Me extends React.Component {
                 <SettingBox />
                 <InfoMenu icon={"user-plus"} />
                 <CreateStoryButton/>
-                <FriendListView/>
+                <FriendDiv/>
             </ScrollView>
         );
     }
