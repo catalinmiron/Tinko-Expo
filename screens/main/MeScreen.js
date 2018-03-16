@@ -10,7 +10,6 @@ import firebase from 'firebase';
 
 export default class Me extends React.Component {
     onLogoutButtonPressed(){
-        console.log('before signout')
         firebase.auth().signOut()
         .then(console.log('after signout'))
             .catch((error) => {

@@ -21,6 +21,10 @@ const MainTabNavigator = TabNavigator(
     },
     Links: {
       screen: LinksScreen,
+        header: null,
+        navigationOptions:({navigation}) => ({
+            header: false
+        })
     },
     Settings: {
       screen: MeNavigator,
@@ -59,6 +63,8 @@ const MainTabNavigator = TabNavigator(
     tabBarPosition: 'bottom',
     animationEnabled: false,
     swipeEnabled: false,
+    headerMode: 'none',
+    headerVisible: false,
   }
 );
 

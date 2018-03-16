@@ -2,7 +2,7 @@ import React, {
     Component
 } from 'react'
 import {
-    View,Text,StyleSheet,Image
+    StyleSheet,View
 } from 'react-native'
 import { List, ListItem } from 'react-native-elements'
 import Expo, { SQLite } from 'expo';
@@ -11,6 +11,10 @@ const db = SQLite.openDatabase('db.db');
 
 require("firebase/firestore");
 import SocketIOClient from 'socket.io-client';
+import {
+    StackNavigator
+} from 'react-navigation';
+import PrivateChatScreen from './PrivateChatScreen';
 
 let friendList = [];
 let uid = "";
@@ -18,8 +22,24 @@ let lastUpdateArr = [],
     personalInfo = {},
     alreadyInList = [];
 
+class ChatPage extends Component{
+    static navigationOptions = ({navigation}) => ({
+        title: `${navigation.state.params.name}`,
+    });
+    render() {
+        const { params } = this.props.navigation.state;
+        let avatar = params.avatar,
+            personId = params.personId,
+            myId = params.myId,
+            name = params.name;
+        return (
+            <PrivateChatScreen avatar={avatar} personId={personId} myId = {myId} name={name}/>
+        )
+    }
+}
 
-export default class FriendChatListView extends Component {
+
+class FriendChatListView extends Component {
 
     constructor(){
         super();
@@ -37,7 +57,7 @@ export default class FriendChatListView extends Component {
             if (alreadyInList.indexOf(data.from) === -1){
                 console.log("not yet");
             }else{
-              //  lastUpdateArr.push(dataArr[i]);
+                //  lastUpdateArr.push(dataArr[i]);
                 console.log("already has");
                 lastUpdateArr[0].msg = data.message;
             }
@@ -88,8 +108,8 @@ export default class FriendChatListView extends Component {
         )
     }
 
+
     render() {
-        // const { navigate } = this.props.navigation;
         let friendList = [];
         if (this.state.messages.length!==0&&this.state.friendInfo.length!==0){
             for (let i = 0;i<this.state.messages.length ; i++){
@@ -105,6 +125,12 @@ export default class FriendChatListView extends Component {
                         title={PersonName}
                         subtitle={message}
                         badge={{ value: 3, textStyle: { color: 'orange' }, containerStyle: { marginTop: -20 } }}
+                        onPress={() => this.props.navigation.navigate('PrivateChatPage', {
+                            avatar:ImageURL,
+                            name:PersonName,
+                            personId:personalId,
+                            myId:uid
+                        })}
                     />
                 );
             }
@@ -145,3 +171,18 @@ const styles = StyleSheet.create(
             color: 'grey'
         }
     });
+
+export default StackNavigator({
+    FriendChatListView: {
+        screen: FriendChatListView
+    },
+    PrivateChatPage: {
+        screen: ChatPage,
+
+        navigationOptions: {
+            tabBarVisible: false
+        }
+    }
+},{
+    initialRouteName: 'FriendChatListView',
+});
