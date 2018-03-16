@@ -2,13 +2,11 @@ import React, {
     Component
 } from 'react'
 import {
-    TouchableWithoutFeedback,Text,StyleSheet
+    View,Text,StyleSheet,Image
 } from 'react-native'
-import {Content, List, ListItem, Left, Body, Right, Thumbnail } from 'native-base';
+import { List, ListItem } from 'react-native-elements'
 import Expo, { SQLite } from 'expo';
 import * as firebase from "firebase";
-import {GiftedChat} from "react-native-gifted-chat";
-
 const db = SQLite.openDatabase('db.db');
 
 require("firebase/firestore");
@@ -91,34 +89,30 @@ export default class FriendChatListView extends Component {
     }
 
     render() {
+        // const { navigate } = this.props.navigation;
         let friendList = [];
         if (this.state.messages.length!==0&&this.state.friendInfo.length!==0){
             for (let i = 0;i<this.state.messages.length ; i++){
                 let personalId = this.state.messages[i].fromId,
+                    message = this.state.messages[i].msg,
                     ImageURL = this.state.friendInfo[personalId][0],
                     PersonName = this.state.friendInfo[personalId][1];
                 friendList.push(
-                    <TouchableWithoutFeedback key={personalId}>
-                        <ListItem>
-                            <Thumbnail size={60} source={{ uri: ImageURL }} />
-                            <Body style={{left:10}}>
-                            <Text>{PersonName}</Text>
-                            <Text note>{this.state.messages[i].msg}</Text>
-                            </Body>
-                            <Right>
-                                <Text note>{this.state.messages[i].postTime}</Text>
-                            </Right>
-                        </ListItem>
-                    </TouchableWithoutFeedback>
+                    <ListItem
+                        roundAvatar
+                        avatar={{uri:ImageURL}}
+                        key={personalId}
+                        title={PersonName}
+                        subtitle={message}
+                        badge={{ value: 3, textStyle: { color: 'orange' }, containerStyle: { marginTop: -20 } }}
+                    />
                 );
             }
         }
         return (
-            <Content>
-                <List>
-                    {friendList}
-                </List>
-            </Content>
+            <List>
+                {friendList}
+            </List>
         )
     }
 }
@@ -136,5 +130,18 @@ const styles = StyleSheet.create(
                 fontSize: 18,
                 color: 'black',
                 padding: 15
-            }
+            },
+        subtitleView: {
+            flexDirection: 'row',
+            paddingLeft: 10,
+            paddingTop: 5
+        },
+        ratingImage: {
+            height: 19.21,
+            width: 100
+        },
+        ratingText: {
+            paddingLeft: 10,
+            color: 'grey'
+        }
     });
