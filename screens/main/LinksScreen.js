@@ -55,10 +55,8 @@ class FriendChatListView extends Component {
         this.socket.on("connect" + uid,msg=>{
             let data = JSON.parse(msg);
             if (alreadyInList.indexOf(data.from) === -1){
-                console.log("not yet");
             }else{
                 //  lastUpdateArr.push(dataArr[i]);
-                console.log("already has");
                 lastUpdateArr[0].msg = data.message;
             }
             this.setState({
@@ -72,9 +70,12 @@ class FriendChatListView extends Component {
             tx => {
                 tx.executeSql('select * from friend_list', [], (_, { rows }) => {
                     let dataArr =  rows['_array'];
+                    console.log(dataArr);
                     for (let i = 0;i<dataArr.length;i++){
                         personalInfo[dataArr[i].userId] = [dataArr[i].avatarUrl,dataArr[i].username];
                     }
+                    console.log("personalInfo");
+                    console.log(personalInfo);
                     this.setState({
                         friendInfo:personalInfo
                     });
@@ -90,7 +91,8 @@ class FriendChatListView extends Component {
             tx => {
                 tx.executeSql('select * from db'+uid, [], (_, { rows }) => {
                     let dataArr =  rows['_array'];
-                    for (let i = dataArr.length-1;i>0;i--){
+                    console.log(dataArr);
+                    for (let i = dataArr.length-1;i>=0;i--){
                         if (alreadyInList.indexOf(dataArr[i].fromId) === -1){
                             alreadyInList.push(dataArr[i].fromId);
                             let time = dataArr[i].timeStamp.split(" ")[1].split(":");
@@ -98,6 +100,8 @@ class FriendChatListView extends Component {
                             lastUpdateArr.push(dataArr[i]);
                         }
                     }
+                    console.log("lastUpdateArr");
+                    console.log(lastUpdateArr);
                     this.setState({
                         messages:lastUpdateArr
                     });
@@ -111,6 +115,10 @@ class FriendChatListView extends Component {
 
     render() {
         let friendList = [];
+        console.log("this.state.messages");
+        console.log(this.state.messages);
+        console.log("this.state.friendInfo");
+        console.log(this.state.friendInfo);
         if (this.state.messages.length!==0&&this.state.friendInfo.length!==0){
             for (let i = 0;i<this.state.messages.length ; i++){
                 let personalId = this.state.messages[i].fromId,
