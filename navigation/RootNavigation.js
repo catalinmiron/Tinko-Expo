@@ -32,7 +32,7 @@ export default class RootNavigator extends React.Component {
   render() {
         if(this.props.loggedIn){
             let user = firebase.auth().currentUser;
-            let uid = user.providerData[0].uid;
+            let uid = user.uid;
             // 测试时才用drop
             //this.dropChatTable(uid);
             this.initChatTable(uid);
