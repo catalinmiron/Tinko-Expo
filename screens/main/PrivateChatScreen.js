@@ -38,7 +38,8 @@ export default class PrivateChatScreen extends Component {
                     let dataArr = rows['_array'].reverse();
                     console.log(dataArr);
                     for (let i = 0;i<dataArr.length;i++){
-                        this.appendMessage(name,avatar,dataArr[i].msg,"cache"+dataArr[i].id,new Date(dataArr[i].timeStamp))
+                        // console.log(new Date(dataArr[i].timeStamp));
+                        this.appendMessage(name,avatar,dataArr[i].msg,"cache"+dataArr[i].id,dataArr[i].timeStamp)
                     }
                 })
             },
