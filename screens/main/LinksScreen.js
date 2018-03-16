@@ -2,67 +2,84 @@ import React, {
     Component
 } from 'react'
 import {
-    View,Text,StyleSheet
+    StyleSheet,View
 } from 'react-native'
-import { Container, Header, Content, List, ListItem, Left, Body, Right, Thumbnail, Item, Input, Icon, Button} from 'native-base';
-import SocketIOClient from 'socket.io-client';
+import { List, ListItem } from 'react-native-elements'
 import Expo, { SQLite } from 'expo';
-import FriendListView from '../../components/FriendListView';
 import * as firebase from "firebase";
-
 const db = SQLite.openDatabase('db.db');
 
 require("firebase/firestore");
+import SocketIOClient from 'socket.io-client';
+import {
+    StackNavigator
+} from 'react-navigation';
+import PrivateChatScreen from './PrivateChatScreen';
 
 let friendList = [];
 let uid = "";
-let lastUpdateArr = [];
+let lastUpdateArr = [],
+    personalInfo = {},
+    alreadyInList = [];
 
-export default class FriendChatListView extends Component {
+class ChatPage extends Component{
+    static navigationOptions = ({navigation}) => ({
+        title: `${navigation.state.params.name}`,
+    });
+    render() {
+        const { params } = this.props.navigation.state;
+        let avatar = params.avatar,
+            personId = params.personId,
+            myId = params.myId,
+            name = params.name;
+        return (
+            <PrivateChatScreen avatar={avatar} personId={personId} myId = {myId} name={name}/>
+        )
+    }
+}
+
+
+class FriendChatListView extends Component {
 
     constructor(){
         super();
         let user = firebase.auth().currentUser;
         uid = user.providerData[0].uid;
-        // this.dropTable();
-        this.initTable();
-        // this.insertSql("123321","你好1");
-        // this.insertSql("123321","你好2");
-        // this.insertSql("123321","你好3");
-        // this.insertSql("123333","你好1");
-        // this.insertSql("123333","你好2");
-        // this.insertSql("12331","你好3");
+        this.socket = SocketIOClient('http://47.89.187.42:3000/');
+        this.getAvatar();
         this.getData();
         this.state = {
             messages: [],
-            sqlRows:[]
+            friendInfo:[]
         };
+        this.socket.on("connect" + uid,msg=>{
+            let data = JSON.parse(msg);
+            if (alreadyInList.indexOf(data.from) === -1){
+            }else{
+                //  lastUpdateArr.push(dataArr[i]);
+                lastUpdateArr[0].msg = data.message;
+            }
+            this.setState({
+                messages:lastUpdateArr
+            });
+        });
     }
 
-    dropTable(){
+    getAvatar(){
         db.transaction(
             tx => {
-                tx.executeSql('drop table db'+ uid);
-            },
-            null,
-            this.update
-        );
-    }
-
-    initTable(){
-        db.transaction(
-            tx => {
-                tx.executeSql('create table if not exists db'+ uid +' (id integer primary key not null , fromId int, msg text , status int);');
-            },
-            null,
-            this.update
-        );
-    }
-
-    insertSql(fromId,msg){
-        db.transaction(
-            tx => {
-                tx.executeSql("INSERT INTO db"+uid+"(fromId,msg,status) VALUES (?,?,?)",[fromId,msg,0]);
+                tx.executeSql('select * from friend_list', [], (_, { rows }) => {
+                    let dataArr =  rows['_array'];
+                    console.log(dataArr);
+                    for (let i = 0;i<dataArr.length;i++){
+                        personalInfo[dataArr[i].userId] = [dataArr[i].avatarUrl,dataArr[i].username];
+                    }
+                    console.log("personalInfo");
+                    console.log(personalInfo);
+                    this.setState({
+                        friendInfo:personalInfo
+                    });
+                });
             },
             null,
             this.update
@@ -72,9 +89,22 @@ export default class FriendChatListView extends Component {
     getData(){
         db.transaction(
             tx => {
-                tx.executeSql('SELECT MAX(id) id FROM db'+uid+" GROUP BY fromId", [], (_, { rows }) => {
-                    console.log(rows['_array']);
-                    lastUpdateArr = rows['_array'];
+                tx.executeSql('select * from db'+uid, [], (_, { rows }) => {
+                    let dataArr =  rows['_array'];
+                    console.log(dataArr);
+                    for (let i = dataArr.length-1;i>=0;i--){
+                        if (alreadyInList.indexOf(dataArr[i].fromId) === -1){
+                            alreadyInList.push(dataArr[i].fromId);
+                            let time = dataArr[i].timeStamp.split(" ")[1].split(":");
+                            dataArr[i].postTime = time[0]+":"+time[1];
+                            lastUpdateArr.push(dataArr[i]);
+                        }
+                    }
+                    console.log("lastUpdateArr");
+                    console.log(lastUpdateArr);
+                    this.setState({
+                        messages:lastUpdateArr
+                    });
                 });
             },
             null,
@@ -82,31 +112,41 @@ export default class FriendChatListView extends Component {
         )
     }
 
+
     render() {
+        let friendList = [];
+        console.log("this.state.messages");
+        console.log(this.state.messages);
+        console.log("this.state.friendInfo");
+        console.log(this.state.friendInfo);
+        if (this.state.messages.length!==0&&this.state.friendInfo.length!==0){
+            for (let i = 0;i<this.state.messages.length ; i++){
+                let personalId = this.state.messages[i].fromId,
+                    message = this.state.messages[i].msg,
+                    ImageURL = this.state.friendInfo[personalId][0],
+                    PersonName = this.state.friendInfo[personalId][1];
+                friendList.push(
+                    <ListItem
+                        roundAvatar
+                        avatar={{uri:ImageURL}}
+                        key={personalId}
+                        title={PersonName}
+                        subtitle={message}
+                        badge={{ value: 3, textStyle: { color: 'orange' }, containerStyle: { marginTop: -20 } }}
+                        onPress={() => this.props.navigation.navigate('PrivateChatPage', {
+                            avatar:ImageURL,
+                            name:PersonName,
+                            personId:personalId,
+                            myId:uid
+                        })}
+                    />
+                );
+            }
+        }
         return (
-            <Content>
-                <Header searchBar rounded>
-                    <Item>
-                        <Icon name="ios-search" />
-                        <Input placeholder="Search" />
-                        <Icon name="ios-people" />
-                    </Item>
-                </Header>
-                <List>
-                    <ListItem avatar>
-                        <Left>
-                            <Thumbnail source={{ uri: 'Image URL' }} />
-                        </Left>
-                        <Body>
-                        <Text>Kumar Pratik</Text>
-                        <Text note>Doing what you like will always keep you happy . .</Text>
-                        </Body>
-                        <Right>
-                            <Text note>3:43 pm</Text>
-                        </Right>
-                    </ListItem>
-                </List>
-            </Content>
+            <List>
+                {friendList}
+            </List>
         )
     }
 }
@@ -124,5 +164,33 @@ const styles = StyleSheet.create(
                 fontSize: 18,
                 color: 'black',
                 padding: 15
-            }
+            },
+        subtitleView: {
+            flexDirection: 'row',
+            paddingLeft: 10,
+            paddingTop: 5
+        },
+        ratingImage: {
+            height: 19.21,
+            width: 100
+        },
+        ratingText: {
+            paddingLeft: 10,
+            color: 'grey'
+        }
     });
+
+export default StackNavigator({
+    FriendChatListView: {
+        screen: FriendChatListView
+    },
+    PrivateChatPage: {
+        screen: ChatPage,
+
+        navigationOptions: {
+            tabBarVisible: false
+        }
+    }
+},{
+    initialRouteName: 'FriendChatListView',
+});
