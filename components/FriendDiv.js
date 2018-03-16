@@ -23,7 +23,7 @@ export default class FriendDiv extends Component {
     constructor(){
         super();
         let user = firebase.auth().currentUser;
-        let uid = user.providerData[0].uid;
+        let uid = user.uid;
         this.getSql(uid);
         this.state = {
             sqlRows: []

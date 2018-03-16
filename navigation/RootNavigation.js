@@ -32,7 +32,7 @@ export default class RootNavigator extends React.Component {
   render() {
         if(this.props.loggedIn){
             let user = firebase.auth().currentUser;
-            let uid = user.providerData[0].uid;
+            let uid = user.uid;
             // 测试时才用drop
             //this.dropChatTable(uid);
             this.initChatTable(uid);
@@ -45,29 +45,31 @@ export default class RootNavigator extends React.Component {
             });
             this.socket.on("system",function (msg) {
             });
-            let docRef = firebase.firestore().collection("Users").doc(uid).collection("Friends_List");
+            var firebaseDb = firebase.firestore();
+            let docRef = firebaseDb.collection("Users").doc(uid).collection("Friends_List");
             docRef.get().then((querySnapshot)=>{
                 this.dropFriendTable(uid);
                 this.initFriendTable(uid);
                 querySnapshot.forEach((doc)=>{
-                    if ('email' in doc.data()){
-                        if (doc.data().username!==undefined){
+                    let friendUid = doc.data().uid;
+                    console.log(friendUid);
+                    firebaseDb.collection("Users").doc(friendUid).get()
+                        .then((doc) => {
                             let mapping = {
                                 avatar:doc.data().photoURL,
                                 key:doc.data().uid,
                                 title:doc.data().username
                             };
                             this.insertFriendSql(uid,mapping.key,mapping.avatar,mapping.title);
-                        }
-                    }
+                        }).catch((error) => {
+                            console.log("Error getting document: ", error);
+                    })
                 });
+            }).catch((error) => {
+                console.log("Error getting documents: ", error);
             });
 
             return <MainTabNavigator/>
-            // return (
-            //     <SafeAreaView style={styles.safeArea}>
-            //         <MainTabNavigator/>
-            //     </SafeAreaView>)
         } else {
             return <LoginNavigator screenProps={this.props}/>
         }

@@ -54,7 +54,7 @@ class FriendChatListView extends Component {
     constructor(){
         super();
         let user = firebase.auth().currentUser;
-        uid = user.providerData[0].uid;
+        uid = user.uid;
         this.socket = SocketIOClient('http://47.89.187.42:3000/');
         this.getAvatar();
         this.getData();

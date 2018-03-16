@@ -1,5 +1,7 @@
+import _ from 'lodash';
 import React from 'react';
 import {
+    Alert,
     Image,
     Platform,
     ScrollView,
@@ -7,7 +9,9 @@ import {
     TouchableOpacity,
     View,
     Keyboard,
-    TextInput, Dimensions
+    TextInput,
+    Dimensions,
+    KeyboardAvoidingView
 } from 'react-native';
 import {
     Input,
@@ -22,11 +26,15 @@ import {
     Avatar,
     List, ListItem,
 } from 'react-native-elements';
+import CustomButton from '../../components/CustomButton';
 import  DatePicker from 'react-native-datepicker';
-import {Font} from "expo";
+import {Font, SQLite} from "expo";
 import { NavigationActions } from 'react-navigation';
+import { Constants, Location, Permissions } from 'expo';
+import firebase from 'firebase';
 
 const SCREEN_WIDTH = Dimensions.get('window').width;
+const db = SQLite.openDatabase('db.db');
 
 export default class CreateScreen extends React.Component {
     static navigationOptions = ({ navigation }) => {
@@ -50,22 +58,49 @@ export default class CreateScreen extends React.Component {
 
     constructor(props){
         super(props);
-        let currentDate = new Date();
-        let dateTime = currentDate.getFullYear() + '-' + (currentDate.getMonth()+1) + '-' + currentDate.getDate() + ' ' + currentDate.getHours() + ':' + currentDate.getMinutes();
+        var startTime = new Date();
+        let tenMins = 10 * 60 * 1000;
+        startTime.setTime(startTime.getTime() + tenMins)
+        let dateTime = startTime.getFullYear() + '-' + (startTime.getMonth()+1) + '-' + startTime.getDate() + ' ' + startTime.getHours() + ':' + startTime.getMinutes();
+
+        let user = firebase.auth().currentUser;
+        let userUid = user.uid;
+        console.log('userUid',userUid);
+
+        this.initTable();
 
         this.state={
             title:'',
-            //fontLoaded: false,
+            userUid: userUid,
             startTime: dateTime,
-            placeDetail:'',
             placeName:'',
+            placeCoordinate:{},
+            placeAddress:'',
+            placeId:'',
             description:'',
             inputHeight: 22,
+            allFriends: true,
+            allowPeopleNearby: false,
+            allowParticipantsInvite: false,
+            selectedFriendsList: [],
+            userPicked: false,
+            duration: '1 Hour',
+            maxNo: 8,
+            tagList:[],
+            location: null,
+            sqlFriendsList: []
         };
     }
 
     async componentDidMount() {
         this.props.navigation.setParams({post:this.onPostButtonPressed.bind(this), cancel:this.onCancelButtonPressed.bind(this)});
+        if (Platform.OS === 'android' && !Constants.isDevice) {
+            this.setState({
+                errorMessage: 'Oops, this will not work on Sketch in an Android emulator. Try it on your device!',
+            });
+        } else {
+            this.getLocationAsync();
+        }
 
         await Font.loadAsync({
             'georgia': require('../../assets/fonts/Georgia.ttf'),
@@ -74,12 +109,69 @@ export default class CreateScreen extends React.Component {
             'bold': require('../../assets/fonts/Montserrat-Bold.ttf'),
         });
 
+        this.getSql();
         //this.setState({ fontLoaded: true });
     }
 
+    getLocationAsync = async () => {
+        let { status } = await Permissions.askAsync(Permissions.LOCATION);
+        if (status !== 'granted') {
+            Alert.alert('Error', 'Permission to access location was denied')
+        }
+
+        let location = await Location.getCurrentPositionAsync({});
+        this.setState({ location });
+        //console.log(this.state.location);
+        //console.log(this.state.location.coords.latitude);
+        fetch(`https://maps.googleapis.com/maps/api/place/nearbysearch/json?location=${location.coords.latitude},${location.coords.longitude}&rankby=distance&key=AIzaSyCw_VwOF6hmY5yri8OpqOr9sCzTTT7JKiU`)
+            .then((response) => response.json())
+            .then((responseJson) => {
+                console.log(responseJson.results[0]);
+                let myPlace = responseJson.results[0];
+                this.setState({placeName: myPlace.name, placeAddress: myPlace.vicinity, placeCoordinate: myPlace.geometry.location, placeId: myPlace.place_id })
+            }).catch((error) => {
+                console.error(error);
+            });
+    };
+
+    initTable(){
+        db.transaction(
+            tx => {
+                tx.executeSql('create table if not exists friend_list (id integer primary key not null, userId int, avatarUrl text , username text);');
+            },
+            null,
+            this.update
+        );
+    }
+
+    getSql(){
+        db.transaction(
+            tx => {
+                tx.executeSql('select * from friend_list', [], (_, { rows }) => {
+                    let dataArr =  rows['_array'],
+                        rtnArr = [];
+                    for (let i = 0; i <dataArr.length;i++){
+                        rtnArr.push(dataArr[i].userId);
+                    }
+                    this.setState({
+                        sqlFriendsList: rtnArr,
+                    });
+                });
+            },
+            null,
+            this.update
+        )
+    }
+
+
     setPlaceDetail = data => {
         this.setState(data);
-        console.log('placeDetail: ', this.state.placeDetail);
+    }
+
+    setInvitationRange = data => {
+        console.log(data);
+        this.setState(data);
+        console.log('setInvitationRange: ', this.state.allFriends, this.state.allowPeopleNearby, this.state.allowParticipantsInvite, this.state.selectedFriendsList);
     }
 
     handleSizeChange = event => {
@@ -90,7 +182,96 @@ export default class CreateScreen extends React.Component {
         });
     };
 
+    handleDateTimeParse(){
+        const {startTime} = this.state;
+
+        var dateTimeParts = startTime.split(' '),
+            timeParts = dateTimeParts[1].split(':'),
+            dateParts = dateTimeParts[0].split('-'),
+            startTimeDate,
+            endTimeDate,
+            durationTS;
+
+        startTimeDate = new Date(dateParts[0], dateParts[1]-1 , dateParts[2], timeParts[0], timeParts[1]);
+        durationTS = 1 * 60 * 60 * 1000;
+        endTimeDate = new Date();
+        endTimeDate.setTime(startTimeDate.getTime() + durationTS);
+
+
+        return {
+            startTimeDate: startTimeDate,
+            endTimeDate: endTimeDate,
+            durationTS: durationTS,
+        };
+    }
+
     onPostButtonPressed(){
+        const { title, userUid, startTime, placeName, placeAddress, placeCoordinate, placeId,
+            description, allFriends, allowPeopleNearby, allowParticipantsInvite,
+            selectedFriendsList, sqlFriendsList, duration, maxNo, tagList, userPicked } = this.state;
+
+        var tagListObj = {};
+        tagList.map((l,i) => {
+            tagListObj[l] = true;
+        });
+
+        let timeCodes = this.handleDateTimeParse();
+        let startTimeDate = timeCodes.startTimeDate;
+        let endTimeDate = timeCodes.endTimeDate;
+        let durationTS = timeCodes.durationTS;
+        let postTimeDate = new Date();
+
+        let placeObj = {
+            name: placeName,
+            address: placeAddress,
+            coordinate: placeCoordinate,
+            placeId: placeId,
+        }
+
+        let theSelectedFriendsList = userPicked ? selectedFriendsList : sqlFriendsList;
+        let statusTimeObj = {
+            status: true,
+            endTime: endTimeDate,
+            postTime: postTimeDate,
+        };
+
+        var participatingUsersListObj= {};
+        participatingUsersListObj[userUid] = statusTimeObj;
+
+        var selectedFriendsListObj = {};
+        theSelectedFriendsList.map((l,i) => {
+            selectedFriendsListObj[l] = statusTimeObj;
+        });
+
+
+
+        var docData = {
+            title: title==='' ? 'Let\'s Tinko up' : title,
+            creator: userUid,
+            ragList: tagListObj,
+            startTime: startTimeDate,
+            endTime: endTimeDate,
+            duration: durationTS,
+            allFriends: allFriends,
+            allowPeopleNearby: allowPeopleNearby,
+            allowParticipantsInvite: allowParticipantsInvite,
+            maxNo: maxNo,
+            description: description,
+            place: placeObj,
+            participatingUsersList: participatingUsersListObj,
+            selectedFriendsList: selectedFriendsListObj,
+            status: true,
+        }
+        console.log(docData);
+
+        firebase.firestore().collection("Meets").add(docData)
+            .then(function(docRef) {
+                console.log("Document written with ID: ", docRef.id);
+            })
+            .catch(function(error) {
+                console.error("Error adding document: ", error);
+            });
+
         this.props.navigation.dispatch(NavigationActions.back())
     }
 
@@ -98,29 +279,61 @@ export default class CreateScreen extends React.Component {
         this.props.navigation.dispatch(NavigationActions.back())
     }
 
+    onTagButtonPressed(title){
+        const { tagList } = this.state;
+        if(_.includes(tagList, title)){
+            _.pull(tagList, title);
+        } else {
+            tagList.push(title);
+        }
+        this.setState({tagList});
+    }
 
     render() {
         const {title, startTime, placeName, description, inputHeight} = this.state;
         return (
             <ScrollView style={styles.container}>
                 <Card>
-                    <Input
-                        onChangeText={(title) => this.setState({title})}
-                        value={title}
-                        inputStyle={{textAlign:'center', color: 'black', fontFamily:'bold'}}
-                        keyboardAppearance="light"
-                        placeholder="A Tinko Title"
-                        autoFocus={false}
-                        autoCapitalize
-                        autoCorrect={true}
-                        returnKeyType="next"
-                        ref={ input => this.title = input }
-                        onSubmitEditing={() => {
-                            Keyboard.dismiss()
-                        }}
-                        blurOnSubmit={false}
-                        placeholderTextColor="black"
-                    />
+                    <View style={{flex:1, justifyContent: 'center', alignItems: 'center',}}>
+                        <Input
+                            width={230}
+                            onChangeText={(title) => this.setState({title})}
+                            value={title}
+                            inputStyle={{textAlign:'center', color: 'black', fontFamily:'bold',}}
+                            keyboardAppearance="light"
+                            placeholder="A Tinko Title"
+                            autoFocus={false}
+                            autoCapitalize
+                            autoCorrect={true}
+                            returnKeyType="next"
+                            ref={ input => this.title = input }
+                            onSubmitEditing={() => {
+                                Keyboard.dismiss()
+                            }}
+                            blurOnSubmit={false}
+                            placeholderTextColor="black"
+                        />
+                    </View>
+
+
+                    <View style={{flex: 1, flexDirection: 'column', height: 180, marginTop: 10}}>
+                        <View style={{flex: 1, flexDirection: 'row', justifyContent: 'space-between'}}>
+                            <CustomButton style={{flex:1}} title="Party" onPress={this.onTagButtonPressed.bind(this)}/>
+                            <CustomButton style={{flex:1}} title="Sport" onPress={this.onTagButtonPressed.bind(this)}/>
+                            <CustomButton style={{flex:1}} title="Food" onPress={this.onTagButtonPressed.bind(this)}/>
+                        </View>
+                        <View style={{flex: 1, flexDirection: 'row', justifyContent: 'space-between' }}>
+                            <CustomButton style={{flex:1}} title="Shop" onPress={this.onTagButtonPressed.bind(this)}/>
+                            <CustomButton style={{flex:1}} title="Movie" onPress={this.onTagButtonPressed.bind(this)}/>
+                            <CustomButton style={{flex:1}} title="KTV" onPress={this.onTagButtonPressed.bind(this)}/>
+                        </View>
+                        <View style={{ flex: 1, flexDirection: 'row', justifyContent: 'space-between' }}>
+                            <CustomButton style={{flex:1}} title="Travel" onPress={this.onTagButtonPressed.bind(this)}/>
+                            <CustomButton style={{flex:1}} title="Study" onPress={this.onTagButtonPressed.bind(this)}/>
+                            <CustomButton style={{flex:1}} title="ESports" onPress={this.onTagButtonPressed.bind(this)}/>
+                        </View>
+                    </View>
+
                     <List containerStyle={styles.listStyle}>
                         <ListItem
                             hideChevron
@@ -165,7 +378,7 @@ export default class CreateScreen extends React.Component {
                         <ListItem
                             containerStyle={styles.listStyle}
                             title='Invitation Range'
-                            onPress={() => this.props.navigation.navigate('InvitationRange')}
+                            onPress={() => this.props.navigation.navigate('InvitationRange', {setInvitationRange: this.setInvitationRange})}
                         />
                         <ListItem
                             containerStyle={styles.listStyle}
