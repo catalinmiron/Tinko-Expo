@@ -32,6 +32,7 @@ export default class FriendDiv extends Component {
 
     // firestore 获取数据   之后全部从sqlite获取
     insertFriendList(){
+        console.log('FriendsDiv insertFriendList');
         let db = firebase.firestore();
         let list = [];
         let user = firebase.auth().currentUser;
@@ -122,6 +123,7 @@ export default class FriendDiv extends Component {
     }
 
     render() {
+        console.log('FriendsDiv render');
         let friendList = [];
         if (this.state.rows.length === 0){
             if (this.state.sqlRows.length === 0){

@@ -7,7 +7,8 @@ import {
     TouchableOpacity,
     View,
     Keyboard,
-    TextInput, Dimensions
+    TextInput, Dimensions,
+    Switch,
 } from 'react-native';
 import {
     Input,
@@ -26,21 +27,61 @@ import Expo, { SQLite } from 'expo';
 
 
 const db = SQLite.openDatabase('db.db');
+let friendList = []
 
 import FriendListView from '../../../components/FriendListView';
 
 export default class InvitationRangeScreen extends React.Component{
+
+    static navigationOptions = ({ navigation }) => {
+        const params = navigation.state.params || {};
+
+        return {
+            // Correct Header Button modifyzationn: https://reactnavigation.org/docs/header-buttons.html
+            headerLeft:(<Button text="Back"
+                                clear
+                                onPress={params.back}
+            />),
+            headerStyle:{backgroundColor:'#EC7063'}
+            //headerStyle:{ position: 'absolute', backgroundColor: 'transparent', zIndex: 100, top: 0, left: 0, right: 0, headerLeft:null, boarderBottomWidth: 0}
+        };
+    };
 
     constructor(){
         super();
         this.state = {
             rows: [],
             sqlRows: [],
-            loadCache:false
+            allFriends: true,
+            allowPeopleNearby: false,
+            allowParticipantsInvite: false,
         };
         this.initTable();
     }
 
+    componentDidMount(){
+        this.props.navigation.setParams({back:this.onBackButtonPressed.bind(this)});
+        this.getSql();
+    }
+
+    onBackButtonPressed(){
+        const {allFriends, allowPeopleNearby, allowParticipantsInvite, sqlRows} = this.state;
+        this.props.navigation.goBack();
+        console.log('onBackButtonPressed:', allFriends, allowPeopleNearby, allowParticipantsInvite);
+        var selectedFriendsList = [];
+        sqlRows.map((l,i) => {
+            if(l.selected){
+                selectedFriendsList.push(l.key);
+            }
+        });
+        this.props.navigation.state.params.setInvitationRange({
+            allFriends:allFriends,
+            allowPeopleNearby:allowPeopleNearby,
+            allowParticipantsInvite:allowParticipantsInvite,
+            selectedFriendsList:selectedFriendsList,
+            userPicked: true,
+        })
+    }
 
     initTable(){
         db.transaction(
@@ -62,13 +103,13 @@ export default class InvitationRangeScreen extends React.Component{
                         rtnArr.push({
                             avatar:dataArr[i].avatarUrl,
                             key:dataArr[i].userId,
-                            title:dataArr[i].username
+                            title:dataArr[i].username,
+                            selected: true
                         });
                         friendList.push(dataArr[i].userId)
                     }
                     this.setState({
                         sqlRows: rtnArr,
-                        loadCache: true
                     });
                 });
             },
@@ -77,13 +118,73 @@ export default class InvitationRangeScreen extends React.Component{
         )
     }
 
+    onAllFriendsToggled(allFriends){
+        const {sqlRows} = this.state;
+        this.setState({allFriends});
+        sqlRows.map((l,i) => {
+            l.selected = allFriends;
+            sqlRows[i] = l;
+
+        })
+        this.setState({sqlRows});
+    }
+
 
     render(){
+        const { sqlRows, allFriends, allowPeopleNearby, allowParticipantsInvite } = this.state;
+        if(sqlRows===null || sqlRows.length ===0){
+            return null;
+        }
+
         return(
             <ScrollView style={styles.container}>
-                <FriendListView/>
+                <List>
+                    <ListItem
+                        title='All Friends'
+                        rightIcon={
+                            <Switch
+                                value={allFriends}
+                                onValueChange={this.onAllFriendsToggled.bind(this)}
+                            />
+                        }
+                    />
+                    <ListItem
+                        title='Allow People Nearby'
+                        rightIcon={
+                            <Switch
+                                value={allowPeopleNearby}
+                                onValueChange={(allowPeopleNearby) => this.setState({allowPeopleNearby})}
+                            />
+                        }
+                    />
+                    <ListItem
+                        title='Allow Participants Invite Friends'
+                        rightIcon={
+                            <Switch
+                                value={allowParticipantsInvite}
+                                onValueChange={(allowParticipantsInvite) => this.setState({allowParticipantsInvite})}
+                            />
+                        }
+                    />
+                </List>
+                <List>
+                    {sqlRows.map((l, i) => (
+                        <ListItem
+                            roundAvatar
+                            avatar={{uri:l.avatar}}
+                            title={l.title}
+                            rightIcon = {{name: l.selected ? 'done' : 'hideChevron'}}
+                            onPress={() => {
+                                //console.log(l, i);
+                                l.selected = !l.selected;
+                                sqlRows[i] = l;
+                                this.setState({sqlRows});
+                            }}
+                        />
+                    ))}
+                </List>
             </ScrollView>
-        );
+        )
     }
 }
 

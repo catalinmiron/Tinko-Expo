@@ -11,7 +11,7 @@ import SettingsScreen from '../screens/main/SettingsScreen';
 import MeNavigator from './MeNavigator';
 import TinkoTabNavigator from './TinkoTabNavigator';
 import CreateScreen from '../screens/main/CreateScreen';
-import GooglePlacesInputScreen from '../screens/main/common/GooglePlacesInput';
+import GooglePlacesInputScreen from '../screens/main/create/GooglePlacesInput';
 import CreateNavigator from './CreateNavigator';
 
 const MainTabNavigator = TabNavigator(

@@ -30,8 +30,11 @@ export default class GooglePlacesInput extends React.Component{
                     onPress={(data, details = null) => { // 'details' is provided when fetchDetails = true
                         //console.log(data, details);
                         let placeName = details.name;
+                        let placeAddress = details.formatted_address;
+                        let placeCoordinate = details.geometry.location;
+                        let placeId = details.place_id;
                         this.props.navigation.goBack();
-                        this.props.navigation.state.params.setPlaceDetail({placeDetail:details, placeName:placeName})
+                        this.props.navigation.state.params.setPlaceDetail({placeName, placeAddress, placeCoordinate, placeId})
                     }}
 
                     getDefaultValue={() => ''}
