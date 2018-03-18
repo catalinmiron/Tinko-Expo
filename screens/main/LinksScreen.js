@@ -2,7 +2,7 @@ import React, {
     Component
 } from 'react'
 import {
-    StyleSheet,View
+    StyleSheet,View,WebView
 } from 'react-native'
 import { List, ListItem } from 'react-native-elements'
 import Expo, { SQLite } from 'expo';
@@ -38,6 +38,16 @@ class ChatPage extends Component{
     }
 }
 
+
+class TinkoWebView extends Component {
+    render() {
+        return (
+            <WebView
+                source={{uri: 'https://github.com/facebook/react-native'}}
+            />
+        );
+    }
+}
 
 class FriendChatListView extends Component {
 
@@ -187,6 +197,12 @@ export default StackNavigator({
     PrivateChatPage: {
         screen: ChatPage,
 
+        navigationOptions: {
+            tabBarVisible: false
+        }
+    },
+    TinkoWebView:{
+        screen: TinkoWebView,
         navigationOptions: {
             tabBarVisible: false
         }
