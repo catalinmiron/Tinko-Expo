@@ -6,25 +6,33 @@ import LoginScreen from '../screens/login/LoginScreen';
 import SignInScreen from '../screens/login/SignInScreen';
 import RegisterScreen from '../screens/login/RegisterScreen';
 import TinkoScreen from '../screens/main/TinkoScreen';
+import TinkoDetailScreen from '../screens/main/tinko/TinkoDetailScreen';
 
 const SCREEN_WIDTH = Dimensions.get('window').width;
 const SCREEN_HEIGHT = Dimensions.get('window').height;
 
 
-const LoginStackNavigator = StackNavigator(
+const TinkoStackNavigator = StackNavigator(
     {
         Tinko:{
-            screen: TinkoScreen
+            screen: TinkoScreen,
+        },
+        TinkoDetail:{
+            screen: TinkoDetailScreen,
         }
     }
 );
 
 export default class TinkoNavigator extends React.Component {
     static  navigationOptions = {header:null};
+    constructor(props){
+        super(props);
+        //console.log(props)
+    }
     render() {
         return (
             <View style={styles.container}>
-                <LoginStackNavigator/>
+                <TinkoStackNavigator />
             </View>
         )
     }

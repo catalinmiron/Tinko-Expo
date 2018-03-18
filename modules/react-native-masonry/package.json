@@ -1,0 +1,99 @@
+{
+  "_from": "react-native-masonry",
+  "_id": "react-native-masonry@0.4.6",
+  "_inBundle": false,
+  "_integrity": "sha512-lRGlv0kh6xyJ/21JYsQQL99mu3wuGWwshyXskrLw2552/V768kyeLz4G+93xFFPyHw9oe4/HHoR9JQ+cxdkOnw==",
+  "_location": "/react-native-masonry",
+  "_phantomChildren": {},
+  "_requested": {
+    "type": "tag",
+    "registry": true,
+    "raw": "react-native-masonry",
+    "name": "react-native-masonry",
+    "escapedName": "react-native-masonry",
+    "rawSpec": "",
+    "saveSpec": null,
+    "fetchSpec": "latest"
+  },
+  "_requiredBy": [
+    "#USER",
+    "/"
+  ],
+  "_resolved": "https://registry.npmjs.org/react-native-masonry/-/react-native-masonry-0.4.6.tgz",
+  "_shasum": "b06abfbc5ebbd8584c541631b093cacca9f26181",
+  "_spec": "react-native-masonry",
+  "_where": "/Users/Kevinscience/Documents/RNTest/pickertest",
+  "author": {
+    "name": "Brandon Him"
+  },
+  "bugs": {
+    "url": "https://github.com/brh55/react-native-masonry/issues"
+  },
+  "bundleDependencies": false,
+  "collective": {
+    "type": "opencollective",
+    "url": "https://opencollective.com/react-native-masonry",
+    "logo": "https://opencollective.com/opencollective/logo.txt"
+  },
+  "contributors": [
+    {
+      "name": "Kevin McGill",
+      "url": "http://mcgilldevtech.com/"
+    }
+  ],
+  "dependencies": {
+    "data.task": "^3.1.1",
+    "lodash.differenceby": "^4.8.0",
+    "lodash.isequal": "^4.5.0",
+    "opencollective": "^1.0.3",
+    "prop-types": "^15.5.8",
+    "react-native-injectable-component": "^0.1.2"
+  },
+  "deprecated": false,
+  "description": "A react-native component for a masonry layout",
+  "devDependencies": {
+    "babel-jest": "^20.0.3",
+    "babel-preset-react-native": "^2.1.0",
+    "jest": "^20.0.4",
+    "jest-react-native": "^18.0.0",
+    "react": "16.0.0-alpha.12",
+    "react-native": "^0.46.4",
+    "react-test-renderer": "^16.0.0-alpha.12"
+  },
+  "files": [
+    "/components",
+    "/styles",
+    "index.js"
+  ],
+  "homepage": "https://github.com/brh55/react-native-masonry#readme",
+  "jest": {
+    "preset": "react-native",
+    "modulePathIgnorePatterns": [
+      "<rootDir>/example/",
+      "<rootDir>/__tests__/mocks/"
+    ]
+  },
+  "keywords": [
+    "react-native",
+    "masonry",
+    "pinterest",
+    "grid",
+    "layout"
+  ],
+  "license": "MIT",
+  "main": "./components/Masonry.js",
+  "name": "react-native-masonry",
+  "peerDependencies": {
+    "react": "*",
+    "react-native": "^0.43.0"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/brh55/react-native-masonry.git"
+  },
+  "scripts": {
+    "postinstall": "opencollective postinstall",
+    "test": "jest"
+  },
+  "version": "0.4.6"
+}
