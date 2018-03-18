@@ -34,18 +34,20 @@ export default class RootNavigator extends React.Component {
             let user = firebase.auth().currentUser;
             let uid = user.uid;
             // 测试时才用drop
-            //this.dropChatTable(uid);
+            this.dropChatTable(uid);
             this.initChatTable(uid);
-            this.socket = SocketIOClient('http://47.89.187.42:3000/');
+            // this.socket = SocketIOClient('http://47.89.187.42:3000/');
+            this.socket = SocketIOClient('http://127.0.0.1:3000/');
             this.socket.emit("userLogin",uid);
             this.socket.emit("attendActivity",uid,[1,2,3]);
             this.socket.on("connect" + uid,msg=>{
                 let data = JSON.parse(msg);
+                console.log(data);
                 this.insertChatSql(uid,data.from,data.message);
             });
             this.socket.on("system",function (msg) {
             });
-            var firebaseDb = firebase.firestore();
+            let firebaseDb = firebase.firestore();
             let docRef = firebaseDb.collection("Users").doc(uid).collection("Friends_List");
             docRef.get().then((querySnapshot)=>{
                 this.dropFriendTable(uid);

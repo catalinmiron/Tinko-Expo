@@ -9,6 +9,9 @@ const db = SQLite.openDatabase('db.db');
 import { GiftedChat } from 'react-native-gifted-chat';
 import SocketIOClient from 'socket.io-client';
 
+let uid = "",
+    pid = "";
+
 export default class PrivateChatScreen extends Component {
 
     state = {
@@ -17,12 +20,13 @@ export default class PrivateChatScreen extends Component {
 
     constructor(props){
         super(props);
-        let uid = this.props.myId,
-            pid = this.props.personId,
-            avatar = this.props.avatar,
+        uid = this.props.myId;
+        pid = this.props.personId;
+        let avatar = this.props.avatar,
             name = this.props.name;
         this.getFromDB(uid,pid,avatar,name);
-        this.socket = SocketIOClient('http://47.89.187.42:3000/');
+        // this.socket = SocketIOClient('http://47.89.187.42:3000/');
+        this.socket = SocketIOClient('http://127.0.0.1:3000/');
         this.socket.on("connect" + uid,(msg)=>{
             let data = JSON.parse(msg);
             if (data.from === pid){
@@ -65,6 +69,7 @@ export default class PrivateChatScreen extends Component {
     }
 
     onSend(messages = []) {
+        this.socket.emit("privateChat",uid,pid,messages[0].text);
         this.setState(previousState => ({
             messages: GiftedChat.append(previousState.messages, messages),
         }))
