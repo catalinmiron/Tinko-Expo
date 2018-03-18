@@ -239,6 +239,7 @@ export default class CreateScreen extends React.Component {
         participatingUsersListObj[userUid] = statusTimeObj;
 
         var selectedFriendsListObj = {};
+        selectedFriendsListObj[userUid] = statusTimeObj;
         theSelectedFriendsList.map((l,i) => {
             selectedFriendsListObj[l] = statusTimeObj;
         });
@@ -248,8 +249,9 @@ export default class CreateScreen extends React.Component {
         var docData = {
             title: title==='' ? 'Let\'s Tinko up' : title,
             creator: userUid,
-            ragList: tagListObj,
+            tagList: tagListObj,
             startTime: startTimeDate,
+            postTime:postTimeDate,
             endTime: endTimeDate,
             duration: durationTS,
             allFriends: allFriends,

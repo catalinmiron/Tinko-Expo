@@ -10,7 +10,7 @@ import LoginNavigator from './LoginNavigaor';
 import registerForPushNotificationsAsync from '../api/registerForPushNotificationsAsync';
 import * as firebase from "firebase";
 import SocketIOClient from 'socket.io-client';
-require("firebase/firestore");
+import 'firebase/firestore';
 
 
 export default class RootNavigator extends React.Component {
@@ -52,7 +52,7 @@ export default class RootNavigator extends React.Component {
                 this.initFriendTable(uid);
                 querySnapshot.forEach((doc)=>{
                     let friendUid = doc.data().uid;
-                    console.log(friendUid);
+                    //console.log(friendUid);
                     firebaseDb.collection("Users").doc(friendUid).get()
                         .then((doc) => {
                             let mapping = {

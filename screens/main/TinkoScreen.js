@@ -1,95 +1,308 @@
+import _ from 'lodash';
 import React, { Component } from 'react';
-import {StyleSheet, Text, View, ImageBackground, Dimensions, TouchableWithoutFeedback, Alert, ScrollView, SafeAreaView} from 'react-native';
+import {StyleSheet, Text, View, ImageBackground, Dimensions, TouchableWithoutFeedback, Alert, ScrollView, SafeAreaView, RefreshControl,TouchableOpacity, Image, FlatList, Platform} from 'react-native';
 import { Input, Button } from 'react-native-elements'
 
 import { Header } from 'react-navigation';
+import Masonry from '../../modules/react-native-masonry';
 import {Facebook, Font} from 'expo';
 import firebase from "firebase";
+import 'firebase/firestore';
 import { NavigationActions } from 'react-navigation';
 //import Icon from 'react-native-vector-icons/FontAwesome';
 
 const SCREEN_WIDTH = Dimensions.get('window').width;
 const SCREEN_HEIGHT = Dimensions.get('window').height;
 
-const BG_IMAGE = require('../../assets/images/bg_screen1.jpg');
+//const BG_IMAGE = require('../../assets/images/bg_screen1.jpg');
+
+
+let data = [
+    {
+        onPress: () => console.log('pressed'),
+        data: {
+            caption: 'A very Interesting Title of Tinko',
+            user: {
+                name: 'Henry1'
+            },
+        },
+        renderFooter: (data) => {
+            return (
+                <TouchableOpacity
+                    key='brick-header'
+                    style={styles.footer}
+                    onPress = {() => console.log('footerPressed')}
+                >
+                    <Text style={styles.userName}>{data.caption}</Text>
+                </TouchableOpacity>
+            )
+        },
+        renderHeader: (data) => {
+            return (
+                <TouchableOpacity
+                    key='brick-footer'
+                    style={styles.headerTop}
+                    onPress={()=> console.log('headerPressed')}>
+                    <Image
+                        source={{ uri: 'https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcTsO3JMW5pmK-pq9g3T-1znMMK8IEELKnasQ6agJANePV7Z0nwp9w' }}
+                        style={styles.userPic}/>
+                    <Text style={styles.userName}>{data.user.name}</Text>
+                </TouchableOpacity>
+            )
+        },
+        uri: 'https://s-media-cache-ak0.pinimg.com/736x/32/7f/d9/327fd98ae0146623ca8954884029297b.jpg',
+    },
+];
+
+
 
 export default class TinkoScreen extends Component {
     //static navigationOptions = {title: 'Tinko', headerStyle:{ position: 'absolute', backgroundColor: 'transparent', zIndex: 100, top: 0, left: 0, right: 0, boarderBottomWidth: 0,shadowColor: 'transparent', elevation:0, shadowOpacity: 0 }};
     static  navigationOptions = {header:null};
 
+    constructor(props){
+        super(props);
+        let user = firebase.auth().currentUser;
+        this.state = {
+            userUid:user.uid,
+            meetsData: [],
+            padding:5,
+            refreshing:false,
+        }
+    }
+
+    componentDidMount(){
+        //this.setState({meetsData:data});
+        //console.log('componentDidMount');
+        this.getMeets();
+    }
+
+    getMeets(){
+        const firestoreDb = firebase.firestore();
+        firestoreDb.collection("Meets").where(`selectedFriendsList.${this.state.userUid}.status`, "==", true).where("status", "==", true)
+            .onSnapshot((querySnapshot) => {
+                const {meetsData} = this.state;
+                //console.log('before querysnapshot for loop');
+                querySnapshot.docChanges.forEach((change) => {
+                    //console.log(meetDoc.id, " => ", meetDoc.data());
+                    if(change.type === "added"){
+                        let meetDoc = change.doc;
+                        let meet = change.doc.data();
+                        let creatorId = meet.creator;
+                        let userRef = firestoreDb.collection("Users").doc(creatorId);
+                        userRef.get().then((userDoc) => {
+                            if (userDoc.exists) {
+                                //console.log("Document data:", userDoc.data());
+                                let creator = userDoc.data();
+                                let startTimeString = this.getProperDateTimeString(meet.startTime);
+                                let postTimeString = this.calculateRecentPostTime(meet.postTime);
+                                let brick = {
+                                    onPress: () => this.props.navigation.navigate('TinkoDetail', {meetId:meetDoc.id}),
+                                    data:{
+                                        title: meet.title,
+                                        startTime: startTimeString,
+                                        postTime: postTimeString,
+                                        placeName: meet.place.name,
+                                        creator: {
+                                            name: creator.username,
+                                            photoURL: creator.photoURL,
+                                        },
+                                        tags: Object.keys(meet.tagList),
+                                    },
+                                    renderHeader: (data) => {
+                                        return (
+                                            <TouchableOpacity
+                                                key='brick-footer'
+                                                style={styles.headerTop}
+                                                onPress={() => this.props.navigation.navigate('TinkoDetail', {meetId:meetDoc.id})}
+                                            >
+                                                <Image
+                                                    source={{ uri: data.creator.photoURL }}
+                                                    style={styles.userPic}/>
+                                                <View style={{marginTop:10}}>
+                                                    <Text style={styles.userName}>{data.creator.name}</Text>
+                                                    <Text style={styles.postTime}>{data.postTime}</Text>
+                                                </View>
+                                                <View style={{width:10, backgroundColor:'white'}}/>
+                                            </TouchableOpacity>
+                                        )
+                                    },
+                                    renderFooter: (data) => {
+                                        return (
+                                            <TouchableOpacity key='brick-header' style={styles.footer} onPress={() => this.props.navigation.navigate('TinkoDetail', {meetId:meetDoc.id})}>
+                                                <Text style={styles.footerTitle}>{data.title}</Text>
+                                                <Text style={styles.footerTime}>{data.startTime}</Text>
+                                                <Text style={styles.footerTime}>{data.placeName}</Text>
+                                            </TouchableOpacity>
+                                        )
+                                    },
+                                    uri: meetDoc.id,
+                                };
+                                meetsData.push(brick);
+                                this.setState({meetsData});
+                            } else {
+                                console.log("No such document!");
+                            }
+                        }).catch((error) => {
+                            console.log("Error getting document:", error);
+                        })
+                    }
+
+                    if(change.type === "removed"){
+                        const { meetsData } = this.state;
+                        _.remove(meetsData, function(brick) {
+                            return brick.uri === change.doc.id;
+                        });
+                        this.setState({meetsData});
+                    }
+
+
+                });
+
+            });
+    }
+
+    calculateRecentPostTime(postTime){
+        //console.log(postTime);
+        let postTimeTS = postTime.getTime();
+        let nowTS = new Date().getTime();
+        let dif = nowTS - postTimeTS;
+        if(dif < 60*1000){
+            return "Just now";
+        } else if (dif < 2*60*1000){
+            return "1 min ago"
+        } else if (dif < 60*60*1000){
+            return `${Math.round(dif/(60*1000))} mins ago`;
+        } else if (dif < 2*60*60*1000){
+            return "1 hour ago"
+        } else if (dif < 24*60*60*1000){
+            return `${Math.round(dif/(60*60*1000))} hours ago`;
+        } else if (dif < 48*60*60*1000){
+            return "Yesterday";
+        } else {
+            return `${Math.round(dif/(24*60*60*1000))} days ago`;
+        }
+    }
+
+    getProperDateTimeString(dateTime){
+        let month = dateTime.getMonth() + 1;
+        let day = dateTime.getDay();
+        let hour = dateTime.getHours();
+        let min = ("0" + dateTime.getMinutes()).slice(-2);
+        return `${month}-${day} ${hour}:${min}`
+    }
+
+    _onRefresh() {
+        this.setState({refreshing: true});
+
+        this.setState({meetsData:addData, refreshing:false})
+        // fetchData().then(() => {
+        //     this.setState({refreshing: false});
+        // });
+    }
+
 
     render() {
 
+
         return (
             <View style={styles.container}>
+                {/*{Platform.OS === 'android' &&*/}
+                {/*<Button*/}
+                    {/*containerStyle ={styles.refreshButton}*/}
+                    {/*onPress={() => this.setState({meetsData:addData})}*/}
+                    {/*text='refresh'*/}
+                {/*/>}*/}
+
                 <ScrollView
-                    showsVerticalScrollIndicator={false}>
-                    <View style={{height: Header.HEIGHT}}/>
-                    <Text style={{fontSize:96}}>Scroll me plz</Text>
-                    <Text style={{fontSize:96}}>If you like</Text>
-                    <Text style={{fontSize:96}}>Scrolling down</Text>
-                    <Text style={{fontSize:96}}>What's the best</Text>
-                    <Text style={{fontSize:96}}>Framework around?</Text>
-                    <Text style={{fontSize:80}}>React Native</Text>
+                    // refreshControl={
+                    //     <RefreshControl
+                    //         refreshing={this.state.refreshing}
+                    //         onRefresh={this._onRefresh.bind(this)}
+                    //     />
+                    // }
+                     >
+                    <View style={{height: Header.HEIGHT + 30}}/>
+                    <Masonry
+                        sorted // optional - Default: false
+                        columns={2} // optional - Default: 2
+                        bricks={this.state.meetsData}
+                        // refreshControl={
+                        //     <RefreshControl
+                        //         refreshing={this.state.refreshing}
+                        //         onRefresh={this._onRefresh.bind(this)}
+                        //     />
+                        // }
+                    />
                 </ScrollView>
+
+
             </View>
         );
     }
 }
 
+
+
 const styles = StyleSheet.create({
     container: {
         flex: 1,
-        backgroundColor:'#C4ECFF'
+        backgroundColor:'#C4ECFF',
     },
-    topText:{
-        position:'absolute',
-    },
-    headerView: {
-        height:64
-    },
-    bgImage: {
-        flex: 1,
-        top: 0,
-        left: 0,
-        width: SCREEN_WIDTH,
-        height: SCREEN_HEIGHT,
-        justifyContent: 'center',
-        alignItems: 'center'
-    },
-    loginView: {
-        marginTop: 0,
-        backgroundColor: 'transparent',
-        width: 250,
-        height: 350,
-        justifyContent: 'center',
-        alignItems: 'center'
-    },
-    loginTitle: {
-        flex: 1,
-    },
-    travelText: {
-        color: 'white',
-        fontSize: 30,
-        fontFamily: 'bold'
-    },
-    plusText: {
-        color: 'white',
-        fontSize: 30,
-        fontFamily: 'regular'
-    },
-    loginInput: {
-        flex: 1,
-        justifyContent: 'center',
-        alignItems: 'center'
-    },
-    loginButton: {
-        flex: 1,
-    },
-    footerView: {
-        marginTop: 20,
-        flex: 0.5,
-        justifyContent: 'center',
+    headerTop: {
+        flexDirection: 'row',
+        padding: 5,
         alignItems: 'center',
+        backgroundColor: 'transparent',
+        position: 'absolute',
+        zIndex: 100,
+    },
+    userPic: {
+        height: 45,
+        width: 45,
+        borderRadius: 22,
+        marginRight: 10,
+        marginTop:10,
+    },
+    userName: {
+        fontSize: 20,
+        color:'white',
+        fontWeight: 'bold',
+    },
+    postTime:{
+        color:'white',
+    },
+    footerTitle:{
+        fontSize: 25,
+        color:'white',
+        fontWeight:'bold',
+    },
+    footerTime:{
+        fontSize:18,
+        color:'white',
+        fontWeight:'bold',
+    },
+    footerPlaceName:{
+        fontSize:16,
+        color:'white',
+        fontWeight:'bold',
+    },
+    footer:{
+        flex:1,
+        backgroundColor: 'transparent',
+        padding: 5,
+        paddingRight: 9,
+        paddingLeft: 9,
+        zIndex: 50,
+        position: 'absolute',
+        bottom: 0
+
+    },
+    refreshButton:{
+        position:'absolute',
+        top: 10,
+        right: 10,
+        zIndex:100
     }
+
 });

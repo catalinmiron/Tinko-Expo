@@ -34,6 +34,13 @@ import RegisterScreen from '../screens/login/RegisterScreen';
 
 export default class LoginTabNavigator extends React.Component {
 
+    constructor(props){
+        super(props);
+        // this.state = {
+        //     scrollEnabled:true,
+        // }
+    }
+
     static navigationOptions = {title: 'Tinko',
                                 headerTitleStyle:{
                                     color: 'white',
@@ -50,8 +57,15 @@ export default class LoginTabNavigator extends React.Component {
     //static navigationOptions = {title:'Tinko'};
     //static  navigationOptions = {header:null};
     componentDidMount(){
-        console.log(Header.HEIGHT);
     }
+
+    // disableScroll(){
+    //     this.setState({scrollEnabled: false})
+    // }
+    //
+    // enableScroll(){
+    //     this.setState({scrollEnabled: true})
+    // }
 
     render() {
         return (
@@ -61,8 +75,12 @@ export default class LoginTabNavigator extends React.Component {
                     pagingEnabled
                     decelerationRate={0.993}
                     showsHorizontalScrollIndicator={false}
+                    // scrollEnabled={this.state.scrollEnabled}
                 >
-                    <TinkoNav />
+                    <TinkoNav
+                        // disableScroll={this.disableScroll.bind(this)}
+                        // enableScroll={this.enableScroll.bind(this)}
+                    />
                     <DiscoverNav />
                 </ScrollView>
                 <ActionButton buttonColor="#3498db">
