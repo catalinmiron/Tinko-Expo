@@ -9,6 +9,8 @@ import Expo, { SQLite } from 'expo';
 import * as firebase from "firebase";
 const db = SQLite.openDatabase('db.db');
 
+import FriendDiv from '../../components/FriendListView';
+
 require("firebase/firestore");
 import SocketIOClient from 'socket.io-client';
 import {
@@ -55,18 +57,25 @@ class FriendChatListView extends Component {
         super();
         let user = firebase.auth().currentUser;
         uid = user.uid;
-        this.socket = SocketIOClient('http://47.89.187.42:3000/');
+        //this.socket = SocketIOClient('http://47.89.187.42:3000/');
+        this.socket = SocketIOClient('http://127.0.0.1:3000/');
         this.getAvatar();
         this.getData();
         this.state = {
             messages: [],
             friendInfo:[]
         };
+        console.log("connect"+uid);
         this.socket.on("connect" + uid,msg=>{
             let data = JSON.parse(msg);
+            console.log("this is msg");
             if (alreadyInList.indexOf(data.from) === -1){
+                //用户没有存在这边，需要创建新的
+                alreadyInList.push(data.from);
+                lastUpdateArr.push({
+                    msg:data.message,
+                    fromId:data.from});
             }else{
-                //  lastUpdateArr.push(dataArr[i]);
                 lastUpdateArr[0].msg = data.message;
             }
             this.setState({
@@ -80,12 +89,9 @@ class FriendChatListView extends Component {
             tx => {
                 tx.executeSql('select * from friend_list', [], (_, { rows }) => {
                     let dataArr =  rows['_array'];
-                    console.log(dataArr);
                     for (let i = 0;i<dataArr.length;i++){
                         personalInfo[dataArr[i].userId] = [dataArr[i].avatarUrl,dataArr[i].username];
                     }
-                    console.log("personalInfo");
-                    console.log(personalInfo);
                     this.setState({
                         friendInfo:personalInfo
                     });
@@ -110,8 +116,6 @@ class FriendChatListView extends Component {
                             lastUpdateArr.push(dataArr[i]);
                         }
                     }
-                    console.log("lastUpdateArr");
-                    console.log(lastUpdateArr);
                     this.setState({
                         messages:lastUpdateArr
                     });
@@ -142,7 +146,7 @@ class FriendChatListView extends Component {
                         key={personalId}
                         title={PersonName}
                         subtitle={message}
-                        badge={{ value: 3, textStyle: { color: 'orange' }, containerStyle: { marginTop: -20 } }}
+                        // badge={{ value: 3, textStyle: { color: 'orange' }, containerStyle: { marginTop: -20 } }}
                         onPress={() => this.props.navigation.navigate('PrivateChatPage', {
                             avatar:ImageURL,
                             name:PersonName,
@@ -152,12 +156,16 @@ class FriendChatListView extends Component {
                     />
                 );
             }
+            return (
+                <List>
+                    {friendList}
+                </List>
+            )
+        }else{
+            return (
+                <FriendDiv/>
+            )
         }
-        return (
-            <List>
-                {friendList}
-            </List>
-        )
     }
 }
 const styles = StyleSheet.create(
