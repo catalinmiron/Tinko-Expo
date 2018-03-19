@@ -7,9 +7,20 @@ const workPlace = { description: 'Work', geometry: { location: { lat: 48.8496818
 
 
 export default class GooglePlacesInput extends React.Component{
+    //
+    // static navigationOptions = {
+    //     header: null
+    // };
+    static navigationOptions = ({ navigation }) => {
+        const params = navigation.state.params || {};
 
-    static navigationOptions = {
-        header: null
+        return {
+            // Correct Header Button modifyzationn: https://reactnavigation.org/docs/header-buttons.html
+            headerRight:null,
+            headerLeft:null,
+            headerStyle:{backgroundColor:'#EC7063'}
+            //headerStyle:{ position: 'absolute', backgroundColor: 'transparent', zIndex: 100, top: 0, left: 0, right: 0, headerLeft:null, boarderBottomWidth: 0}
+        };
     };
 
     constructor(props){
@@ -18,7 +29,7 @@ export default class GooglePlacesInput extends React.Component{
 
     render(){
         return(
-            <SafeAreaView style={styles.container}>
+            <View style={styles.container}>
                 <GooglePlacesAutocomplete
                     placeholder='Search'
                     minLength={1} // minimum length of text to search
@@ -80,7 +91,7 @@ export default class GooglePlacesInput extends React.Component{
                             <Text style={{color:'blue'}} onPress={() => this.props.navigation.goBack()}>Cancel </Text>
                         </View>}
                 />
-            </SafeAreaView>
+            </View>
         );
     }
 }

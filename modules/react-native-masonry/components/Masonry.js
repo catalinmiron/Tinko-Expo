@@ -1,7 +1,6 @@
 import { View, ListView, Image, Text, Dimensions } from 'react-native';
 import React, { Component } from 'react';
 import PropTypes from 'prop-types';
-import isEqual from 'lodash.isequal';
 
 import Column from './Column';
 import styles from '../styles/main';
@@ -14,7 +13,6 @@ export const assignObjectColumn = (nColumns, index, targetObject) => ({...target
 export const assignObjectIndex = (index, targetObject) => ({...targetObject, ...{ index }});
 
 // containMatchingUris :: ([brick], [brick]) -> Bool
-const containMatchingUris = (r1, r2) => isEqual(r1.map(brick => brick.uri), r2.map(brick => brick.uri));
 
 export default class Masonry extends Component {
 	static propTypes = {
