@@ -14,54 +14,17 @@ import { NavigationActions } from 'react-navigation';
 const SCREEN_WIDTH = Dimensions.get('window').width;
 const SCREEN_HEIGHT = Dimensions.get('window').height;
 
-//const BG_IMAGE = require('../../assets/images/bg_screen1.jpg');
-
-
-let data = [
-    {
-        onPress: () => console.log('pressed'),
-        data: {
-            caption: 'A very Interesting Title of Tinko',
-            user: {
-                name: 'Henry1'
-            },
-        },
-        renderFooter: (data) => {
-            return (
-                <TouchableOpacity
-                    key='brick-header'
-                    style={styles.footer}
-                    onPress = {() => console.log('footerPressed')}
-                >
-                    <Text style={styles.userName}>{data.caption}</Text>
-                </TouchableOpacity>
-            )
-        },
-        renderHeader: (data) => {
-            return (
-                <TouchableOpacity
-                    key='brick-footer'
-                    style={styles.headerTop}
-                    onPress={()=> console.log('headerPressed')}>
-                    <Image
-                        source={{ uri: 'https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcTsO3JMW5pmK-pq9g3T-1znMMK8IEELKnasQ6agJANePV7Z0nwp9w' }}
-                        style={styles.userPic}/>
-                    <Text style={styles.userName}>{data.user.name}</Text>
-                </TouchableOpacity>
-            )
-        },
-        uri: 'https://s-media-cache-ak0.pinimg.com/736x/32/7f/d9/327fd98ae0146623ca8954884029297b.jpg',
-    },
-];
-
 
 
 export default class TinkoScreen extends Component {
     //static navigationOptions = {title: 'Tinko', headerStyle:{ position: 'absolute', backgroundColor: 'transparent', zIndex: 100, top: 0, left: 0, right: 0, boarderBottomWidth: 0,shadowColor: 'transparent', elevation:0, shadowOpacity: 0 }};
-    static  navigationOptions = {header:null};
+    static  navigationOptions = {
+        header:null,
+        };
 
     constructor(props){
         super(props);
+        console.log(props);
         let user = firebase.auth().currentUser;
         this.state = {
             userUid:user.uid,
@@ -75,6 +38,10 @@ export default class TinkoScreen extends Component {
         //this.setState({meetsData:data});
         //console.log('componentDidMount');
         this.getMeets();
+    }
+
+    componentWillUnmount(){
+        console.log('tinko componentWillUnMount');
     }
 
     getMeets(){
@@ -97,7 +64,7 @@ export default class TinkoScreen extends Component {
                                 let startTimeString = this.getProperDateTimeString(meet.startTime);
                                 let postTimeString = this.calculateRecentPostTime(meet.postTime);
                                 let brick = {
-                                    onPress: () => this.props.navigation.navigate('TinkoDetail', {meetId:meetDoc.id}),
+                                    onPress: () => this.props.screenProps.navigation.navigate('TinkoDetail', {meetId:meetDoc.id}),
                                     data:{
                                         title: meet.title,
                                         startTime: startTimeString,
@@ -114,12 +81,12 @@ export default class TinkoScreen extends Component {
                                             <TouchableOpacity
                                                 key='brick-footer'
                                                 style={styles.headerTop}
-                                                onPress={() => this.props.navigation.navigate('TinkoDetail', {meetId:meetDoc.id})}
+                                                onPress={() => this.props.screenProps.navigation.navigate('TinkoDetail', {meetId:meetDoc.id})}
                                             >
                                                 <Image
                                                     source={{ uri: data.creator.photoURL }}
                                                     style={styles.userPic}/>
-                                                <View style={{marginTop:10}}>
+                                                <View style={{marginTop:5}}>
                                                     <Text style={styles.userName}>{data.creator.name}</Text>
                                                     <Text style={styles.postTime}>{data.postTime}</Text>
                                                 </View>
@@ -129,10 +96,10 @@ export default class TinkoScreen extends Component {
                                     },
                                     renderFooter: (data) => {
                                         return (
-                                            <TouchableOpacity key='brick-header' style={styles.footer} onPress={() => this.props.navigation.navigate('TinkoDetail', {meetId:meetDoc.id})}>
+                                            <TouchableOpacity key='brick-header' style={styles.footer} onPress={() => this.props.screenProps.navigation.navigate('TinkoDetail', {meetId:meetDoc.id})}>
                                                 <Text style={styles.footerTitle}>{data.title}</Text>
                                                 <Text style={styles.footerTime}>{data.startTime}</Text>
-                                                <Text style={styles.footerTime}>{data.placeName}</Text>
+                                                <Text style={styles.footerPlaceName}>{data.placeName}</Text>
                                             </TouchableOpacity>
                                         )
                                     },
@@ -247,6 +214,8 @@ export default class TinkoScreen extends Component {
 const styles = StyleSheet.create({
     container: {
         flex: 1,
+        width: SCREEN_WIDTH,
+        height: SCREEN_HEIGHT,
         backgroundColor:'#C4ECFF',
     },
     headerTop: {
@@ -283,7 +252,7 @@ const styles = StyleSheet.create({
         fontWeight:'bold',
     },
     footerPlaceName:{
-        fontSize:16,
+        fontSize:18,
         color:'white',
         fontWeight:'bold',
     },

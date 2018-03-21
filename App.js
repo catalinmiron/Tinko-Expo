@@ -49,6 +49,7 @@ export default class App extends React.Component {
           require('./assets/images/tagsTheme/sky.jpg'),
           require('./assets/images/tagsTheme/StaindGlass.jpg'),
           require('./assets/images/tagsTheme/yumao.jpg'),
+          require('./assets/images/bg_screen1.jpg'),
 
       ]),
       Font.loadAsync({

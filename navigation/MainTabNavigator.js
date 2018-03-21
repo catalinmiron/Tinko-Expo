@@ -13,6 +13,8 @@ import TinkoTabNavigator from './TinkoTabNavigator';
 import CreateScreen from '../screens/main/CreateScreen';
 import GooglePlacesInputScreen from '../screens/main/create/GooglePlacesInput';
 import CreateNavigator from './CreateNavigator';
+import TinkoDetailScreen from "../screens/main/tinko/TinkoDetailScreen";
+
 
 const MainTabNavigator = TabNavigator(
   {
@@ -68,10 +70,22 @@ const MainTabNavigator = TabNavigator(
   }
 );
 
+
+const MainTabNavigatorWithDetailScreens = StackNavigator(
+    {
+        Main:{
+            screen: MainTabNavigator,
+        },
+        TinkoDetail:{
+            screen: TinkoDetailScreen,
+        }
+    }
+);
+
 export default StackNavigator(
     {
-        Main: {
-            screen: MainTabNavigator,
+        MainWithDetails: {
+            screen: MainTabNavigatorWithDetailScreens,
         },
         Create: {
             screen: CreateNavigator,
