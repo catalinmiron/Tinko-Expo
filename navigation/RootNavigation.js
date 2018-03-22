@@ -35,6 +35,8 @@ export default class RootNavigator extends React.Component {
             let uid = user.uid;
             // 测试时才用drop
             this.dropChatTable(uid);
+            this.dropMeetingTable(uid);
+            this.initMeetingTable(uid);
             this.initChatTable(uid);
             // this.socket = SocketIOClient('http://47.89.187.42:3000/');
             this.socket = SocketIOClient('http://127.0.0.1:3000/');
@@ -71,6 +73,15 @@ export default class RootNavigator extends React.Component {
                 console.log("Error getting documents: ", error);
             });
 
+            let meetRef = firebaseDb.collection("Meets").where(`participatingUsersList.${uid}.status`, "==", true);
+            meetRef.get().then((querySnapshot)=>{
+                for (let i = 0;i<querySnapshot.docs.length;i++){
+                    this.insertMeetingId(uid,querySnapshot.docs[i]);
+                }
+            }).catch((error) => {
+                console.log("Error getting documents: ", error);
+            });
+
             return <MainTabNavigator/>
         } else {
             return <LoginNavigator screenProps={this.props}/>
@@ -98,10 +109,49 @@ export default class RootNavigator extends React.Component {
         );
     }
 
+    dropMeetingTable(uid){
+        db.transaction(
+            tx => {
+                tx.executeSql('drop table meeting'+ uid);
+            },
+            null,
+            this.update
+        );
+    }
+
+    initMeetingTable(uid){
+        db.transaction(
+            tx => {
+                tx.executeSql('create table if not exists meeting'+ uid + "(id integer primary key not null ,meetingId text, creator text, endTime text, address text, tagList text, description text, title text)");
+            },
+            null,
+            this.update
+        );
+    }
+
+    insertMeetingId(uid,dataSource){
+        let data = dataSource.data(),
+            title = data.title,
+            meetingId = dataSource.id,
+            description = data.description,
+            tag = JSON.stringify(data.tagList),
+            place = data.place.name,
+            endTime = data.endTime.toString(),
+            creator = data.creator;
+        console.log("INSERT INTO meeting"+uid+"(meetingId,creator,endTime,address,tagList,description,title) VALUES ("+meetingId+","+creator+","+endTime+","+place+","+tag+","+description+","+title+")");
+        db.transaction(
+            tx => {
+                tx.executeSql("INSERT INTO meeting"+uid+"(meetingId,creator,endTime,address,tagList,description,title) VALUES (?,?,?,?,?,?,?)",
+                    [meetingId,creator,endTime,place,tag,description,title]);
+            },
+            null,
+            this.update
+        );
+    }
+
     insertChatSql(uid,fromId,msg){
         db.transaction(
             tx => {
-                console.log("msg from :" + fromId + " , he/she said :" + msg);
                 tx.executeSql("INSERT INTO db"+uid+"(fromId,msg,status) VALUES (?,?,?)",[fromId,msg,0]);
             },
             null,

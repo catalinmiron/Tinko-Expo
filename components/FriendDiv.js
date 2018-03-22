@@ -71,6 +71,7 @@ export default class FriendDiv extends Component {
                 <List containerStyle={{marginBottom: 20}}>
                     {friendList}
                 </List>
+                
             </View>
         )
     }
