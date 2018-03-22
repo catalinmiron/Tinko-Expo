@@ -9,8 +9,6 @@ import Expo, { SQLite } from 'expo';
 import * as firebase from "firebase";
 const db = SQLite.openDatabase('db.db');
 
-import FriendDiv from '../../components/FriendListView';
-
 require("firebase/firestore");
 import SocketIOClient from 'socket.io-client';
 import {
@@ -69,6 +67,17 @@ class FriendChatListView extends Component {
         this.socket.on("connect" + uid,msg=>{
             let data = JSON.parse(msg);
             console.log("this is msg");
+            let type = data.type;
+            // if (parseInt(type) === 0){
+            //     //系统
+            //
+            // }else if (parseInt(type)===1){
+            //     //私聊
+            //
+            // }else{
+            //     //群组
+            //
+            // }
             if (alreadyInList.indexOf(data.from) === -1){
                 //用户没有存在这边，需要创建新的
                 alreadyInList.push(data.from);
@@ -129,10 +138,6 @@ class FriendChatListView extends Component {
 
     render() {
         let friendList = [];
-        console.log("this.state.messages");
-        console.log(this.state.messages);
-        console.log("this.state.friendInfo");
-        console.log(this.state.friendInfo);
         if (this.state.messages.length!==0&&this.state.friendInfo.length!==0){
             for (let i = 0;i<this.state.messages.length ; i++){
                 let personalId = this.state.messages[i].fromId,
@@ -156,18 +161,18 @@ class FriendChatListView extends Component {
                     />
                 );
             }
-            return (
+
+        }
+        return (
+            <View>
                 <List>
                     {friendList}
                 </List>
-            )
-        }else{
-            return (
-                <FriendDiv/>
-            )
-        }
+            </View>
+        )
     }
 }
+
 const styles = StyleSheet.create(
     {
         separator:
