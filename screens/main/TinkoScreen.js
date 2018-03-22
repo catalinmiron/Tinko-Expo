@@ -15,7 +15,6 @@ const SCREEN_WIDTH = Dimensions.get('window').width;
 const SCREEN_HEIGHT = Dimensions.get('window').height;
 
 
-
 export default class TinkoScreen extends Component {
     //static navigationOptions = {title: 'Tinko', headerStyle:{ position: 'absolute', backgroundColor: 'transparent', zIndex: 100, top: 0, left: 0, right: 0, boarderBottomWidth: 0,shadowColor: 'transparent', elevation:0, shadowOpacity: 0 }};
     static  navigationOptions = {
@@ -24,7 +23,7 @@ export default class TinkoScreen extends Component {
 
     constructor(props){
         super(props);
-        console.log(props);
+        //console.log(props);
         let user = firebase.auth().currentUser;
         this.state = {
             userUid:user.uid,

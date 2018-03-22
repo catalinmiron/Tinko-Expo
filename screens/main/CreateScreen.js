@@ -66,8 +66,6 @@ export default class CreateScreen extends React.Component {
         let userUid = user.uid;
         console.log('userUid',userUid);
 
-        this.initTable();
-
         this.state={
             title:'',
             userUid: userUid,
@@ -82,12 +80,10 @@ export default class CreateScreen extends React.Component {
             allowPeopleNearby: false,
             allowParticipantsInvite: false,
             selectedFriendsList: [],
-            userPicked: false,
             duration: '1 Hour',
             maxNo: 8,
             tagList:[],
             location: null,
-            sqlFriendsList: [],
             //fontLoaded:false,
         };
     }
@@ -136,28 +132,17 @@ export default class CreateScreen extends React.Component {
             });
     };
 
-    initTable(){
-        db.transaction(
-            tx => {
-                tx.executeSql('create table if not exists friend_list (id integer primary key not null, userId int, avatarUrl text , username text);');
-            },
-            null,
-            this.update
-        );
-    }
-
     getSql(){
+        const { userUid } = this.state;
         db.transaction(
             tx => {
-                tx.executeSql('select * from friend_list', [], (_, { rows }) => {
+                tx.executeSql('select * from friend_list'+userUid, [], (_, { rows }) => {
                     let dataArr =  rows['_array'],
                         rtnArr = [];
                     for (let i = 0; i <dataArr.length;i++){
                         rtnArr.push(dataArr[i].userId);
                     }
-                    this.setState({
-                        sqlFriendsList: rtnArr,
-                    });
+                    this.setState({ selectedFriendsList: rtnArr });
                 });
             },
             null,
@@ -210,7 +195,7 @@ export default class CreateScreen extends React.Component {
     onPostButtonPressed(){
         const { title, userUid, startTime, placeName, placeAddress, placeCoordinate, placeId,
             description, allFriends, allowPeopleNearby, allowParticipantsInvite,
-            selectedFriendsList, sqlFriendsList, duration, maxNo, tagList, userPicked } = this.state;
+            selectedFriendsList, duration, maxNo, tagList, userPicked } = this.state;
 
         var tagListObj = {};
         tagList.map((l,i) => {
@@ -230,7 +215,7 @@ export default class CreateScreen extends React.Component {
             placeId: placeId,
         }
 
-        let theSelectedFriendsList = userPicked ? selectedFriendsList : sqlFriendsList;
+        let theSelectedFriendsList = selectedFriendsList;
         let statusTimeObj = {
             status: true,
             endTime: endTimeDate,
@@ -269,15 +254,27 @@ export default class CreateScreen extends React.Component {
         console.log(docData);
 
         firebase.firestore().collection("Meets").add(docData)
-            .then(function(docRef) {
-                console.log("Document written with ID: ", docRef.id);
+            .then((meetRef) => {
+                console.log("Document written with ID: ", meetRef.id);
+                //this.updateUserParticipatingMeets(meetRef.id, userUid);
             })
-            .catch(function(error) {
+            .catch((error) => {
                 console.error("Error adding document: ", error);
             });
 
         this.props.navigation.dispatch(NavigationActions.back())
     }
+
+    // updateUserParticipatingMeets(meetId, userUid){
+    //     firebase.firestore().collection("Users").doc(userUid).collection("ParticipatingMeets").doc(meetId).set({
+    //         meetId: meetId,
+    //     }).then(() => {
+    //             console.log("Document successfully written!");
+    //         })
+    //         .catch((error) => {
+    //             console.error("Error writing document: ", error);
+    //         });
+    // }
 
     onCancelButtonPressed(){
         this.props.navigation.dispatch(NavigationActions.back())
@@ -294,7 +291,7 @@ export default class CreateScreen extends React.Component {
     }
 
     render() {
-        const {title, startTime, placeName, description, inputHeight} = this.state;
+        const {title, startTime, placeName, description, inputHeight, allFriends, allowParticipantsInvite, allowPeopleNearby, selectedFriendsList} = this.state;
         return (
             <ScrollView style={styles.container}>
                 <Card>
@@ -389,7 +386,12 @@ export default class CreateScreen extends React.Component {
                         <ListItem
                             containerStyle={styles.listStyle}
                             title='Invitation Range'
-                            onPress={() => this.props.navigation.navigate('InvitationRange', {setInvitationRange: this.setInvitationRange})}
+                            onPress={() => this.props.navigation.navigate('InvitationRange', {
+                                setInvitationRange: this.setInvitationRange,
+                                allFriends: allFriends,
+                                allowPeopleNearby: allowPeopleNearby,
+                                allowParticipantsInvite: allowParticipantsInvite,
+                                selectedFriendsList: selectedFriendsList,})}
                         />
                         <ListItem
                             containerStyle={styles.listStyle}

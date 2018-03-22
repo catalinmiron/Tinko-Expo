@@ -60,7 +60,7 @@ export default class DiscoverScreen extends Component {
         }
 
         let location = await Location.getCurrentPositionAsync({});
-        console.log(location);
+        //console.log(location);
         this.setState({
             location: {
                 lat:location.coords.latitude,
@@ -81,7 +81,7 @@ export default class DiscoverScreen extends Component {
         });
 
         var onKeyEnteredRegistration = geoQuery.on("key_entered", function(key, location, distance) {
-            console.log(key + " entered query at " + location + " (" + distance + " km from center)");
+            //console.log(key + " entered query at " + location + " (" + distance + " km from center)");
             let firestoreDb  = firebase.firestore();
             let meetRef = firestoreDb.collection("Meets").doc(key);
             meetRef.get().then((meetDoc) => {
@@ -233,7 +233,7 @@ export default class DiscoverScreen extends Component {
 
     find_dimesions(layout){
         const { height } = layout;
-        console.log(height);
+        //console.log(height);
         this.setState({containerHeight: height});
     }
 

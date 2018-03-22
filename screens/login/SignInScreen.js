@@ -201,7 +201,7 @@ export default class SignInScreen extends Component {
                             </View>
                             <View style={styles.loginButton}>
                                 <Button
-                                    text ='LOG IN'
+                                    title ='LOG IN'
                                     activeOpacity={1}
                                     underlayColor="transparent"
                                     onPress={this.submitLoginCredentials.bind(this)}
@@ -210,7 +210,7 @@ export default class SignInScreen extends Component {
                                     disabled={ !email_valid && password.length < 8}
                                     buttonStyle={{height: 50, width: 250, backgroundColor: 'transparent', borderWidth: 2, borderColor: 'white', borderRadius: 30}}
                                     containerStyle={{marginVertical: 10}}
-                                    textStyle={{fontWeight: 'bold', color: 'white'}}
+                                    titleStyle={{fontWeight: 'bold', color: 'white'}}
                                 />
                             </View>
                             <View style={styles.footerView}>
@@ -218,10 +218,10 @@ export default class SignInScreen extends Component {
                                     New here?
                                 </Text>
                                 <Button
-                                    text="Sign up with Facebook"
+                                    title="Sign up with Facebook"
                                     clear
                                     activeOpacity={0.5}
-                                    textStyle={{color: 'white', fontSize: 15}}
+                                    titleStyle={{color: 'white', fontSize: 15}}
                                     containerStyle={{marginTop: -10}}
                                     onPress={() => this.logInFB()}
                                 />

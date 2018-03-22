@@ -17,7 +17,7 @@ export default class RegisterScreen extends Component {
         const params = navigation.state.params || {};
 
         return {
-            headerRight:(<Button text='SKIP' buttonStyle={{backgroundColor: 'transparent', borderWidth: 0,}} onPress={params.skip}/>),
+            headerRight:(<Button title='SKIP' buttonStyle={{backgroundColor: 'transparent', borderWidth: 0,}} onPress={params.skip}/>),
             headerStyle:{ position: 'absolute', backgroundColor: 'transparent', zIndex: 100, top: 0, left: 0, right: 0, headerLeft:null, boaderBottomWidth: 0,borderBottomColor: 'transparent',}
         };
     };
@@ -162,7 +162,7 @@ export default class RegisterScreen extends Component {
                                 </View>
                                 <View style={{marginVertical: 10}}>
                                     <Button
-                                        text ='REGISTER'
+                                        title ='REGISTER'
                                         activeOpacity={1}
                                         underlayColor="transparent"
                                         onPress={() => this.onRegisterButtonPressed()}
@@ -171,7 +171,7 @@ export default class RegisterScreen extends Component {
                                         disabled={ !email_valid && password.length < 8}
                                         buttonStyle={{height: 50, width: 250, backgroundColor: 'transparent', borderWidth: 2, borderColor: 'white', borderRadius: 30}}
                                         containerStyle={{marginVertical: 10}}
-                                        textStyle={{fontWeight: 'bold', color: 'white'}}
+                                        titleStyle={{fontWeight: 'bold', color: 'white'}}
                                     />
                                 </View>
                             </View>
