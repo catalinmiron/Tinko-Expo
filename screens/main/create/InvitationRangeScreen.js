@@ -38,7 +38,7 @@ export default class InvitationRangeScreen extends React.Component{
 
         return {
             // Correct Header Button modifyzationn: https://reactnavigation.org/docs/header-buttons.html
-            headerLeft:(<Button text="Back"
+            headerLeft:(<Button title="Back"
                                 clear
                                 onPress={params.back}
             />),

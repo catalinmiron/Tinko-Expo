@@ -28,9 +28,8 @@ import {
 } from 'react-native-elements';
 import CustomButton from '../../components/CustomButton';
 import  DatePicker from 'react-native-datepicker';
-import {Font, SQLite} from "expo";
 import { NavigationActions } from 'react-navigation';
-import { Constants, Location, Permissions } from 'expo';
+import { SQLite, Constants, Location, Permissions } from 'expo';
 import firebase from 'firebase';
 
 const SCREEN_WIDTH = Dimensions.get('window').width;
@@ -42,10 +41,10 @@ export default class CreateScreen extends React.Component {
 
         return {
             // Correct Header Button modifyzationn: https://reactnavigation.org/docs/header-buttons.html
-            headerRight:(<Button text="POST"
+            headerRight:(<Button title="POST"
                                  clear
                                  onPress={params.post}/>),
-            headerLeft:(<Button text="Cancel"
+            headerLeft:(<Button title="Cancel"
                                 clear
 
                                 //color='#CCD1D1'
@@ -88,7 +87,8 @@ export default class CreateScreen extends React.Component {
             maxNo: 8,
             tagList:[],
             location: null,
-            sqlFriendsList: []
+            sqlFriendsList: [],
+            //fontLoaded:false,
         };
     }
 
@@ -102,15 +102,17 @@ export default class CreateScreen extends React.Component {
             this.getLocationAsync();
         }
 
-        await Font.loadAsync({
-            'georgia': require('../../assets/fonts/Georgia.ttf'),
-            'regular': require('../../assets/fonts/Montserrat-Regular.ttf'),
-            'light': require('../../assets/fonts/Montserrat-Light.ttf'),
-            'bold': require('../../assets/fonts/Montserrat-Bold.ttf'),
-        });
-
         this.getSql();
-        //this.setState({ fontLoaded: true });
+
+        // await Font.loadAsync({
+        //     'georgia': require('../../assets/fonts/Georgia.ttf'),
+        //     'regular': require('../../assets/fonts/Montserrat-Regular.ttf'),
+        //     'light': require('../../assets/fonts/Montserrat-Light.ttf'),
+        //     'bold': require('../../assets/fonts/Montserrat-Bold.ttf'),
+        // });
+        //
+        //
+        // this.setState({ fontLoaded: true });
     }
 
     getLocationAsync = async () => {
@@ -297,11 +299,17 @@ export default class CreateScreen extends React.Component {
             <ScrollView style={styles.container}>
                 <Card>
                     <View style={{flex:1, justifyContent: 'center', alignItems: 'center',}}>
+
                         <Input
                             width={230}
                             onChangeText={(title) => this.setState({title})}
                             value={title}
-                            inputStyle={{textAlign:'center', color: 'black', fontFamily:'bold',}}
+                            inputStyle={{
+                                textAlign:'center',
+                                color: 'black',
+                                //fontWeight: 'bold',
+                                fontFamily:'bold',
+                            }}
                             keyboardAppearance="light"
                             placeholder="A Tinko Title"
                             autoFocus={false}
@@ -315,6 +323,7 @@ export default class CreateScreen extends React.Component {
                             blurOnSubmit={false}
                             placeholderTextColor="black"
                         />
+
                     </View>
 
 
@@ -398,7 +407,6 @@ export default class CreateScreen extends React.Component {
                                     onChangeText={(description) => this.setState({description})}
                                     style={[ styles.inputStyling, {height: inputHeight} ]}
                                     value={description}
-                                    //inputStyle={{textAlign:'center', color: 'black', fontFamily:'bold'}}
                                     keyboardAppearance="light"
                                     placeholder="Description..."
                                     autoFocus={false}
@@ -439,90 +447,4 @@ const styles = StyleSheet.create({
         fontSize: 18
     },
 
-
-    titleText:{
-        alignItems:'center'
-    },
-    developmentModeText: {
-        marginBottom: 20,
-        color: 'rgba(0,0,0,0.4)',
-        fontSize: 14,
-        lineHeight: 19,
-        textAlign: 'center',
-    },
-    contentContainer: {
-        paddingTop: 30,
-    },
-    welcomeContainer: {
-        alignItems: 'center',
-        marginTop: 10,
-        marginBottom: 20,
-    },
-    welcomeImage: {
-        width: 100,
-        height: 80,
-        resizeMode: 'contain',
-        marginTop: 3,
-        marginLeft: -10,
-    },
-    getStartedContainer: {
-        alignItems: 'center',
-        marginHorizontal: 50,
-    },
-    homeScreenFilename: {
-        marginVertical: 7,
-    },
-    codeHighlightText: {
-        color: 'rgba(96,100,109, 0.8)',
-    },
-    codeHighlightContainer: {
-        backgroundColor: 'rgba(0,0,0,0.05)',
-        borderRadius: 3,
-        paddingHorizontal: 4,
-    },
-    getStartedText: {
-        fontSize: 17,
-        color: 'rgba(96,100,109, 1)',
-        lineHeight: 24,
-        textAlign: 'center',
-    },
-    tabBarInfoContainer: {
-        position: 'absolute',
-        bottom: 0,
-        left: 0,
-        right: 0,
-        ...Platform.select({
-            ios: {
-                shadowColor: 'black',
-                shadowOffset: { height: -3 },
-                shadowOpacity: 0.1,
-                shadowRadius: 3,
-            },
-            android: {
-                elevation: 20,
-            },
-        }),
-        alignItems: 'center',
-        backgroundColor: '#fbfbfb',
-        paddingVertical: 20,
-    },
-    tabBarInfoText: {
-        fontSize: 17,
-        color: 'rgba(96,100,109, 1)',
-        textAlign: 'center',
-    },
-    navigationFilename: {
-        marginTop: 5,
-    },
-    helpContainer: {
-        marginTop: 15,
-        alignItems: 'center',
-    },
-    helpLink: {
-        paddingVertical: 15,
-    },
-    helpLinkText: {
-        fontSize: 14,
-        color: '#2e78b7',
-    },
 });

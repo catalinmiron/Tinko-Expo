@@ -1,41 +1,19 @@
 import React from 'react';
 import { StyleSheet, View, ScrollView } from 'react-native';
-import { Header } from 'react-navigation';
-import TinkoNav from './TinkoNavigator';
-import DiscoverNav from './DiscoverNavigator';
+import {Header, StackNavigator} from 'react-navigation';
 import ActionButton from 'react-native-action-button';
 import Icon from 'react-native-vector-icons/Ionicons';
+import Swiper from 'react-native-swiper';
 
-import DiscoverScreen from '../screens/main/LinksScreen';
-import SignInScreen from '../screens/login/SignInScreen';
-import RegisterScreen from '../screens/login/RegisterScreen';
+import DiscoverScreen from '../screens/main/DiscoverScreen';
+import TinkoScreen from '../screens/main/TinkoScreen'
+import TinkoDetailScreen from "../screens/main/tinko/TinkoDetailScreen";
 
-//
-// export default class TinkoTabNavigator extends React.Component{
-//     render(){
-//         return (
-//             <Container>
-//                 <Tabs>
-//                     <TinkoNav />
-//                     <DiscoverScreen />
-//
-//                 </Tabs>
-//             </Container>
-//         );
-//     }
-// }
-//
-// const styles = StyleSheet.create({
-//     safeArea: {
-//         flex: 1,
-//         backgroundColor: '#ddd'
-//     }
-// });
-
-export default class LoginTabNavigator extends React.Component {
+export default class TinkoTabNavigator extends React.Component {
 
     constructor(props){
         super(props);
+        console.log(props);
         // this.state = {
         //     scrollEnabled:true,
         // }
@@ -70,19 +48,15 @@ export default class LoginTabNavigator extends React.Component {
     render() {
         return (
             <View style={styles.container}>
-                <ScrollView
-                    horizontal
-                    pagingEnabled
-                    decelerationRate={0.993}
-                    showsHorizontalScrollIndicator={false}
-                    // scrollEnabled={this.state.scrollEnabled}
+                <Swiper
+                    loop={false}
+                    showsPagination = {false}
+                    //scrollEnabled={this.state.scrollEnabled}
                 >
-                    <TinkoNav
-                        // disableScroll={this.disableScroll.bind(this)}
-                        // enableScroll={this.enableScroll.bind(this)}
-                    />
-                    <DiscoverNav />
-                </ScrollView>
+                    <TinkoScreen screenProps={this.props}/>
+                    <DiscoverScreen screenProps={this.props}/>
+                </Swiper>
+
                 <ActionButton buttonColor="#3498db">
                     <ActionButton.Item buttonColor='#9b59b6' title="Express Post" onPress={() => console.log("notes tapped!")}>
                         <Icon name="md-done-all" style={styles.actionButtonIcon} />
@@ -106,3 +80,4 @@ const styles = StyleSheet.create({
         color: 'white',
     },
 });
+

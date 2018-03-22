@@ -11,6 +11,7 @@ import registerForPushNotificationsAsync from '../api/registerForPushNotificatio
 import * as firebase from "firebase";
 import SocketIOClient from 'socket.io-client';
 import 'firebase/firestore';
+import { Font } from 'expo'
 
 
 export default class RootNavigator extends React.Component {
@@ -18,10 +19,8 @@ export default class RootNavigator extends React.Component {
         super(props);
     }
 
-  componentDidMount() {
+    componentDidMount() {
     this._notificationSubscription = this._registerForPushNotifications();
-
-
   }
 
   componentWillUnmount() {
