@@ -55,8 +55,8 @@ class FriendChatListView extends Component {
         super();
         let user = firebase.auth().currentUser;
         uid = user.uid;
-        //this.socket = SocketIOClient('http://47.89.187.42:3000/');
-        this.socket = SocketIOClient('http://127.0.0.1:3000/');
+        this.socket = SocketIOClient('http://47.89.187.42:3000/');
+        //this.socket = SocketIOClient('http://127.0.0.1:3000/');
         this.getAvatar();
         this.getData();
         this.state = {
@@ -68,16 +68,16 @@ class FriendChatListView extends Component {
             let data = JSON.parse(msg);
             console.log("this is msg");
             let type = data.type;
-            // if (parseInt(type) === 0){
-            //     //系统
-            //
-            // }else if (parseInt(type)===1){
-            //     //私聊
-            //
-            // }else{
-            //     //群组
-            //
-            // }
+            if (parseInt(type) === 0){
+                //系统
+
+            }else if (parseInt(type)===1){
+                //私聊
+
+            }else{
+                //群组
+                
+            }
             if (alreadyInList.indexOf(data.from) === -1){
                 //用户没有存在这边，需要创建新的
                 alreadyInList.push(data.from);
