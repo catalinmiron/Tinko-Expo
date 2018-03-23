@@ -96,7 +96,7 @@ class FriendChatListView extends Component {
     getAvatar(){
         db.transaction(
             tx => {
-                tx.executeSql('select * from friend_list', [], (_, { rows }) => {
+                tx.executeSql('select * from friend_list'+uid, [], (_, { rows }) => {
                     let dataArr =  rows['_array'];
                     for (let i = 0;i<dataArr.length;i++){
                         personalInfo[dataArr[i].userId] = [dataArr[i].avatarUrl,dataArr[i].username];
