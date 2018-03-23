@@ -33,12 +33,12 @@ export default class RootNavigator extends React.Component {
             let user = firebase.auth().currentUser;
             let uid = user.uid;
             // 测试时才用drop
-            this.dropChatTable(uid);
+            //this.dropChatTable(uid);
             this.dropMeetingTable(uid);
             this.initMeetingTable(uid);
             this.initChatTable(uid);
-            // this.socket = SocketIOClient('http://47.89.187.42:3000/');
-            this.socket = SocketIOClient('http://127.0.0.1:3000/');
+            this.socket = SocketIOClient('http://47.89.187.42:3000/');
+            // this.socket = SocketIOClient('http://127.0.0.1:3000/');
             this.socket.emit("userLogin",uid);
             this.socket.emit("attendActivity",uid,[1,2,3]);
             this.socket.on("connect" + uid,msg=>{
