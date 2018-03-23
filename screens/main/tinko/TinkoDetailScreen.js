@@ -1,33 +1,29 @@
 import _ from 'lodash';
 import React from 'react';
-import {View, Alert, TouchableWithoutFeedback, Image, ScrollView, Text, StyleSheet, Dimensions} from 'react-native';
+import {View, Alert, TouchableWithoutFeedback, Image, ScrollView, Text, StyleSheet, Dimensions, SafeAreaView} from 'react-native';
 import firebase from 'firebase';
 import 'firebase/firestore';
-import Swiper from 'react-native-swiper'
+import Swiper from 'react-native-swiper';
+import { getStartTimeString,  getDurationString, getUserData } from "../../../modules/CommonUtility";
+import { MapView } from 'expo';
+import { Ionicons, MaterialIcons, Entypo,  } from '@expo/vector-icons';
+import { Avatar, Button, Header} from 'react-native-elements';
+import { ifIphoneX } from 'react-native-iphone-x-helper';
 
 const SCREEN_WIDTH = Dimensions.get('window').width;
 
-const data = [{
-    uri: 'https://s-media-cache-ak0.pinimg.com/736x/b1/21/df/b121df29b41b771d6610dba71834e512.jpg',
-},
-    {
-        uri: 'https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcTQpD8mz-2Wwix8hHbGgR-mCFQVFTF7TF7hU05BxwLVO1PS5j-rZA',
-    },
-    {
-        uri: 'https://s-media-cache-ak0.pinimg.com/736x/5a/15/0c/5a150cf9d5a825c8b5871eefbeda8d14.jpg'
-    },
-    {
-        uri: 'https://s-media-cache-ak0.pinimg.com/736x/04/63/3f/04633fcc08f9d405064391bd80cb0828.jpg'
-    },
-    {
-        uri: 'https://encrypted-tbn1.gstatic.com/images?q=tbn:ANd9GcQRWkuUMpLyu3QnFu5Xsi_7SpbabzRtSis-_QhKas6Oyj3neJoeug'
-    }];
 
 export default class TinkoDetailScreen extends React.Component {
 
-    static navigationOptions = ({navigation}) => ({
-            header:null,
-    });
+    static navigationOptions = ({ navigation }) => {
+        const params = navigation.state.params || {};
+
+        return {
+            headerLeft:(<Ionicons name="ios-arrow-back" size={20} color="white" style={{marginLeft:26}}/>),
+            headerRight:( <Entypo name="share-alternative" size={20} color="white" style={{marginRight:26}}/>),
+            headerStyle:{ position: 'absolute', backgroundColor: 'transparent', zIndex: 100, top: 0, left: 0, right: 0, headerLeft:null, boaderBottomWidth: 0,borderBottomColor: 'transparent',}
+        };
+    };
 
     constructor(props){
         super(props);
@@ -39,7 +35,7 @@ export default class TinkoDetailScreen extends React.Component {
             allowPeopleNearby:false,
             creatorUid:'',
             description:'',
-            duration:'',
+            duration:1,
             endTime:null,
             maxNo:0,
             participatingUsersList:[],
@@ -52,18 +48,23 @@ export default class TinkoDetailScreen extends React.Component {
             placeId:'',
             postTime:null,
             selectedFriendsList:[],
-            startTime:null,
+            startTime:new Date(),
             status:false,
             tagList:[],
             title:'',
             creatorUsername:'',
             creatorPhotoURL:'',
             placePhotos:[],
+            participatingUsersData:[],
+            creatorLoadingDone:false,
+            placePhotosLoadingDone:false,
+            usersDataLoadingDone:false,
         }
     }
 
     componentDidMount(){
         this.getMeetData();
+
     }
 
     getMeetData(){
@@ -74,8 +75,7 @@ export default class TinkoDetailScreen extends React.Component {
             if (meetDoc.exists) {
                 //console.log("Document data:", meetDoc.data());
                 let meet = meetDoc.data();
-                this.getCreatorData(meet.creator);
-                this.getPlacePhotos(meet.place.placeId);
+
                 let allFriends = meet.allFriends,
                     allowParticipantsInvite = meet.allowParticipantsInvite,
                     allowPeopleNearby = meet.allowPeopleNearby,
@@ -95,6 +95,17 @@ export default class TinkoDetailScreen extends React.Component {
                     status = meet.status,
                     tagList = Object.keys(meet.tagList),
                     title = meet.title;
+
+                // var participatingUsersData=[];
+                // let length = participatingUsersList.length;
+                // for(var i=0; i<length;i++){
+                //     participatingUsersData.push({});
+                // }
+
+                this.getCreatorData(creatorUid);
+                this.getPlacePhotos(placeId);
+                this.updateParticipatingUsersData(participatingUsersList);
+
                 this.setState({allFriends,
                     allowParticipantsInvite,
                     allowPeopleNearby,
@@ -113,9 +124,10 @@ export default class TinkoDetailScreen extends React.Component {
                     startTime,
                     status,
                     tagList,
-                    title});
-                console.log(this.state);
-
+                    title,
+                    });
+                //console.log(this.state);
+                //this.marker.showCallout()
             } else {
                 console.log("No such document!");
             }
@@ -125,83 +137,192 @@ export default class TinkoDetailScreen extends React.Component {
     }
 
     getCreatorData(creatorUid){
-        let firestoreDb = firebase.firestore();
-        var userRef = firestoreDb.collection("Users").doc(creatorUid);
-        userRef.get().then((userDoc) => {
-            if (userDoc.exists) {
-                //console.log("Document data:", userDoc.data());
-                let user = userDoc.data();
-                let creatorUsername = user.username,
-                    creatorPhotoURL = user.photoURL;
-
-                this.setState({creatorUsername, creatorPhotoURL});
-            } else {
-                console.log("No such document!");
+        getUserData(creatorUid).fork(
+            (error) => {
+                console.log(error);
+            },
+            (creatorObj) => {
+                //console.log(creatorObj);
+                let creatorUsername = creatorObj.username,
+                    creatorPhotoURL = creatorObj.photoURL;
+                this.setState({creatorUsername, creatorPhotoURL, creatorLoadingDone:true});
             }
-        }).catch((error) => {
-            console.log("Error getting document:", error);
-        });
+        );
+
     }
 
     getPlacePhotos(placeId){
         fetch(`https://maps.googleapis.com/maps/api/place/details/json?placeid=${placeId}&key=AIzaSyCw_VwOF6hmY5yri8OpqOr9sCzTTT7JKiU`)
             .then((response) => response.json())
             .then((responseJson) => {
-                console.log(responseJson);
+                //console.log(responseJson);
                 let photos = responseJson.result.photos;
-                this.setState({placePhotos:photos});
+                this.setState({placePhotos:photos, placePhotosLoadingDone:true});
 
             }).catch((error) => {
             console.error(error);
         });
     }
 
+    updateParticipatingUsersData(participatingUsersList){
+        participatingUsersList
+            .map(userUid => getUserData(userUid))
+            .map(getUserDataTask => getUserDataTask.fork(
+                (error) => console.warn(error),
+                (userObj) => {
+                    this.setState(state => {
+                        var usersData = state.participatingUsersData;
+                        usersData.push(userObj);
+                        return {
+                            participatingUsersData: usersData,
+                        };
+                    });
+                    //console.log(this.state.participatingUsersData);
+                }
+            ));
+
+    }
 
     render() {
-        const { creatorPhotoURL, creatorUsername, title, placePhotos } = this.state;
+        const { creatorLoadingDone, placePhotosLoadingDone,
+            creatorPhotoURL, creatorUsername, title, placePhotos, startTime, allowPeopleNearby, participatingUsersList,
+            maxNo, description, duration, participatingUsersData, placeName, placeCoordinate, placeAddress, placeId } = this.state;
+
+        if(!(creatorLoadingDone && placePhotosLoadingDone)){
+            return(
+                <View/>
+            );
+        } else {
+            //this.marker.showCallout();
+        }
 
         return (
-            <ScrollView style={styles.container}>
-                <View style={{height:SCREEN_WIDTH/2}}>
-                    <Swiper
-                        loop
-                        showsPagination = {false}
-                    >
+            <View style={styles.container}>
+                <ScrollView>
+                    <View style={{height:SCREEN_WIDTH/2}}>
+                        <Swiper
+                            loop
+                            showsPagination = {false}
+                        >
 
 
-                        {_.size(placePhotos) > 0 ?
-                            placePhotos.map((l, i) =>(
+                            {_.size(placePhotos) > 0 ?
+                                placePhotos.map((l, i) =>(
+                                    <Image
+                                        resizeMethod={'auto'}
+                                        style={{width:SCREEN_WIDTH, height:SCREEN_WIDTH/2}}
+                                        key = {l.photo_reference}
+                                        source={{uri:`https://maps.googleapis.com/maps/api/place/photo?maxwidth=${SCREEN_WIDTH}&photoreference=${l.photo_reference}&key=AIzaSyCw_VwOF6hmY5yri8OpqOr9sCzTTT7JKiU`}}/>
+                                ))
+                                :
                                 <Image
                                     resizeMethod={'auto'}
                                     style={{width:SCREEN_WIDTH, height:SCREEN_WIDTH/2}}
-                                    key = {l.photo_reference}
-                                    source={{uri:`https://maps.googleapis.com/maps/api/place/photo?maxwidth=${SCREEN_WIDTH}&photoreference=${l.photo_reference}&key=AIzaSyCw_VwOF6hmY5yri8OpqOr9sCzTTT7JKiU`}}/>
-                            ))
-                            :
-                            <Image
-                                resizeMethod={'auto'}
-                                style={{width:SCREEN_WIDTH, height:SCREEN_WIDTH/2}}
-                                key = {'placePhoto'}
-                                source={require('../../../assets/images/tagsTheme/StaindGlass.jpg')}/>
+                                    key = {'placePhoto'}
+                                    source={require('../../../assets/images/tagsTheme/StaindGlass.jpg')}/>
                             }
-                    </Swiper>
-                </View>
+                        </Swiper>
+                    </View>
 
-                <View style={{flexDirection: 'row', alignItems:'center', position:'absolute', marginTop:SCREEN_WIDTH/2-60, right:0}}>
-                    <Text style={{marginRight:30, color:'white', fontSize: 18, fontWeight:'bold'}}>{creatorUsername}</Text>
-                    <Image
-                        style={{width:80, height:80, marginRight:15, borderWidth:1.5, borderColor:'white'}}
-                        key='creatorPhoto'
-                        source={{uri: creatorPhotoURL}}
+                    <View style={{flexDirection: 'row', alignItems:'center', position:'absolute', marginTop:SCREEN_WIDTH/2-60, right:0}}>
+                        <Text style={{marginRight:30, color:'white', fontSize: 18, fontWeight:'bold'}}>{creatorUsername}</Text>
+                        <Image
+                            style={{width:80, height:80, marginRight:15, borderWidth:1.5, borderColor:'white'}}
+                            key='creatorPhoto'
+                            source={{uri: creatorPhotoURL}}
+                        />
+                    </View>
+
+                    <View style={{margin:26}}>
+                        <Text style={{marginTop: 20, fontSize:25, fontFamily:'bold', color:'#1C2833'}}>{title}</Text>
+                        <Text style={{marginTop:10, fontSize:20, fontFamily:'regular', color:'#2C3E50'}}>{placeName}</Text>
+
+                        <View style={{marginTop:30, flexDirection:'row', justifyContent:'space-between'}}>
+                            <View style={{flex:1, flexDirection:'row'}}>
+                                <Entypo name="calendar" size={26} color="1C2833" />
+                                <Text style={{marginLeft: 5, fontSize:20, fontFamily:'regular', color:'#2C3E50'}}>{getStartTimeString(startTime)}</Text>
+                            </View>
+
+                            <View style={{flex:1, flexDirection:'row'}}>
+                                <Entypo name="time-slot" size={26} color="1C2833" />
+                                <Text style={{marginLeft: 5, fontSize:20, fontFamily:'regular', color:'#2C3E50'}}>{getDurationString(duration)}</Text>
+                            </View>
+
+                        </View>
+                        <View style={{flexDirection:'row', justifyContent:"space-between", marginTop:10}}>
+                            <View style={{flex:1, flexDirection:'row'}}>
+                                <Ionicons name="ios-heart" size={26} color="1C2833" />
+                                <Text style={{marginLeft: 5, fontSize:20, fontFamily:'regular', color:'#2C3E50'}}>{`Status: ${participatingUsersList.length} / ${maxNo}`}</Text>
+                            </View>
+                            <View style={{flex:1, flexDirection:'row'}}>
+                                <MaterialIcons name="group" size={26} color="1C2833" />
+                                <Text style={{marginLeft: 5, fontSize:20, fontFamily:'regular', color:'#2C3E50'}}>{allowPeopleNearby? "Public" : "Private"}</Text>
+                            </View>
+
+                        </View>
+                        <Text style={{marginTop:30, fontSize:17, fontFamily:'regular', color:'#566573'}}>{description}</Text>
+                        <View style={{marginTop:30}}>
+                            {_.chunk(participatingUsersData, 3).map((chunk, chunkIndex) => (
+                                <View style={{ flexDirection: 'row', justifyContent: 'space-between', marginBottom: 10 }} key={chunkIndex}>
+                                    {chunk.map(userData => (
+                                        <Avatar
+                                            large
+                                            rounded
+                                            source={userData.photoURL ? { uri: userData.photoURL } : null}
+                                            title='TK'
+                                            key={userData.uid}
+                                        />
+                                    ))}
+                                </View>
+                            ))}
+                        </View>
+                        {/*<List style={{marginTop:30, borderBottomColor:'#F2F4F4'}}>*/}
+                        {/**/}
+                        {/*</List>*/}
+                    </View>
+
+                    <MapView
+                        style={{marginTop:30, width:SCREEN_WIDTH, height: SCREEN_WIDTH*2/3 }}
+                        showsUserLocation
+                        region={{
+                            latitude: placeCoordinate.lat,
+                            longitude: placeCoordinate.lng,
+                            latitudeDelta: 0.0922,
+                            longitudeDelta: 0.0421,
+                        }}
+                        onRegionChangeComplete={() => this.marker.showCallout()}
+                    >
+                        <MapView.Marker
+                            coordinate={{
+                                latitude: placeCoordinate.lat,
+                                longitude: placeCoordinate.lng,
+                            }}
+                            title={placeName}
+                            description={placeAddress}
+                            key={placeId}
+                            ref={ref => { this.marker = ref; }}
+                        />
+                        <MapView.Callout/>
+                    </MapView>
+
+
+                </ScrollView>
+                <SafeAreaView style = {{backgroundColor: '#FFFCF6'}}>
+                    <Header
+                        outerContainerStyles = {{backgroundColor: '#FFFCF6', borderBottomColor:'transparent', borderBottomWidth:0, ...ifIphoneX({paddingTop:20}, {paddingTop:10})}}
+                        innerContainerStyles = {{ alignItems: 'flex-start'}}
+                        //leftComponent={<Text>123</Text>}
+                        rightComponent={
+                            <Button
+                                title={"Join"}
+                                containerViewStyle={{ flex:1, }}
+                                buttonStyle={{borderRadius:10, height:50, width:SCREEN_WIDTH*2/5}}/>
+
+                        }
                     />
-                </View>
+                </SafeAreaView>
+            </View>
 
-                <View style={{margin:26}}>
-                    <Text style={{marginTop: 20, fontSize:25, fontFamily:'bold', color:'#1C2833'}}>{title}</Text>
-                </View>
-
-
-            </ScrollView>
         );
     }
 }
@@ -209,10 +330,13 @@ export default class TinkoDetailScreen extends React.Component {
 const styles = StyleSheet.create({
     container: {
         flex: 1,
-        backgroundColor: '#FFF',
+        backgroundColor: 'white',
     },
     wrapper: {
 
     },
+    title:{
+        fontSize:25, fontFamily:'bold', color:'#1C2833'
+    }
 
 });

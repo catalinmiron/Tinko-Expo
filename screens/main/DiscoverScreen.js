@@ -5,6 +5,7 @@ import { MapView, Constants, Location, Permissions  } from 'expo';
 import GeoFire from 'geofire';
 import firebase from 'firebase';
 import 'firebase/firestore';
+import {getStartTimeString, getPostTimeString} from "../../modules/CommonUtility";
 
 const SCREEN_HEIGHT = Dimensions.get('window').height;
 const SCREEN_WIDTH = Dimensions.get('window').width;
@@ -101,8 +102,8 @@ export default class DiscoverScreen extends Component {
                                     longitude: location[1],
                                 },
                                 title: meet.title,
-                                startTime: this.getProperDateTimeString(meet.startTime),
-                                postTime: this.calculateRecentPostTime(meet.postTime),
+                                startTime: getStartTimeString(meet.startTime),
+                                postTime: getPostTimeString(meet.postTime),
                                 placeName: meet.place.name,
                                 creator: {
                                     name: creator.username,
@@ -235,36 +236,6 @@ export default class DiscoverScreen extends Component {
         const { height } = layout;
         //console.log(height);
         this.setState({containerHeight: height});
-    }
-
-    calculateRecentPostTime(postTime){
-        //console.log(postTime);
-        let postTimeTS = postTime.getTime();
-        let nowTS = new Date().getTime();
-        let dif = nowTS - postTimeTS;
-        if(dif < 60*1000){
-            return "Just now";
-        } else if (dif < 2*60*1000){
-            return "1 min ago"
-        } else if (dif < 60*60*1000){
-            return `${Math.round(dif/(60*1000))} mins ago`;
-        } else if (dif < 2*60*60*1000){
-            return "1 hour ago"
-        } else if (dif < 24*60*60*1000){
-            return `${Math.round(dif/(60*60*1000))} hours ago`;
-        } else if (dif < 48*60*60*1000){
-            return "Yesterday";
-        } else {
-            return `${Math.round(dif/(24*60*60*1000))} days ago`;
-        }
-    }
-
-    getProperDateTimeString(dateTime){
-        let month = dateTime.getMonth() + 1;
-        let day = dateTime.getDay();
-        let hour = dateTime.getHours();
-        let min = ("0" + dateTime.getMinutes()).slice(-2);
-        return `${month}-${day} ${hour}:${min}`
     }
 
 }

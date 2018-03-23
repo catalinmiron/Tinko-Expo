@@ -2,7 +2,7 @@ import React from 'react';
 import { StyleSheet, View, ScrollView } from 'react-native';
 import {Header, StackNavigator} from 'react-navigation';
 import ActionButton from 'react-native-action-button';
-import Icon from 'react-native-vector-icons/Ionicons';
+import { Ionicons } from '@expo/vector-icons';
 import Swiper from 'react-native-swiper';
 
 import DiscoverScreen from '../screens/main/DiscoverScreen';
@@ -59,10 +59,10 @@ export default class TinkoTabNavigator extends React.Component {
 
                 <ActionButton buttonColor="#3498db">
                     <ActionButton.Item buttonColor='#9b59b6' title="Express Post" onPress={() => console.log("notes tapped!")}>
-                        <Icon name="md-done-all" style={styles.actionButtonIcon} />
+                        <Ionicons name="md-done-all" style={styles.actionButtonIcon} />
                     </ActionButton.Item>
                     <ActionButton.Item buttonColor='#1abc9c' title="Create a Tinko" onPress={() => this.props.navigation.navigate('Create')}>
-                        <Icon name="md-create" style={styles.actionButtonIcon} />
+                        <Ionicons name="md-create" style={styles.actionButtonIcon} />
                     </ActionButton.Item>
                 </ActionButton>
             </View>

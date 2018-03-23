@@ -10,6 +10,7 @@ import firebase from "firebase";
 import 'firebase/firestore';
 import { NavigationActions } from 'react-navigation';
 //import Icon from 'react-native-vector-icons/FontAwesome';
+import { getStartTimeString, getPostTimeString } from "../../modules/CommonUtility";
 
 const SCREEN_WIDTH = Dimensions.get('window').width;
 const SCREEN_HEIGHT = Dimensions.get('window').height;
@@ -60,8 +61,8 @@ export default class TinkoScreen extends Component {
                             if (userDoc.exists) {
                                 //console.log("Document data:", userDoc.data());
                                 let creator = userDoc.data();
-                                let startTimeString = this.getProperDateTimeString(meet.startTime);
-                                let postTimeString = this.calculateRecentPostTime(meet.postTime);
+                                let startTimeString = getStartTimeString(meet.startTime);
+                                let postTimeString = getPostTimeString(meet.postTime);
                                 let brick = {
                                     onPress: () => this.props.screenProps.navigation.navigate('TinkoDetail', {meetId:meetDoc.id}),
                                     data:{
@@ -126,45 +127,6 @@ export default class TinkoScreen extends Component {
                 });
 
             });
-    }
-
-    calculateRecentPostTime(postTime){
-        //console.log(postTime);
-        let postTimeTS = postTime.getTime();
-        let nowTS = new Date().getTime();
-        let dif = nowTS - postTimeTS;
-        if(dif < 60*1000){
-            return "Just now";
-        } else if (dif < 2*60*1000){
-            return "1 min ago"
-        } else if (dif < 60*60*1000){
-            return `${Math.round(dif/(60*1000))} mins ago`;
-        } else if (dif < 2*60*60*1000){
-            return "1 hour ago"
-        } else if (dif < 24*60*60*1000){
-            return `${Math.round(dif/(60*60*1000))} hours ago`;
-        } else if (dif < 48*60*60*1000){
-            return "Yesterday";
-        } else {
-            return `${Math.round(dif/(24*60*60*1000))} days ago`;
-        }
-    }
-
-    getProperDateTimeString(dateTime){
-        let month = dateTime.getMonth() + 1;
-        let day = dateTime.getDay();
-        let hour = dateTime.getHours();
-        let min = ("0" + dateTime.getMinutes()).slice(-2);
-        return `${month}-${day} ${hour}:${min}`
-    }
-
-    _onRefresh() {
-        this.setState({refreshing: true});
-
-        this.setState({meetsData:addData, refreshing:false})
-        // fetchData().then(() => {
-        //     this.setState({refreshing: false});
-        // });
     }
 
 
