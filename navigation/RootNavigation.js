@@ -34,7 +34,7 @@ export default class RootNavigator extends React.Component {
             let uid = user.uid;
             // 测试时才用drop
             //this.dropChatTable(uid);
-            this.dropMeetingTable(uid);
+            //this.dropMeetingTable(uid);
             this.initMeetingTable(uid);
             this.initChatTable(uid);
             this.socket = SocketIOClient('http://47.89.187.42:3000/');
@@ -43,15 +43,14 @@ export default class RootNavigator extends React.Component {
             this.socket.emit("attendActivity",uid,[1,2,3]);
             this.socket.on("connect" + uid,msg=>{
                 let data = JSON.parse(msg);
-                console.log(data);
-                this.insertChatSql(uid,data.from,data.message);
+                this.insertChatSql(uid,data);
             });
             this.socket.on("system",function (msg) {
             });
             let firebaseDb = firebase.firestore();
             let docRef = firebaseDb.collection("Users").doc(uid).collection("Friends_List");
             docRef.get().then((querySnapshot)=>{
-                this.dropFriendTable(uid);
+                //this.dropFriendTable(uid);
                 this.initFriendTable(uid);
                 querySnapshot.forEach((doc)=>{
                     let friendUid = doc.data().uid;
@@ -98,15 +97,6 @@ export default class RootNavigator extends React.Component {
         );
     }
 
-    initChatTable(uid){
-        db.transaction(
-            tx => {
-                tx.executeSql('create table if not exists db'+ uid +' (id integer primary key not null , fromId text, msg text , status int, timeStamp DATETIME DEFAULT CURRENT_TIMESTAMP);');
-            },
-            null,
-            this.update
-        );
-    }
 
     dropMeetingTable(uid){
         db.transaction(
@@ -121,7 +111,7 @@ export default class RootNavigator extends React.Component {
     initMeetingTable(uid){
         db.transaction(
             tx => {
-                tx.executeSql('create table if not exists meeting'+ uid + "(id integer primary key not null ,meetingId text, creator text, endTime text, address text, tagList text, description text, title text)");
+                tx.executeSql('create table if not exists meeting'+ uid + "(id integer primary key not null ,meetingId text UNIQUE, creator text, endTime text, address text, tagList text, description text, title text)");
             },
             null,
             this.update
@@ -148,10 +138,37 @@ export default class RootNavigator extends React.Component {
         );
     }
 
-    insertChatSql(uid,fromId,msg){
+    //status -1带表自己发送的
+    initChatTable(uid){
         db.transaction(
             tx => {
-                tx.executeSql("INSERT INTO db"+uid+"(fromId,msg,status) VALUES (?,?,?)",[fromId,msg,0]);
+                tx.executeSql('create table if not exists db'+ uid +' (' +
+                    'id integer primary key not null , ' +
+                    'fromId text, msg text , ' +
+                    'status int, ' +
+                    'type int,' +
+                    'meetingId text'+
+                    'timeStamp DATETIME DEFAULT CURRENT_TIMESTAMP);');
+            },
+            null,
+            this.update
+        );
+    }
+
+    //type 1 ="privateChat"
+    //type 2 ="groupChat"
+    //status 1 = "response"
+    insertChatSql(uid,data){
+        let type = data["type"],
+            message = data["message"],
+            from = data["from"],
+            meetingId = "";
+        if (data["activityId"]!==undefined){
+            meetingId = data["activityId"];
+        }
+        db.transaction(
+            tx => {
+                tx.executeSql("INSERT INTO db"+uid+"(fromId,msg,status,type,meetingId) VALUES (?,?,?,?,?)",[from,message,0,type,meetingId]);
             },
             null,
             this.update
@@ -171,7 +188,7 @@ export default class RootNavigator extends React.Component {
     initFriendTable(uid){
         db.transaction(
             tx => {
-                tx.executeSql('create table if not exists friend_list'+uid+' (id integer primary key not null , userId int, avatarUrl text , username text);');
+                tx.executeSql('create table if not exists friend_list'+uid+' (id integer primary key not null , userId text UNIQUE, avatarUrl text , username text);');
             },
             null,
             this.update
@@ -181,7 +198,7 @@ export default class RootNavigator extends React.Component {
     insertFriendSql(uid,friendId,avatarUrl,friendName){
         db.transaction(
             tx => {
-                tx.executeSql('insert into friend_list'+uid+' (userId,avatarUrl,username) values (?,?,?)',[friendId,avatarUrl,friendName]);
+                tx.executeSql('replace into friend_list'+uid+' (userId,avatarUrl,username) values (?,?,?)',[friendId,avatarUrl,friendName]);
             },
             null,
             this.update
