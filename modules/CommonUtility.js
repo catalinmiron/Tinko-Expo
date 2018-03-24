@@ -1,6 +1,29 @@
 import Task from 'data.task';
 import firebase from "firebase";
 import 'firebase/firestore'
+import {Alert} from "react-native";
+
+export const getPostRequest = (code, bodyData, onComplete, onError) => {
+    fetch(`https://us-central1-tinko-64673.cloudfunctions.net/${code}`, {
+        method:'POST',
+        headers: {
+            Accept: 'application/json',
+            'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(bodyData),
+    }).then ((response) => {
+        //console.log(response);
+        if(response.status === 200){
+            onComplete(response);
+        } else {
+            onError("request Failed");
+        }
+    }).catch((error) => {
+        //console.log(error);
+        //Alert.alert('Error ' + error);
+        onError(error);
+    });
+}
 
 export const getUserData = (userUid) => {
     return new Task((reject, resolve) => {
@@ -40,7 +63,7 @@ export const getStartTimeString = (startTime) => {
     if(year===nowYear && month===nowMonth && day===nowDay){
         return `Today ${hour}:${min}`
     } else if(year===nowYear && month===nowMonth && day===nowDay+1){
-        return `Tomorrow ${hour}:${min}`
+        return `TMW ${hour}:${min}`
     } else {
         var monthString;
         switch(month){

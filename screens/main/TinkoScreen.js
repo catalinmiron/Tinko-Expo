@@ -10,7 +10,8 @@ import firebase from "firebase";
 import 'firebase/firestore';
 import { NavigationActions } from 'react-navigation';
 //import Icon from 'react-native-vector-icons/FontAwesome';
-import { getStartTimeString, getPostTimeString } from "../../modules/CommonUtility";
+import { getStartTimeString, getPostTimeString, getPostRequest } from "../../modules/CommonUtility";
+
 
 const SCREEN_WIDTH = Dimensions.get('window').width;
 const SCREEN_HEIGHT = Dimensions.get('window').height;
@@ -46,7 +47,8 @@ export default class TinkoScreen extends Component {
 
     getMeets(){
         const firestoreDb = firebase.firestore();
-        firestoreDb.collection("Meets").where(`selectedFriendsList.${this.state.userUid}.status`, "==", true).where("status", "==", true)
+        //firestoreDb.collection("Meets").where(`selectedFriendsList.${this.state.userUid}.status`, "==", true).where("status", "==", true)
+        firestoreDb.collection("Meets").where(`selectedFriendsList.${this.state.userUid}.postTime`, "==", true).orderBy("postTime")
             .onSnapshot((querySnapshot) => {
                 const {meetsData} = this.state;
                 //console.log('before querysnapshot for loop');

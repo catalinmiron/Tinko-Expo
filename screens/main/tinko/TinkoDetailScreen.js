@@ -9,18 +9,42 @@ import { MapView } from 'expo';
 import { Ionicons, MaterialIcons, Entypo,  } from '@expo/vector-icons';
 import { Avatar, Button, Header} from 'react-native-elements';
 import { ifIphoneX } from 'react-native-iphone-x-helper';
+import { getPostRequest } from "../../../modules/CommonUtility";
+import { ActionSheetProvider, connectActionSheet } from '@expo/react-native-action-sheet';
 
 const SCREEN_WIDTH = Dimensions.get('window').width;
 
-
+@connectActionSheet
 export default class TinkoDetailScreen extends React.Component {
 
     static navigationOptions = ({ navigation }) => {
         const params = navigation.state.params || {};
+        const { allowParticipantsInvite, identity, threeDots } = params;
 
         return {
-            headerLeft:(<Ionicons name="ios-arrow-back" size={20} color="white" style={{marginLeft:26}}/>),
-            headerRight:( <Entypo name="share-alternative" size={20} color="white" style={{marginRight:26}}/>),
+            headerLeft:(<Ionicons.Button
+                name="ios-arrow-back" size={20} color="white" style={{marginLeft:26}} backgroundColor="transparent"
+                onPress={() => navigation.goBack()}/>),
+            headerRight:(
+                <View style={{flexDirection:'row'}}>
+
+                    {(allowParticipantsInvite || identity===1) &&
+                    <Entypo.Button
+                        name="share-alternative" size={20} color="white" backgroundColor="transparent"
+                        onPress = {() => console.log('share')}/>
+                    }
+
+                    {identity===3 &&
+                    <Entypo.Button
+                        name="add-user" size={20} color="white" backgroundColor="transparent"
+                        onPress = {() => console.log('invite')}/>
+                    }
+
+                    <Entypo.Button
+                        name="dots-three-vertical" size={20} color="white" style={{marginRight:26}} backgroundColor="transparent"
+                        onPress = {threeDots}/>
+                </View>
+                ),
             headerStyle:{ position: 'absolute', backgroundColor: 'transparent', zIndex: 100, top: 0, left: 0, right: 0, headerLeft:null, boaderBottomWidth: 0,borderBottomColor: 'transparent',}
         };
     };
@@ -28,7 +52,11 @@ export default class TinkoDetailScreen extends React.Component {
     constructor(props){
         super(props);
         //console.log(props);
+        let user = firebase.auth().currentUser;
+        this.onJoinButtonPressed = this.onJoinButtonPressed.bind(this);
+        this.renderActivityBar = this.renderActivityBar.bind(this);
         this.state={
+            userUid:user.uid,
             meetId: this.props.navigation.state.params.meetId,
             allFriends: false,
             allowParticipantsInvite:false,
@@ -59,19 +87,39 @@ export default class TinkoDetailScreen extends React.Component {
             creatorLoadingDone:false,
             placePhotosLoadingDone:false,
             usersDataLoadingDone:false,
+            buttonShowLoading:false,
+            unsubscribe:null,
+            identity:1,
+            //identity: 0: not joined
+            //          1: creator
+            //          2: joined cannot invite
+            //          3: joined can invite
         }
     }
 
-    componentDidMount(){
-        this.getMeetData();
-
+    setNavigationParams(){
+        const{allowParticipantsInvite, identity} = this.state;
+        this.props.navigation.setParams({allowParticipantsInvite:allowParticipantsInvite, identity:identity});
     }
 
-    getMeetData(){
-        const { meetId } = this.state;
+    componentDidMount(){
+
+        this.setMeetDataListener();
+        this.props.navigation.setParams({threeDots:this.onOpenThreeDotsActionSheet.bind(this)});
+        this.setNavigationParams();
+    }
+
+
+    componentWillUnmount(){
+        const {unsubscribe} = this.state;
+        unsubscribe();
+    }
+
+    setMeetDataListener(){
+        const { meetId, userUid } = this.state;
         let firestoreDb = firebase.firestore();
         var meetRef = firestoreDb.collection("Meets").doc(meetId);
-        meetRef.get().then((meetDoc) => {
+        var unsubscribe = meetRef.onSnapshot((meetDoc) => {
             if (meetDoc.exists) {
                 //console.log("Document data:", meetDoc.data());
                 let meet = meetDoc.data();
@@ -96,11 +144,22 @@ export default class TinkoDetailScreen extends React.Component {
                     tagList = Object.keys(meet.tagList),
                     title = meet.title;
 
-                // var participatingUsersData=[];
-                // let length = participatingUsersList.length;
-                // for(var i=0; i<length;i++){
-                //     participatingUsersData.push({});
-                // }
+                var identity;
+                if(userUid === creatorUid){
+                    identity=1;//创佳人
+                } else {
+                    let isJoined = _.includes(participatingUsersList, userUid);
+                    if(isJoined){
+                        if(allowParticipantsInvite){
+                            identity=3;//参加，可邀请
+                        }else{
+                            identity=2;//参加，不可邀请
+                        }
+                    }else{
+                        identity=0;//游客
+                    }
+
+                }
 
                 this.getCreatorData(creatorUid);
                 this.getPlacePhotos(placeId);
@@ -125,15 +184,16 @@ export default class TinkoDetailScreen extends React.Component {
                     status,
                     tagList,
                     title,
+                    identity,
                     });
+                this.setNavigationParams();
                 //console.log(this.state);
                 //this.marker.showCallout()
             } else {
                 console.log("No such document!");
             }
-        }).catch((error) => {
-            console.log("Error getting document:", error);
         });
+        this.setState({unsubscribe});
     }
 
     getCreatorData(creatorUid){
@@ -165,6 +225,7 @@ export default class TinkoDetailScreen extends React.Component {
     }
 
     updateParticipatingUsersData(participatingUsersList){
+        this.setState({participatingUsersData:[]});
         participatingUsersList
             .map(userUid => getUserData(userUid))
             .map(getUserDataTask => getUserDataTask.fork(
@@ -183,8 +244,87 @@ export default class TinkoDetailScreen extends React.Component {
 
     }
 
+    onJoinButtonPressed(){
+        this.setState({buttonShowLoading:true});
+        const { userUid, meetId } = this.state;
+        let bodyData = {
+            userUid: userUid,
+            meetId: meetId,
+        };
+        getPostRequest("participateMeet", bodyData,
+            (response) => {
+                console.log(response);
+                this.setState({buttonShowLoading:false})
+            }, (error) => {
+                Alert.alert("Error", error);
+                this.setState({buttonShowLoading:false})
+            });
+    }
+
+    onQuitMeetButtonPressed(){
+        const { userUid, meetId } = this.state;
+        let bodyData = {
+            userUid: userUid,
+            meetId: meetId,
+        };
+        getPostRequest("leaveMeet", bodyData,
+            (response) => {
+                console.log(response);
+            }, (error) => {
+                Alert.alert("Error", error);
+            });
+    }
+
+    onOpenThreeDotsActionSheet = () => {
+        const { identity } = this.state;
+        var options;
+        var destructiveButtonIndex;
+        var cancelButtonIndex;
+        switch (identity){
+            case 0:
+                options = ["Report", "Cancel"];
+                //destructiveButtonIndex = 0;
+                cancelButtonIndex = 1;
+                break;
+            case 1:
+                options = ["Edit","Dismiss", "Cancel"];
+                destructiveButtonIndex = 1;
+                cancelButtonIndex = 2;
+                break;
+            case 2:
+            case 3:
+                options = ["Report", "Quit", "Cancel"];
+                destructiveButtonIndex = 1;
+                cancelButtonIndex = 2;
+                break;
+            default:
+                options = ["Cancel"];
+                //destructiveButtonIndex = 0;
+                cancelButtonIndex = 0;
+        }
+
+        this.props.showActionSheetWithOptions(
+            {
+                options,
+                cancelButtonIndex,
+                destructiveButtonIndex,
+            },
+            buttonIndex => {
+                console.log(buttonIndex);
+                if((identity===2 || identity===3) && buttonIndex===1){
+                    //this.onQuitMeetButtonPressed();
+                    Alert.alert("Alert", "Are you sure to Quit?",
+                        [
+                            {text: 'Cancel', onPress: () => console.log('Cancel Pressed'), style: 'cancel'},
+                            {text: 'Yes', onPress: () => this.onQuitMeetButtonPressed(), style:"destructive"},
+                        ]);
+                }
+            }
+        );
+    };
+
     render() {
-        const { creatorLoadingDone, placePhotosLoadingDone,
+        const { creatorLoadingDone, placePhotosLoadingDone, userUid, creatorUid, identity,
             creatorPhotoURL, creatorUsername, title, placePhotos, startTime, allowPeopleNearby, participatingUsersList,
             maxNo, description, duration, participatingUsersData, placeName, placeCoordinate, placeAddress, placeId } = this.state;
 
@@ -192,9 +332,9 @@ export default class TinkoDetailScreen extends React.Component {
             return(
                 <View/>
             );
-        } else {
-            //this.marker.showCallout();
         }
+
+
 
         return (
             <View style={styles.container}>
@@ -239,23 +379,23 @@ export default class TinkoDetailScreen extends React.Component {
 
                         <View style={{marginTop:30, flexDirection:'row', justifyContent:'space-between'}}>
                             <View style={{flex:1, flexDirection:'row'}}>
-                                <Entypo name="calendar" size={26} color="1C2833" />
+                                <Entypo name="calendar" size={26} color="#1C2833" />
                                 <Text style={{marginLeft: 5, fontSize:20, fontFamily:'regular', color:'#2C3E50'}}>{getStartTimeString(startTime)}</Text>
                             </View>
 
                             <View style={{flex:1, flexDirection:'row'}}>
-                                <Entypo name="time-slot" size={26} color="1C2833" />
+                                <Entypo name="time-slot" size={26} color="#1C2833" />
                                 <Text style={{marginLeft: 5, fontSize:20, fontFamily:'regular', color:'#2C3E50'}}>{getDurationString(duration)}</Text>
                             </View>
 
                         </View>
                         <View style={{flexDirection:'row', justifyContent:"space-between", marginTop:10}}>
                             <View style={{flex:1, flexDirection:'row'}}>
-                                <Ionicons name="ios-heart" size={26} color="1C2833" />
+                                <Ionicons name="ios-heart" size={26} color="#1C2833" />
                                 <Text style={{marginLeft: 5, fontSize:20, fontFamily:'regular', color:'#2C3E50'}}>{`Status: ${participatingUsersList.length} / ${maxNo}`}</Text>
                             </View>
                             <View style={{flex:1, flexDirection:'row'}}>
-                                <MaterialIcons name="group" size={26} color="1C2833" />
+                                <MaterialIcons name="group" size={26} color="#1C2833" />
                                 <Text style={{marginLeft: 5, fontSize:20, fontFamily:'regular', color:'#2C3E50'}}>{allowPeopleNearby? "Public" : "Private"}</Text>
                             </View>
 
@@ -263,7 +403,7 @@ export default class TinkoDetailScreen extends React.Component {
                         <Text style={{marginTop:30, fontSize:17, fontFamily:'regular', color:'#566573'}}>{description}</Text>
                         <View style={{marginTop:30}}>
                             {_.chunk(participatingUsersData, 3).map((chunk, chunkIndex) => (
-                                <View style={{ flexDirection: 'row', justifyContent: 'space-between', marginBottom: 10 }} key={chunkIndex}>
+                                <View style={{ flexDirection: 'row', justifyContent: 'space-around', marginBottom: 10 }} key={chunkIndex}>
                                     {chunk.map(userData => (
                                         <Avatar
                                             large
@@ -280,6 +420,7 @@ export default class TinkoDetailScreen extends React.Component {
                         {/**/}
                         {/*</List>*/}
                     </View>
+
 
                     <MapView
                         style={{marginTop:30, width:SCREEN_WIDTH, height: SCREEN_WIDTH*2/3 }}
@@ -307,24 +448,35 @@ export default class TinkoDetailScreen extends React.Component {
 
 
                 </ScrollView>
-                <SafeAreaView style = {{backgroundColor: '#FFFCF6'}}>
-                    <Header
-                        outerContainerStyles = {{backgroundColor: '#FFFCF6', borderBottomColor:'transparent', borderBottomWidth:0, ...ifIphoneX({paddingTop:20}, {paddingTop:10})}}
-                        innerContainerStyles = {{ alignItems: 'flex-start'}}
-                        //leftComponent={<Text>123</Text>}
-                        rightComponent={
-                            <Button
-                                title={"Join"}
-                                containerViewStyle={{ flex:1, }}
-                                buttonStyle={{borderRadius:10, height:50, width:SCREEN_WIDTH*2/5}}/>
+                {identity === 0 && <this.renderActivityBar />}
 
-                        }
-                    />
-                </SafeAreaView>
             </View>
 
         );
     }
+
+    renderActivityBar(){
+        const {buttonShowLoading} = this.state;
+
+        return( <SafeAreaView style = {{backgroundColor: '#FFFCF6'}}>
+            <Header
+                outerContainerStyles = {{backgroundColor: '#FFFCF6', borderBottomColor:'transparent', borderBottomWidth:0, paddingHorizontal:26, ...ifIphoneX({paddingTop:20}, {paddingTop:10})}}
+                innerContainerStyles = {{ alignItems: 'flex-start'}}
+                //leftComponent={<Text>123</Text>}
+                rightComponent={
+                    <Button
+                        onPress={() => this.onJoinButtonPressed()}
+                        loading={buttonShowLoading}
+                        loadingProps={{size: 'small', color: 'white'}}
+                        title={"Join"}
+                        containerViewStyle={{ flex:1, }}
+                        buttonStyle={{borderRadius:10, height:50, width:SCREEN_WIDTH*2/5}}/>
+                }
+            />
+        </SafeAreaView>);
+    }
+
+
 }
 
 const styles = StyleSheet.create({
