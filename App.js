@@ -4,7 +4,7 @@ import { AppLoading, Asset, Font } from 'expo';
 import { Ionicons } from '@expo/vector-icons';
 import RootNavigation from './navigation/RootNavigation';
 import firebase from "firebase";
-
+import { ActionSheetProvider, connectActionSheet } from '@expo/react-native-action-sheet';
 
 export default class App extends React.Component {
   state = {
@@ -25,13 +25,17 @@ export default class App extends React.Component {
       );
     } else {
       return (
-        <View style={styles.container}>
-          {Platform.OS === 'ios' && <StatusBar barStyle="default" />}
-          {Platform.OS === 'android' && <View style={styles.statusBarUnderlay} />}
-          <RootNavigation
-              loggedIn={this.state.loggedIn}
-              handleUserLoggedIn={this.handleUserLoggedIn.bind(this)}/>
-        </View>
+
+          <View style={styles.container}>
+              {Platform.OS === 'ios' && <StatusBar barStyle="default" />}
+              {Platform.OS === 'android' && <View style={styles.statusBarUnderlay} />}
+              <ActionSheetProvider>
+                  <RootNavigation
+                      loggedIn={this.state.loggedIn}
+                      handleUserLoggedIn={this.handleUserLoggedIn.bind(this)}/>
+              </ActionSheetProvider>
+
+          </View>
       );
     }
   }

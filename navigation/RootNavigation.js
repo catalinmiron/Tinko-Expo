@@ -17,6 +17,7 @@ import { Font } from 'expo'
 export default class RootNavigator extends React.Component {
     constructor(props){
         super(props);
+        //console.log(props);
     }
 
     componentDidMount() {

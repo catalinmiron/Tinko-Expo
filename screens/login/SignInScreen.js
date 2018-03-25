@@ -6,6 +6,7 @@ import {Facebook, Font} from 'expo';
 import firebase from "firebase";
 import { NavigationActions } from 'react-navigation';
 //import Icon from 'react-native-vector-icons/FontAwesome';
+import {getPostRequest} from "../../modules/CommonUtility";
 
 const SCREEN_WIDTH = Dimensions.get('window').width;
 const SCREEN_HEIGHT = Dimensions.get('window').height;

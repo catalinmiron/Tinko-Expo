@@ -3,12 +3,13 @@ import {StyleSheet,View,Image,Text} from 'react-native';
 
 export default class AvatarBox extends React.Component {
     render() {
+        console.log(this.props);
         return (
             <View style={styles.outerDiv}>
                 <Image
                     style={styles.image}
-                    source={require('../assets/images/snapchat.jpg')}/>
-                <Text style={{marginTop:5,fontSize:22,color:"rgb(54,53,59)",fontWeight:"bold"}}>Danielvs</Text>
+                    source={{uri:this.props.userData.photoURL}}/>
+                <Text style={{marginTop:5,fontSize:22,color:"rgb(54,53,59)",fontWeight:"bold"}}>{this.props.userData.username}</Text>
             </View>
         );
     }

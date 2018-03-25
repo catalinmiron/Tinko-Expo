@@ -9,9 +9,35 @@ import CreateStoryButton from '../../components/CreateStoryButton';
 import FriendDiv from '../../components/FriendListView';
 import firebase from 'firebase';
 import {StackNavigator} from "react-navigation";
+import {getUserData} from "../../modules/CommonUtility";
 
 
 class Me extends React.Component {
+
+    constructor(props){
+        super(props);
+        let user = firebase.auth().currentUser;
+        this.state={
+            userUid:user.uid,
+            userData:{},
+        }
+    }
+
+
+    componentWillMount(){
+        this.getThisUserData()
+    }
+
+    getThisUserData(){
+        getUserData(this.state.userUid).fork(
+            (error) => {
+                console.log(error);
+            },
+            (userObj) => {
+                this.setState({userData:userObj});
+            }
+        );
+    }
 
     render() {
         return (
@@ -24,7 +50,7 @@ class Me extends React.Component {
                         />
                     </TouchableWithoutFeedback>
                 </View>
-                <Avatar />
+                <Avatar userData={this.state.userData}/>
                 <SettingBox />
                 <InfoMenu icon={"user-plus"} />
                 <CreateStoryButton/>
