@@ -22,6 +22,55 @@ let lastUpdateArr = [],
     personalInfo = {},
     alreadyInList = [];
 
+let chatInfo = new Stack();
+
+//personalInfo[dataArr[i].userId] = [dataArr[i].avatarUrl,dataArr[i].username];
+function Stack() {
+    this.dataStore = [];
+    this.appendData = function ([type,id,msg]) {
+        let arr = [];
+        for (let i = 0;i<this.dataStore.length;i++){
+            arr.push(this.dataStore[i].id);
+        }
+        let indexOf = arr.indexOf(id);
+        if (indexOf !== -1){
+            this.dataStore[indexOf].msg = msg;
+            let data = this.dataStore[indexOf];
+            this.dataStore.splice(indexOf,1);
+            this.dataStore.unshift(data);
+        }else{
+            let rtnData = {};
+            if (type === 1){
+                //私聊
+                let data = personalInfo[id];
+                let imageURL =  (data[0]!==undefined)?data[0]:"http://larissayuan.com/home/img/prisma.png",
+                    personName = (data[1]!==undefined)?data[1]:"Private Chat";
+                rtnData = {
+                    id:id,
+                    type:1,
+                    msg:msg,
+                    imageURL:imageURL,
+                    personName:personName
+                }
+            }else{
+                //群聊
+                rtnData = {
+                    id:id,
+                    type:2,
+                    msg:msg,
+                    imageURL:"http://larissayuan.com/home/img/prisma.png",
+                    personName :"Group Chat",
+                }
+            }
+            this.dataStore.unshift(rtnData);
+        }
+        return this.dataStore;
+    };
+    this.getData = function () {
+        return this.dataStore;
+    }
+}
+
 class ChatPage extends Component{
     static navigationOptions = ({navigation}) => ({
         title: `${navigation.state.params.name}`,
@@ -58,37 +107,26 @@ class FriendChatListView extends Component {
         this.socket = SocketIOClient('http://47.89.187.42:3000/');
         //this.socket = SocketIOClient('http://127.0.0.1:3000/');
         this.getAvatar();
-        this.getData();
+        this.getDBData();
         this.state = {
             messages: [],
             friendInfo:[]
         };
-        console.log("connect"+uid);
         this.socket.on("connect" + uid,msg=>{
             let data = JSON.parse(msg);
-            console.log("this is msg");
             let type = data.type;
             if (parseInt(type) === 0){
                 //系统
 
             }else if (parseInt(type)===1){
-                //私聊
-
+                //私聊         
+                chatInfo.appendData([type,data.from,data.message]);
             }else{
                 //群组
-                
-            }
-            if (alreadyInList.indexOf(data.from) === -1){
-                //用户没有存在这边，需要创建新的
-                alreadyInList.push(data.from);
-                lastUpdateArr.push({
-                    msg:data.message,
-                    fromId:data.from});
-            }else{
-                lastUpdateArr[0].msg = data.message;
+                chatInfo.appendData([type,data.activityId,data.message]);
             }
             this.setState({
-                messages:lastUpdateArr
+                messages:chatInfo.getData()
             });
         });
     }
@@ -111,22 +149,21 @@ class FriendChatListView extends Component {
         );
     }
 
-    getData(){
+    getDBData(){
         db.transaction(
             tx => {
                 tx.executeSql('select * from db'+uid, [], (_, { rows }) => {
                     let dataArr =  rows['_array'];
-                    console.log(dataArr);
-                    for (let i = dataArr.length-1;i>=0;i--){
-                        if (alreadyInList.indexOf(dataArr[i].fromId) === -1){
-                            alreadyInList.push(dataArr[i].fromId);
-                            let time = dataArr[i].timeStamp.split(" ")[1].split(":");
-                            dataArr[i].postTime = time[0]+":"+time[1];
-                            lastUpdateArr.push(dataArr[i]);
+                    for (let i = dataArr.length-1;i>0;i--){
+                        let type = dataArr[i].type;
+                        if (type === 1){
+                            chatInfo.appendData([type,dataArr[i].fromId,dataArr[i]['msg']]);
+                        }else{
+                            chatInfo.appendData([type,dataArr[i].meetingId,dataArr[i]['msg']]);
                         }
                     }
                     this.setState({
-                        messages:lastUpdateArr
+                        messages:chatInfo.getData()
                     });
                 });
             },
@@ -138,28 +175,24 @@ class FriendChatListView extends Component {
 
     render() {
         let friendList = [];
-        if (this.state.messages.length!==0&&this.state.friendInfo.length!==0){
+        if (this.state.messages.length!==0){
             for (let i = 0;i<this.state.messages.length ; i++){
-                let personalId = this.state.messages[i].fromId,
-                    message = this.state.messages[i].msg,
-                    ImageURL = this.state.friendInfo[personalId][0],
-                    PersonName = this.state.friendInfo[personalId][1];
+                let messages = this.state.messages[i];
                 friendList.push(
                     <ListItem
                         roundAvatar
-                        avatar={{uri:ImageURL}}
-                        key={personalId}
-                        title={PersonName}
-                        subtitle={message}
-                        // badge={{ value: 3, textStyle: { color: 'orange' }, containerStyle: { marginTop: -20 } }}
+                        avatar={{uri:messages.imageURL}}
+                        key={messages.id}
+                        title={messages.personName}
+                        subtitle={messages.msg}
                         onPress={() => this.props.navigation.navigate('PrivateChatPage', {
-                            avatar:ImageURL,
-                            name:PersonName,
-                            personId:personalId,
+                            avatar:messages.msg,
+                            name:messages.personName,
+                            personId:messages.id,
                             myId:uid
                         })}
                     />
-                );
+                )
             }
 
         }
