@@ -43,7 +43,7 @@ export default class Masonry extends Component {
 			dimensions: {},
 			initialOrientation: true,
 			_sortedData: [],
-			_resolvedData: []
+			_resolvedData: [],
 		};
 		// Assuming that rotation is binary (vertical|landscape)
 		Dimensions.addEventListener('change', (window) => this.setState(state => ({ initialOrientation: !state.initialOrientation })))
@@ -136,12 +136,13 @@ export default class Masonry extends Component {
 		return (
 			<View style={{flex: 1}} onLayout={(event) => this._setParentDimensions(event)}>
 			  <ListView
-				  automaticallyAdjustContentInsets={false}
 				contentContainerStyle={styles.masonry__container}
 				dataSource={this.state.dataSource}
 				enableEmptySections
 				renderRow={(data, sectionId, rowID) =>
 						   <Column
+                               navigation={this.props.navigation}
+							   headerHeight={this.props.headerHeight}
 								 data={data}
 								 columns={this.props.columns}
 								 parentDimensions={this.state.dimensions}
@@ -151,6 +152,8 @@ export default class Masonry extends Component {
 								 spacing={this.props.spacing}
 							 key={`RN-MASONRY-COLUMN-${rowID}`}/> }
 				refreshControl={this.props.refreshControl}
+				  onEndReachedThreshold={this.props.onEndReachedThreshold}
+				  onEndReached={this.props.onEndReached}
 				/>
 			</View>
 		)
