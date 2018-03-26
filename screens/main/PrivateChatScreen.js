@@ -40,8 +40,8 @@ export default class PrivateChatScreen extends Component {
             tx => {
                 tx.executeSql("SELECT msg,id,timeStamp from db" + uid + " WHERE fromId = '" + pid + "' ORDER BY id DESC limit 10", [], (_, {rows}) => {
                     let dataArr = rows['_array'].reverse();
-                    console.log(dataArr);
                     for (let i = 0;i<dataArr.length;i++){
+                        console.log(dataArr[i].status);
                         // console.log(new Date(dataArr[i].timeStamp));
                         this.appendMessage(name,avatar,dataArr[i].msg,"cache"+dataArr[i].id,dataArr[i].timeStamp)
                     }
@@ -51,6 +51,17 @@ export default class PrivateChatScreen extends Component {
             this.update
         );
     }
+
+    insertChatSql(uid,fromId,msg){
+        db.transaction(
+            tx => {
+                tx.executeSql("INSERT INTO db"+uid+"(fromId,msg,status) VALUES (?,?,?)",[fromId,msg,-1]);
+            },
+            null,
+            this.update
+        );
+    }
+
 
     appendMessage(name,avatar,msg,key,time){
         let chatData = {
@@ -70,6 +81,7 @@ export default class PrivateChatScreen extends Component {
 
     onSend(messages = []) {
         this.socket.emit("privateChat",uid,pid,messages[0].text);
+        this.insertChatSql(uid,pid,messages[0].text);
         this.setState(previousState => ({
             messages: GiftedChat.append(previousState.messages, messages),
         }))
