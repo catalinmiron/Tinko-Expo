@@ -5,6 +5,7 @@ import { Ionicons } from '@expo/vector-icons';
 import RootNavigation from './navigation/RootNavigation';
 import firebase from "firebase";
 import { ActionSheetProvider, connectActionSheet } from '@expo/react-native-action-sheet';
+import { Root } from "native-base";
 
 export default class App extends React.Component {
   state = {
@@ -29,11 +30,14 @@ export default class App extends React.Component {
           <View style={styles.container}>
               {Platform.OS === 'ios' && <StatusBar barStyle="default" />}
               {Platform.OS === 'android' && <View style={styles.statusBarUnderlay} />}
-              <ActionSheetProvider>
-                  <RootNavigation
-                      loggedIn={this.state.loggedIn}
-                      handleUserLoggedIn={this.handleUserLoggedIn.bind(this)}/>
-              </ActionSheetProvider>
+              <Root>
+                  <ActionSheetProvider>
+                      <RootNavigation
+                          loggedIn={this.state.loggedIn}
+                          handleUserLoggedIn={this.handleUserLoggedIn.bind(this)}/>
+                  </ActionSheetProvider>
+              </Root>
+
 
           </View>
       );

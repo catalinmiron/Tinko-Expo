@@ -61,6 +61,7 @@ const MainTabNavigator = TabNavigator(
         );
       },
     }),
+      //tabBarOptions:{style:{height:0}, showLabel:false},
     tabBarComponent: TabBarBottom,
     tabBarPosition: 'bottom',
     animationEnabled: false,

@@ -13,7 +13,7 @@ export default function Brick (props) {
             <TouchableOpacity
                 key='brick-footer'
                 style={styles.headerTop}
-                onPress={() => this.props.navigation.navigate('TinkoDetail', {meetId: data.meetId})}
+                onPress={() => props.navigation.navigate('TinkoDetail', {meetId: data.meetId})}
             >
                 <Image
                     source={{uri: data.creator.photoURL}}
@@ -26,7 +26,7 @@ export default function Brick (props) {
             </TouchableOpacity>
 		  {image}
             <TouchableOpacity key='brick-header' style={styles.footer}
-                              onPress={() => this.props.screenProps.navigation.navigate('TinkoDetail', {meetId: data.meetId})}>
+                              onPress={() => props.navigation.navigate('TinkoDetail', {meetId: data.meetId})}>
                 <Text style={styles.footerTitle}>{data.title}</Text>
                 <Text style={styles.footerTime}>{data.startTime}</Text>
                 <Text style={styles.footerPlaceName}>{data.placeName}</Text>

@@ -2,14 +2,14 @@ import _ from 'lodash';
 import React, { Component } from 'react';
 import {StyleSheet, Text, View, ImageBackground, Dimensions, TouchableWithoutFeedback, Alert, ScrollView, SafeAreaView, RefreshControl,TouchableOpacity, Image, FlatList, Platform, AsyncStorage} from 'react-native';
 import { Input, Button } from 'react-native-elements'
-
+import {Toast} from 'native-base';
 import { Header } from 'react-navigation';
 import Masonry from '../../modules/react-native-masonry';
 import {Facebook, Font} from 'expo';
 import firebase from "firebase";
 import 'firebase/firestore';
 import { NavigationActions } from 'react-navigation';
-//import Icon from 'react-native-vector-icons/FontAwesome';
+import { MaterialIcons } from '@expo/vector-icons';
 import { getStartTimeString, getPostTimeString, getPostRequest, getUserData } from "../../modules/CommonUtility";
 
 
@@ -34,8 +34,8 @@ export default class TinkoScreen extends Component {
             padding:5,
             loadingDone:false,
             refreshing:false,
-            abc:1,
             lastVisible:null,
+            orderByPostTime:true,
         }
     }
 
@@ -43,17 +43,40 @@ export default class TinkoScreen extends Component {
         //this.setState({meetsData:data});
         //console.log('componentDidMount');
         this.getMeets();
+        this.props.screenProps.getRef(this);
     }
 
     componentWillUnmount(){
         console.log('tinko componentWillUnMount');
     }
 
+    onSortButtonPressed(){
+        //console.log("greetings from Tinko Screen");
+        this.setState((state) => {
+            let orderByPostTime = !state.orderByPostTime;
+            return {orderByPostTime};
+        }, () => {
+            Toast.show({
+                text:this.state.orderByPostTime? "Sort by Post Time" : "Sort by Start Time",
+                position:'bottom'
+            });
+            this.getMeets()
+        });
+    }
+
     async getMeets(){
         this.setState({refreshing:true});
+        const { orderByPostTime } = this.state;
+        //console.log(orderByPostTime);
         const firestoreDb = firebase.firestore();
-        firestoreDb.collection("Meets").orderBy(`selectedFriendsList.${this.state.userUid}.postTime`,"desc").limit(10)
-            .get().then(async (querySnapshot) => {
+        var query;
+        if(orderByPostTime){
+            query = firestoreDb.collection("Meets").orderBy(`selectedFriendsList.${this.state.userUid}.postTime`,'desc').limit(10);
+        } else {
+            query = firestoreDb.collection("Meets").orderBy(`selectedFriendsList.${this.state.userUid}.startTime`).limit(10);
+        }
+
+        query.get().then(async (querySnapshot) => {
             var meetsData = await this.processMeets(querySnapshot.docs);
             this.setState({meetsData});
             //console.log(meetsData);
@@ -84,7 +107,7 @@ export default class TinkoScreen extends Component {
             const value = await AsyncStorage.getItem('TinkoMeets'+uid);
             if (value !== null){
                 // We have data!!
-                console.log(value);
+                //console.log(value);
                 let meetsData = JSON.parse(value);
                 this.setState({meetsData});
             }
@@ -144,9 +167,15 @@ export default class TinkoScreen extends Component {
 
     async handleOnEndReached(){
         console.log(this.state.lastVisible);
+        const {orderByPostTime, lastVisible} = this.state;
         const firestoreDb = firebase.firestore();
-        firestoreDb.collection("Meets").orderBy(`selectedFriendsList.${this.state.userUid}.postTime`,"desc").startAfter(this.state.lastVisible).limit(10)
-            .get().then(async (querySnapshot) => {
+        var query;
+        if(orderByPostTime){
+            query = firestoreDb.collection("Meets").orderBy(`selectedFriendsList.${this.state.userUid}.postTime`,'desc').startAfter(lastVisible).limit(10);
+        } else {
+            query = firestoreDb.collection("Meets").orderBy(`selectedFriendsList.${this.state.userUid}.startTime`).startAfter(lastVisible).limit(10);
+        }
+        query.get().then(async (querySnapshot) => {
             var addMeetsData = await this.processMeets(querySnapshot.docs);
             var lastVisible = querySnapshot.docs[querySnapshot.docs.length-1];
             this.setState((state) => {
@@ -171,6 +200,7 @@ export default class TinkoScreen extends Component {
                     {/*text='refresh'*/}
                 {/*/>}*/}
                 {/*<View style={{height: Header.HEIGHT + 30}}/>*/}
+
                 <Masonry
                     sorted // optional - Default: false
                     columns={2} // optional - Default: 2
@@ -188,6 +218,12 @@ export default class TinkoScreen extends Component {
                 />
 
 
+                {/*<View style={{position:'absolute', zIndex:100, height:Header.HEIGHT, justifyContent:'flex-end', alignItems:'center'}}>*/}
+                    {/*<MaterialIcons.Button*/}
+                        {/*name="sort" size={26} backgroundColor="transparent"*/}
+                        {/*onPress={() => console.log("sort Pressed")}*/}
+                    {/*/>*/}
+                {/*</View>*/}
 
 
 
