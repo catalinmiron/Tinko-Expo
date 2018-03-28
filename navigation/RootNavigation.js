@@ -39,7 +39,7 @@ export default class RootNavigator extends React.Component {
             this.initMeetingTable(uid);
             this.initChatTable(uid);
             //this.socket = SocketIOClient('http://47.89.187.42:3000/');
-            this.socket = SocketIOClient('http://127.0.0.1:3000/');
+            this.socket = SocketIOClient('http://192.168.1.232:3000/');
             this.socket.emit("userLogin",uid);
             this.socket.emit("attendActivity",uid,[1,2,3]);
             this.socket.on("connect" + uid,msg=>{
