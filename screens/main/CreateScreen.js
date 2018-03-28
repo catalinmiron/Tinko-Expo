@@ -218,7 +218,7 @@ export default class CreateScreen extends React.Component {
         let theSelectedFriendsList = selectedFriendsList;
         let statusTimeObj = {
             status: true,
-            endTime: endTimeDate,
+            startTime: startTimeDate,
             postTime: postTimeDate,
         };
 

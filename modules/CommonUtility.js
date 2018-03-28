@@ -52,14 +52,14 @@ export const getUserData = (userUid) => {
 export const getStartTimeString = (startTime) => {
     let year = startTime.getFullYear();
     let month = startTime.getMonth() + 1;
-    let day = startTime.getDay();
+    let day = startTime.getDate();
     let hour = startTime.getHours();
     let min = ("0" + startTime.getMinutes()).slice(-2);
 
     let now = new Date();
     let nowYear = now.getFullYear(),
         nowMonth = now.getMonth()+1,
-        nowDay = now.getDay();
+        nowDay = now.getDate();
     if(year===nowYear && month===nowMonth && day===nowDay){
         return `Today ${hour}:${min}`
     } else if(year===nowYear && month===nowMonth && day===nowDay+1){

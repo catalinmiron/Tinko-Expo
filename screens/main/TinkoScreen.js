@@ -1,16 +1,16 @@
 import _ from 'lodash';
 import React, { Component } from 'react';
-import {StyleSheet, Text, View, ImageBackground, Dimensions, TouchableWithoutFeedback, Alert, ScrollView, SafeAreaView, RefreshControl,TouchableOpacity, Image, FlatList, Platform} from 'react-native';
+import {StyleSheet, Text, View, ImageBackground, Dimensions, TouchableWithoutFeedback, Alert, ScrollView, SafeAreaView, RefreshControl,TouchableOpacity, Image, FlatList, Platform, AsyncStorage} from 'react-native';
 import { Input, Button } from 'react-native-elements'
-
+import {Toast} from 'native-base';
 import { Header } from 'react-navigation';
 import Masonry from '../../modules/react-native-masonry';
 import {Facebook, Font} from 'expo';
 import firebase from "firebase";
 import 'firebase/firestore';
 import { NavigationActions } from 'react-navigation';
-//import Icon from 'react-native-vector-icons/FontAwesome';
-import { getStartTimeString, getPostTimeString, getPostRequest } from "../../modules/CommonUtility";
+import { MaterialIcons } from '@expo/vector-icons';
+import { getStartTimeString, getPostTimeString, getPostRequest, getUserData } from "../../modules/CommonUtility";
 
 
 const SCREEN_WIDTH = Dimensions.get('window').width;
@@ -27,11 +27,15 @@ export default class TinkoScreen extends Component {
         super(props);
         //console.log(props);
         let user = firebase.auth().currentUser;
+        this.getMeetsInDatabase(user.uid);
         this.state = {
             userUid:user.uid,
             meetsData: [],
             padding:5,
+            loadingDone:false,
             refreshing:false,
+            lastVisible:null,
+            orderByPostTime:true,
         }
     }
 
@@ -39,96 +43,148 @@ export default class TinkoScreen extends Component {
         //this.setState({meetsData:data});
         //console.log('componentDidMount');
         this.getMeets();
+        this.props.screenProps.getRef(this);
     }
 
     componentWillUnmount(){
         console.log('tinko componentWillUnMount');
     }
 
-    getMeets(){
-        const firestoreDb = firebase.firestore();
-        //firestoreDb.collection("Meets").where(`selectedFriendsList.${this.state.userUid}.status`, "==", true).where("status", "==", true)
-        firestoreDb.collection("Meets").where(`selectedFriendsList.${this.state.userUid}.postTime`, "==", true).orderBy("postTime")
-            .onSnapshot((querySnapshot) => {
-                const {meetsData} = this.state;
-                //console.log('before querysnapshot for loop');
-                querySnapshot.docChanges.forEach((change) => {
-                    //console.log(meetDoc.id, " => ", meetDoc.data());
-                    if(change.type === "added"){
-                        let meetDoc = change.doc;
-                        let meet = change.doc.data();
-                        let creatorId = meet.creator;
-                        let userRef = firestoreDb.collection("Users").doc(creatorId);
-                        userRef.get().then((userDoc) => {
-                            if (userDoc.exists) {
-                                //console.log("Document data:", userDoc.data());
-                                let creator = userDoc.data();
-                                let startTimeString = getStartTimeString(meet.startTime);
-                                let postTimeString = getPostTimeString(meet.postTime);
-                                let brick = {
-                                    onPress: () => this.props.screenProps.navigation.navigate('TinkoDetail', {meetId:meetDoc.id}),
-                                    data:{
-                                        title: meet.title,
-                                        startTime: startTimeString,
-                                        postTime: postTimeString,
-                                        placeName: meet.place.name,
-                                        creator: {
-                                            name: creator.username,
-                                            photoURL: creator.photoURL,
-                                        },
-                                        tags: Object.keys(meet.tagList),
-                                    },
-                                    renderHeader: (data) => {
-                                        return (
-                                            <TouchableOpacity
-                                                key='brick-footer'
-                                                style={styles.headerTop}
-                                                onPress={() => this.props.screenProps.navigation.navigate('TinkoDetail', {meetId:meetDoc.id})}
-                                            >
-                                                <Image
-                                                    source={{ uri: data.creator.photoURL }}
-                                                    style={styles.userPic}/>
-                                                <View style={{marginTop:5}}>
-                                                    <Text style={styles.userName}>{data.creator.name}</Text>
-                                                    <Text style={styles.postTime}>{data.postTime}</Text>
-                                                </View>
-                                                <View style={{width:10, backgroundColor:'white'}}/>
-                                            </TouchableOpacity>
-                                        )
-                                    },
-                                    renderFooter: (data) => {
-                                        return (
-                                            <TouchableOpacity key='brick-header' style={styles.footer} onPress={() => this.props.screenProps.navigation.navigate('TinkoDetail', {meetId:meetDoc.id})}>
-                                                <Text style={styles.footerTitle}>{data.title}</Text>
-                                                <Text style={styles.footerTime}>{data.startTime}</Text>
-                                                <Text style={styles.footerPlaceName}>{data.placeName}</Text>
-                                            </TouchableOpacity>
-                                        )
-                                    },
-                                    uri: meetDoc.id,
-                                };
-                                meetsData.push(brick);
-                                this.setState({meetsData});
-                            } else {
-                                console.log("No such document!");
-                            }
-                        }).catch((error) => {
-                            console.log("Error getting document:", error);
-                        })
-                    }
-
-                    if(change.type === "removed"){
-                        const { meetsData } = this.state;
-                        _.remove(meetsData, function(brick) {
-                            return brick.uri === change.doc.id;
-                        });
-                        this.setState({meetsData});
-                    }
-
-
-                });
-
+    onSortButtonPressed(){
+        //console.log("greetings from Tinko Screen");
+        this.setState((state) => {
+            let orderByPostTime = !state.orderByPostTime;
+            return {orderByPostTime};
+        }, () => {
+            Toast.show({
+                text:this.state.orderByPostTime? "Sort by Post Time" : "Sort by Start Time",
+                position:'bottom'
             });
+            this.getMeets()
+        });
+    }
+
+    async getMeets(){
+        this.setState({refreshing:true});
+        const { orderByPostTime } = this.state;
+        //console.log(orderByPostTime);
+        const firestoreDb = firebase.firestore();
+        var query;
+        if(orderByPostTime){
+            query = firestoreDb.collection("Meets").orderBy(`selectedFriendsList.${this.state.userUid}.postTime`,'desc').limit(10);
+        } else {
+            query = firestoreDb.collection("Meets").orderBy(`selectedFriendsList.${this.state.userUid}.startTime`).limit(10);
+        }
+
+        query.get().then(async (querySnapshot) => {
+            var meetsData = await this.processMeets(querySnapshot.docs);
+            this.setState({meetsData});
+            //console.log(meetsData);
+            console.log("Done");
+            var lastVisible = querySnapshot.docs[querySnapshot.docs.length-1];
+            this.setState({refreshing:false, loadingDone:true, lastVisible:lastVisible});
+            this.writeMeetsInDatabase(meetsData);
+        }).catch((error) => {
+            console.log(error);
+        });
+    }
+
+    writeMeetsInDatabase(meetsData){
+        var meetsDataString = JSON.stringify(meetsData);
+        //var obj = JSON.parse(meetsDataString);
+        //console.log(obj);
+        try {
+            AsyncStorage.setItem('TinkoMeets'+this.state.userUid, meetsDataString);
+        } catch (error) {
+            // Error saving data
+            console.log(error);
+        }
+
+    }
+
+    async getMeetsInDatabase(uid){
+        try {
+            const value = await AsyncStorage.getItem('TinkoMeets'+uid);
+            if (value !== null){
+                // We have data!!
+                //console.log(value);
+                let meetsData = JSON.parse(value);
+                this.setState({meetsData});
+            }
+        } catch (error) {
+            // Error retrieving data
+            console.log(error);
+        }
+    }
+
+
+    async processMeets(queryDatas){
+        var meetsData = [];
+        await queryDatas.reduce((p,e,i) => p.then(async ()=> {
+            //console.log(p, e.data(), i);
+            let meet = e.data();
+            let meetId = e.id;
+            let userUid = meet.creator;
+            let firestoreDb = firebase.firestore();
+            var userRef = firestoreDb.collection("Users").doc(userUid);
+            await userRef.get().then((userDoc) => {
+                if (userDoc.exists) {
+                    //console.log("Document data:", userDoc.data());
+                    let user = userDoc.data();
+                    let brick = this.buildBrick(meet, meetId, user);
+                    meetsData.push(brick);
+                } else {
+                    console.log("No such document!");
+                }
+            }).catch((error) => {
+                console.log("Error getting document:", error);
+            });
+
+        }),Promise.resolve());
+
+        return meetsData;
+    }
+
+    buildBrick(meet, meetId, user){
+        let startTimeString = getStartTimeString(meet.startTime);
+        let postTimeString = getPostTimeString(meet.postTime);
+        return {
+            data: {
+                meetId: meetId,
+                title: meet.title,
+                startTime: startTimeString,
+                postTime: postTimeString,
+                placeName: meet.place.name,
+                creator: {
+                    username: user.username,
+                    photoURL: user.photoURL,
+                },
+                tags: Object.keys(meet.tagList),
+            },
+            uri: meetId,
+        };
+    }
+
+    async handleOnEndReached(){
+        console.log(this.state.lastVisible);
+        const {orderByPostTime, lastVisible} = this.state;
+        const firestoreDb = firebase.firestore();
+        var query;
+        if(orderByPostTime){
+            query = firestoreDb.collection("Meets").orderBy(`selectedFriendsList.${this.state.userUid}.postTime`,'desc').startAfter(lastVisible).limit(10);
+        } else {
+            query = firestoreDb.collection("Meets").orderBy(`selectedFriendsList.${this.state.userUid}.startTime`).startAfter(lastVisible).limit(10);
+        }
+        query.get().then(async (querySnapshot) => {
+            var addMeetsData = await this.processMeets(querySnapshot.docs);
+            var lastVisible = querySnapshot.docs[querySnapshot.docs.length-1];
+            this.setState((state) => {
+                let meetsData = _.concat(state.meetsData, addMeetsData);
+                return {meetsData, lastVisible};
+            })
+        }).catch((error) => {
+            console.log(error);
+        });
     }
 
 
@@ -143,28 +199,32 @@ export default class TinkoScreen extends Component {
                     {/*onPress={() => this.setState({meetsData:addData})}*/}
                     {/*text='refresh'*/}
                 {/*/>}*/}
+                {/*<View style={{height: Header.HEIGHT + 30}}/>*/}
 
-                <ScrollView
-                    // refreshControl={
-                    //     <RefreshControl
-                    //         refreshing={this.state.refreshing}
-                    //         onRefresh={this._onRefresh.bind(this)}
-                    //     />
-                    // }
-                     >
-                    <View style={{height: Header.HEIGHT + 30}}/>
-                    <Masonry
-                        sorted // optional - Default: false
-                        columns={2} // optional - Default: 2
-                        bricks={this.state.meetsData}
-                        // refreshControl={
-                        //     <RefreshControl
-                        //         refreshing={this.state.refreshing}
-                        //         onRefresh={this._onRefresh.bind(this)}
-                        //     />
-                        // }
-                    />
-                </ScrollView>
+                <Masonry
+                    sorted // optional - Default: false
+                    columns={2} // optional - Default: 2
+                    bricks={this.state.meetsData}
+                    refreshControl={
+                        <RefreshControl
+                            refreshing={this.state.refreshing}
+                            onRefresh={() => this.getMeets()}
+                        />
+                    }
+                    headerHeight={Header.HEIGHT}
+                    onEndReached={() => this.handleOnEndReached()}
+                    onEndReachedThreshold={10}
+                    navigation={this.props.screenProps.navigation}
+                />
+
+
+                {/*<View style={{position:'absolute', zIndex:100, height:Header.HEIGHT, justifyContent:'flex-end', alignItems:'center'}}>*/}
+                    {/*<MaterialIcons.Button*/}
+                        {/*name="sort" size={26} backgroundColor="transparent"*/}
+                        {/*onPress={() => console.log("sort Pressed")}*/}
+                    {/*/>*/}
+                {/*</View>*/}
+
 
 
             </View>

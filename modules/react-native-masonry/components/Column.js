@@ -3,6 +3,7 @@ import { View, Image, TouchableHighlight, FlatList } from 'react-native';
 import styles from '../styles/main';
 import PropTypes from 'prop-types';
 import Brick from './Brick';
+import { ifIphoneX } from 'react-native-iphone-x-helper';
 
 // Takes props and returns a masonry column
 export default class Column extends Component {
@@ -25,7 +26,7 @@ export default class Column extends Component {
 		super(props);
 		this.state = {
 			images: [],
-			columnWidth: 0
+			columnWidth: 0,
 		};
 	}
 
@@ -105,8 +106,8 @@ export default class Column extends Component {
 		const brick = data.item;
 		const gutter = (data.index === 0) ? 0 : brick.gutter;
 		const key = `RN-MASONRY-BRICK-${brick.column}-${data.index}`;
-		const { imageContainerStyle, customImageComponent, customImageProps } = this.props;
-		const props = { ...brick, gutter, key, imageContainerStyle, customImageComponent, customImageProps };
+		const { imageContainerStyle, customImageComponent, customImageProps,navigation } = this.props;
+		const props = { ...brick, gutter, key, imageContainerStyle, customImageComponent, customImageProps, navigation };
 
 		return (
 			<Brick
@@ -118,6 +119,7 @@ export default class Column extends Component {
 	_keyExtractor = (item) => ("IMAGE-KEY-" + item.uri + "---" + (item.key ? item.key : "0"));
 
 	render() {
+		//console.log(this.props);
 		return (
 			<View
 			  style={[
@@ -127,6 +129,11 @@ export default class Column extends Component {
 				  },
 				  styles.masonry__column
 			  ]}>
+				<View style={{...ifIphoneX({
+                        height: this.props.headerHeight+30,
+                    }, {
+                        height: this.props.headerHeight,
+                    })}}/>
 			  <FlatList
 				key={this.props.columnKey}
 				data={this.state.images}

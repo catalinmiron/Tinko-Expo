@@ -151,6 +151,10 @@ export default class DiscoverScreen extends Component {
                         longitudeDelta: 0.0421,
                     }}
                 >
+                    {/*<MapView.UrlTile*/}
+                        {/*urlTemplate="http://c.tile.stamen.com/watercolor/{z}/{x}/{y}.jpg"*/}
+                        {/*zIndex={-1}*/}
+                    {/*/>*/}
                     {meets.map(meet => (
                         <MapView.Marker
                             coordinate={meet.LatLng}
