@@ -176,6 +176,11 @@ export default class DiscoverScreen extends Component {
                         //     <View style={[style.separator, highlighted && {marginLeft: 0}]} />
                         //     )}
 
+                        getItemLayout={(data, index) => (
+                            {length:listHeight, offset: listHeight * index, index}
+                        )}
+                        keyExtractor={(item, index) => index}
+
                         data={meets}
                         renderItem={({item, separators}) => (
                             <TouchableOpacity

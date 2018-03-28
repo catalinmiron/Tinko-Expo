@@ -147,7 +147,7 @@ export default class TinkoTabNavigatorScreen extends React.Component {
                     <ActionButton.Item buttonColor='#9b59b6' title="Express Post" onPress={() => console.log("notes tapped!")}>
                         <Ionicons name="md-done-all" style={styles.actionButtonIcon} />
                     </ActionButton.Item>
-                    <ActionButton.Item buttonColor='#1abc9c' title="Create a Tinko" onPress={() => this.props.navigation.navigate('Create')}>
+                    <ActionButton.Item buttonColor='#1abc9c' title="Create a Tinko" onPress={() => this.props.navigation.navigate('Create',{tinkoGetMeets:this.tinkoRef.getMeets})}>
                         <Ionicons name="md-create" style={styles.actionButtonIcon} />
                     </ActionButton.Item>
                 </ActionButton>

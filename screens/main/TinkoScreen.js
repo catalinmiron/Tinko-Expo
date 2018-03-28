@@ -28,6 +28,7 @@ export default class TinkoScreen extends Component {
         //console.log(props);
         let user = firebase.auth().currentUser;
         this.getMeetsInDatabase(user.uid);
+        this.getMeets=this.getMeets.bind(this);
         this.state = {
             userUid:user.uid,
             meetsData: [],

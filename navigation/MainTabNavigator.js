@@ -5,15 +5,17 @@ import { TabNavigator, TabBarBottom, StackNavigator } from 'react-navigation';
 
 import Colors from '../constants/Colors';
 
-import HomeScreen from '../screens/main/HomeScreen';
 import LinksScreen from '../screens/main/LinksScreen';
-import SettingsScreen from '../screens/main/SettingsScreen';
+import SettingsScreen from '../screens/main/second/SettingsScreen';
 import MeNavigator from './MeNavigator';
 import TinkoTabNavigator from './TinkoTabNavigator';
 import CreateScreen from '../screens/main/CreateScreen';
 import GooglePlacesInputScreen from '../screens/main/create/GooglePlacesInput';
 import CreateNavigator from './CreateNavigator';
 import TinkoDetailScreen from "../screens/main/tinko/TinkoDetailScreen";
+import UserDetailScreen from '../screens/main/common/UserDetailScreen';
+import MeScreen from "../screens/main/MeScreen";
+import PrivateChatScreen from '../screens/main/common/PrivateChatScreen';
 
 
 
@@ -80,6 +82,13 @@ const MainTabNavigatorWithDetailScreens = StackNavigator(
         },
         TinkoDetail:{
             screen: TinkoDetailScreen,
+        },
+        UserDetail:{
+            screen:UserDetailScreen,
+        },
+        PrivateChatPage: {
+            screen: PrivateChatScreen,
+
         }
     }
 );
