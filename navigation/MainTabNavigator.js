@@ -16,6 +16,7 @@ import CreateNavigator from './CreateNavigator';
 import TinkoDetailScreen from "../screens/main/tinko/TinkoDetailScreen";
 
 
+
 const MainTabNavigator = TabNavigator(
   {
     Home: {

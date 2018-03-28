@@ -99,13 +99,15 @@ class TinkoWebView extends Component {
 }
 
 class FriendChatListView extends Component {
-
     constructor(){
         super();
         let user = firebase.auth().currentUser;
         uid = user.uid;
-        this.socket = SocketIOClient('http://47.89.187.42:3000/');
-        //this.socket = SocketIOClient('http://127.0.0.1:3000/');
+        // this.socket = SocketIOClient('http://47.89.187.42:3000/');
+        this.socket = SocketIOClient('http://127.0.0.1:3000/');
+        setTimeout(() => {
+            this.socket.emit("joinANewMeet",4,uid);
+        },3000);
         this.getAvatar();
         this.getDBData();
         this.state = {
@@ -114,6 +116,7 @@ class FriendChatListView extends Component {
         };
         this.socket.on("connect" + uid,msg=>{
             let data = JSON.parse(msg);
+            console.log(data);
             let type = data.type;
             if (parseInt(type) === 0){
                 //系统
@@ -122,7 +125,6 @@ class FriendChatListView extends Component {
                 //私聊         
                 chatInfo.appendData([type,data.from,data.message]);
             }else{
-                //群组
                 chatInfo.appendData([type,data.activityId,data.message]);
             }
             this.setState({
