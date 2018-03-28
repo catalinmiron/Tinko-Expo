@@ -51,7 +51,7 @@ export default class RootNavigator extends React.Component {
             let firebaseDb = firebase.firestore();
             let docRef = firebaseDb.collection("Users").doc(uid).collection("Friends_List");
             docRef.get().then((querySnapshot)=>{
-                //this.dropFriendTable(uid);
+                this.dropFriendTable(uid);
                 this.initFriendTable(uid);
                 querySnapshot.forEach((doc)=>{
                     let friendUid = doc.data().uid;
@@ -199,7 +199,7 @@ export default class RootNavigator extends React.Component {
     insertFriendSql(uid,friendId,avatarUrl,friendName){
         db.transaction(
             tx => {
-                tx.executeSql('replace into friend_list'+uid+' (userId,avatarUrl,username) values (?,?,?)',[friendId,avatarUrl,friendName]);
+                tx.executeSql('insert into friend_list'+uid+' (userId,avatarUrl,username) values (?,?,?)',[friendId,avatarUrl,friendName]);
             },
             null,
             this.update
