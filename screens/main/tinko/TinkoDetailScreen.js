@@ -262,6 +262,7 @@ export default class TinkoDetailScreen extends React.Component {
     }
 
     onQuitMeetButtonPressed(){
+        this.props.navigation.goBack();
         const { userUid, meetId } = this.state;
         let bodyData = {
             userUid: userUid,

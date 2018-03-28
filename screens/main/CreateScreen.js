@@ -31,6 +31,8 @@ import  DatePicker from 'react-native-datepicker';
 import { NavigationActions } from 'react-navigation';
 import { SQLite, Constants, Location, Permissions } from 'expo';
 import firebase from 'firebase';
+import { EvilIcons } from '@expo/vector-icons';
+//import EvilIcons from '@expo/vector-icons/EvilIcons';
 
 const SCREEN_WIDTH = Dimensions.get('window').width;
 const db = SQLite.openDatabase('db.db');
@@ -57,6 +59,7 @@ export default class CreateScreen extends React.Component {
 
     constructor(props){
         super(props);
+        console.log(props);
         var startTime = new Date();
         let tenMins = 10 * 60 * 1000;
         startTime.setTime(startTime.getTime() + tenMins)
@@ -124,7 +127,7 @@ export default class CreateScreen extends React.Component {
         fetch(`https://maps.googleapis.com/maps/api/place/nearbysearch/json?location=${location.coords.latitude},${location.coords.longitude}&rankby=distance&key=AIzaSyCw_VwOF6hmY5yri8OpqOr9sCzTTT7JKiU`)
             .then((response) => response.json())
             .then((responseJson) => {
-                console.log(responseJson.results[0]);
+                //console.log(responseJson.results[0]);
                 let myPlace = responseJson.results[0];
                 this.setState({placeName: myPlace.name, placeAddress: myPlace.vicinity, placeCoordinate: myPlace.geometry.location, placeId: myPlace.place_id })
             }).catch((error) => {
@@ -263,6 +266,7 @@ export default class CreateScreen extends React.Component {
             });
 
         this.props.navigation.dispatch(NavigationActions.back())
+        this.props.navigation.state.params.tinkoGetMeets();
     }
 
     // updateUserParticipatingMeets(meetId, userUid){
@@ -291,7 +295,7 @@ export default class CreateScreen extends React.Component {
     }
 
     render() {
-        const {title, startTime, placeName, description, inputHeight, allFriends, allowParticipantsInvite, allowPeopleNearby, selectedFriendsList} = this.state;
+        const {title, startTime, placeName, description, inputHeight, allFriends, allowParticipantsInvite, allowPeopleNearby, selectedFriendsList, maxNo} = this.state;
         return (
             <ScrollView style={styles.container}>
                 <Card>
@@ -310,7 +314,7 @@ export default class CreateScreen extends React.Component {
                             keyboardAppearance="light"
                             placeholder="A Tinko Title"
                             autoFocus={false}
-                            autoCapitalize
+                            //autoCapitalize
                             autoCorrect={true}
                             returnKeyType="next"
                             ref={ input => this.title = input }
@@ -394,8 +398,32 @@ export default class CreateScreen extends React.Component {
                                 selectedFriendsList: selectedFriendsList,})}
                         />
                         <ListItem
+                            hideChevron
                             containerStyle={styles.listStyle}
                             title='Max Participants'
+                            // rightTitle={
+                            //     <View style={{flexDirection:'row', flex:1, height:30, width:50, marginRight:10}}>
+                            //         <EvilIcons.Button
+                            //             name="minus" size={20} color="black" backgroundColor="transparent"
+                            //             onPress = {() => {
+                            //                 this.setState((state) => {
+                            //                     return {maxNo: state.maxNo -1};
+                            //                 });
+                            //             }}
+                            //         />
+                            //         <Text>{maxNo}</Text>
+                            //         <EvilIcons.Button
+                            //             name="plus" size={20} color="black" backgroundColor="transparent"
+                            //             onPress = {() => {
+                            //                 console.log("plus pressed")
+                            //                 this.setState((state) => {
+                            //                     return {maxNo: state.maxNo +1};
+                            //                 });
+                            //             }}
+                            //         />
+                            //     </View>
+                            //
+                            // }
                         />
                     </List>
 
@@ -412,9 +440,9 @@ export default class CreateScreen extends React.Component {
                                     keyboardAppearance="light"
                                     placeholder="Description..."
                                     autoFocus={false}
-                                    autoCapitalize
+                                    //autoCapitalize
                                     autoCorrect={true}
-                                    returnKeyType="Done"
+                                    //returnKeyType="Done"
                                     //ref={ input => this.description = input }
                                     onSubmitEditing={() => {
                                         Keyboard.dismiss()
