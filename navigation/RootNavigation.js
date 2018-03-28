@@ -34,7 +34,7 @@ export default class RootNavigator extends React.Component {
             let user = firebase.auth().currentUser;
             let uid = user.uid;
             // 测试时才用drop
-            //this.dropChatTable(uid);
+            this.dropChatTable(uid);
             //this.dropMeetingTable(uid);
             this.initMeetingTable(uid);
             this.initChatTable(uid);
@@ -44,7 +44,12 @@ export default class RootNavigator extends React.Component {
             this.socket.emit("attendActivity",uid,[1,2,3]);
             this.socket.on("connect" + uid,msg=>{
                 let data = JSON.parse(msg);
+                console.log(data);
                 this.insertChatSql(uid,data);
+            });
+            this.socket.on("mySendBox"+uid,msg=>{
+                let data = JSON.parse(msg);
+                this.insertChatSql(uid,data,0);
             });
             this.socket.on("system",function (msg) {
             });
@@ -159,22 +164,28 @@ export default class RootNavigator extends React.Component {
     //type 1 ="privateChat"
     //type 2 ="groupChat"
     //status 1 = "response"
-    insertChatSql(uid,data){
+    insertChatSql(uid,data,isSend){
         let type = data["type"],
             message = data["message"],
             from = data["from"],
-            meetingId = "";
+            meetingId = "",
+            status = (isSend === undefined)?0:1;
+        if (status === 1){
+            console.log("这里是发送啦");
+        }
         if (data["activityId"]!==undefined){
             meetingId = data["activityId"];
         }
         db.transaction(
             tx => {
-                tx.executeSql("INSERT INTO db"+uid+"(fromId,msg,status,type,meetingId) VALUES (?,?,?,?,?)",[from,message,0,type,meetingId]);
+                tx.executeSql("INSERT INTO db"+uid+"(fromId,msg,status,type,meetingId) VALUES (?,?,?,?,?)",[from,message,status,type,meetingId]);
             },
             null,
             this.update
         );
     }
+
+
 
     dropFriendTable(uid){
         db.transaction(

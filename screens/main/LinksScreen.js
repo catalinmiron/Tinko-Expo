@@ -131,6 +131,23 @@ class FriendChatListView extends Component {
                 messages:chatInfo.getData()
             });
         });
+        this.socket.on("mySendBox"+uid,msg=>{
+            let data = JSON.parse(msg);
+            console.log(data);
+            let type = data.type;
+            if (parseInt(type) === 0){
+                //系统
+
+            }else if (parseInt(type)===1){
+                //私聊
+                chatInfo.appendData([type,data.from,data.message]);
+            }else{
+                chatInfo.appendData([type,data.activityId,data.message]);
+            }
+            this.setState({
+                messages:chatInfo.getData()
+            });
+        })
     }
 
     getAvatar(){

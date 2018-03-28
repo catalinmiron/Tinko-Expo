@@ -22,10 +22,12 @@ export default class PrivateChatScreen extends Component {
 
     constructor(props){
         super(props);
-        uid = this.props.myId;
-        pid = this.props.personId;
-        let avatar = this.props.avatar,
-            name = this.props.name;
+        let dataStore = this.props.navigation.state.params;
+        console.log(dataStore);
+        uid = dataStore.myId;
+        pid = dataStore.personId;
+             const avatar = dataStore.avatar,
+              name = dataStore.name;
         this.getFromDB(uid,pid,avatar,name);
         //this.socket = SocketIOClient('http://47.89.187.42:3000/');
         this.socket = SocketIOClient('http://192.168.1.232:3000/');
@@ -35,17 +37,29 @@ export default class PrivateChatScreen extends Component {
                 this.appendMessage(name,avatar,data.message,Date.parse(new Date()),new Date())
             }
         });
+        this.socket.on("mySendBox"+uid,(msg)=>{
+            console.log("hello 在这里");
+            let data = JSON.parse(msg);
+            console.log(data);
+        });
     }
 
     getFromDB(uid,pid,avatar,name){
+        // ORDER BY id DESC limit 10
         db.transaction(
             tx => {
-                tx.executeSql("SELECT msg,id,timeStamp from db" + uid + " WHERE fromId = '" + pid + "' ORDER BY id DESC limit 10", [], (_, {rows}) => {
-                    let dataArr = rows['_array'].reverse();
+                tx.executeSql("SELECT * from db" + uid + " WHERE fromId = '" + pid + "'", [], (_, {rows}) => {
+                    console.log(rows['_array']);
+                    console.log("这里获取到的数据");
+                    let dataArr = rows['_array'];
                     for (let i = 0;i<dataArr.length;i++){
                         console.log(dataArr[i].status);
                         // console.log(new Date(dataArr[i].timeStamp));
-                        this.appendMessage(name,avatar,dataArr[i].msg,"cache"+dataArr[i].id,dataArr[i].timeStamp)
+                        if (dataArr[i].status === 0){
+                            this.appendMessage(name,avatar,dataArr[i].msg,"cache"+dataArr[i].id,dataArr[i].timeStamp)
+                        }else{
+                            this.appendMessage(name,avatar,"我发送的"+dataArr[i].msg,"cache"+dataArr[i].id,dataArr[i].timeStamp)
+                        }
                     }
                 })
             },
@@ -83,7 +97,6 @@ export default class PrivateChatScreen extends Component {
 
     onSend(messages = []) {
         this.socket.emit("privateChat",uid,pid,messages[0].text);
-        this.insertChatSql(uid,pid,messages[0].text);
         this.setState(previousState => ({
             messages: GiftedChat.append(previousState.messages, messages),
         }))
