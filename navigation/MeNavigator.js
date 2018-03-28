@@ -2,6 +2,8 @@ import { Notifications } from 'expo';
 import React from 'react';
 import { StackNavigator } from 'react-navigation';
 import MeScreen from '../screens/main/MeScreen';
+import Setting from '../screens/main/second/SettingsScreen'
+
 
 export default MeNavigator = StackNavigator(
     {
@@ -12,6 +14,12 @@ export default MeNavigator = StackNavigator(
                 header: false
             }),
         },
+        Setting: {
+            screen:Setting,
+            navigationOptions:{
+                tabBarVisible: false
+            }
+        }
     },{
         initialRouteName: 'Me',
     }, {

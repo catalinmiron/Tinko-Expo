@@ -14,7 +14,7 @@ import SocketIOClient from 'socket.io-client';
 import {
     StackNavigator
 } from 'react-navigation';
-import PrivateChatScreen from './PrivateChatScreen';
+import PrivateChatScreen from './common/PrivateChatScreen';
 
 let friendList = [];
 let uid = "";
@@ -186,7 +186,7 @@ class FriendChatListView extends Component {
                         title={messages.personName}
                         subtitle={messages.msg}
                         onPress={() => this.props.navigation.navigate('PrivateChatPage', {
-                            avatar:messages.msg,
+                            avatar:messages.imageURL,
                             name:messages.personName,
                             personId:messages.id,
                             myId:uid
@@ -240,19 +240,13 @@ export default StackNavigator({
     FriendChatListView: {
         screen: FriendChatListView
     },
-    PrivateChatPage: {
-        screen: ChatPage,
-
-        navigationOptions: {
-            tabBarVisible: false
-        }
-    },
     TinkoWebView:{
         screen: TinkoWebView,
         navigationOptions: {
             tabBarVisible: false
         }
     }
+
 },{
     initialRouteName: 'FriendChatListView',
 });

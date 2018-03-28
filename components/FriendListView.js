@@ -56,6 +56,8 @@ export default class FriendListView extends Component {
 
     goToDetailPage(key){
         console.log(key);
+        this.props.navigation.navigate('UserDetail', {uid:key});
+
     }
 
 

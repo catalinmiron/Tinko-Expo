@@ -14,6 +14,8 @@ let uid = "",
 
 export default class PrivateChatScreen extends Component {
 
+    static navigationOptions = {header:null};
+
     state = {
         messages: [],
     };
