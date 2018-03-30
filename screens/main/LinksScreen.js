@@ -15,6 +15,7 @@ import {
     StackNavigator
 } from 'react-navigation';
 import PrivateChatScreen from './common/PrivateChatScreen';
+import GroupChatScreen from './common/GroupChatScreen';
 
 let friendList = [];
 let uid = "";
@@ -174,10 +175,8 @@ class FriendChatListView extends Component {
                     for (let i = dataArr.length-1;i>=0;i--){
                         let type = dataArr[i].type;
                         if (type === 1){
-                            console.log("privateChat");
                             chatInfo.appendData([type,dataArr[i].fromId,dataArr[i]['msg']]);
                         }else{
-                            console.log("groupChat");
                             chatInfo.appendData([type,dataArr[i].meetingId,dataArr[i]['msg']]);
                         }
                     }
@@ -195,6 +194,7 @@ class FriendChatListView extends Component {
     render() {
         let friendList = [];
         if (this.state.messages.length!==0){
+            console.log(this.state.messages);
             for (let i = 0;i<this.state.messages.length ; i++){
                 let messages = this.state.messages[i];
                 friendList.push(
@@ -204,12 +204,24 @@ class FriendChatListView extends Component {
                         key={messages.id}
                         title={messages.personName}
                         subtitle={messages.msg}
-                        onPress={() => this.props.navigation.navigate('PrivateChatPage', {
-                            avatar:messages.imageURL,
-                            name:messages.personName,
-                            personId:messages.id,
-                            myId:uid
-                        })}
+                        onPress={() => {
+                                 if (messages.type === 1){
+                                     this.props.navigation.navigate('PrivateChatPage', {
+                                         avatar:messages.imageURL,
+                                         name:messages.personName,
+                                         personId:messages.id,
+                                         myId:uid
+                                     })
+                                 }else{
+                                     this.props.navigation.navigate('GroupChatPage', {
+                                         avatar:messages.imageURL,
+                                         name:messages.personName,
+                                         personId:messages.id,
+                                         myId:uid
+                                     })
+                                 }
+                            }
+                        }
                     />
                 )
             }

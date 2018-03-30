@@ -26,7 +26,7 @@ export default class PrivateChatScreen extends Component {
         console.log(dataStore);
         uid = dataStore.myId;
         pid = dataStore.personId;
-             const avatar = dataStore.avatar,
+        const avatar = dataStore.avatar,
               name = dataStore.name;
         this.getFromDB(uid,pid,avatar,name);
         //this.socket = SocketIOClient('http://47.89.187.42:3000/');
@@ -53,6 +53,7 @@ export default class PrivateChatScreen extends Component {
                     console.log(rows['_array']);
                     console.log("这里获取到的数据");
                     let dataArr = rows['_array'];
+                    console.log(dataArr);
                     for (let i = 0;i<dataArr.length;i++){
                         console.log(dataArr[i].status);
                         // console.log(new Date(dataArr[i].timeStamp));
