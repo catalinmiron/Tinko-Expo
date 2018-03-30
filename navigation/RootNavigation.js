@@ -39,20 +39,47 @@ export default class RootNavigator extends React.Component {
             this.initMeetingTable(uid);
             this.initChatTable(uid);
             //this.socket = SocketIOClient('http://47.89.187.42:3000/');
-            this.socket = SocketIOClient('http://192.168.1.232:3000/');
+            //this.socket = SocketIOClient('http://192.168.1.232:3000/');
+            this.socket = SocketIOClient('http://127.0.0.1:3000/');
             this.socket.emit("userLogin",uid);
-            this.socket.emit("attendActivity",uid,[1,2,3]);
             this.socket.on("connect" + uid,msg=>{
-                let data = JSON.parse(msg);
-                console.log(data);
-                this.insertChatSql(uid,data);
+                let data = JSON.parse(msg),
+                    type = data.type;
+                //3代表未读私聊
+                if (type === 3){
+                    let unReadDataArr = data.message;
+                    for (let i in unReadDataArr){
+                        let dataArr =  unReadDataArr[i],
+                            sqlObj = {
+                                type :1,
+                                from : dataArr.fromId,
+                                message : dataArr.msg,
+                                time : dataArr.time
+                            };
+                        this.insertChatSql(uid,sqlObj)
+                    }
+                }else if (type === 4){
+                    let unReadDataArr = data.message;
+                    for (let i in unReadDataArr){
+                        let dataArr =  unReadDataArr[i],
+                            sqlObj = {
+                                type :2,
+                                from : dataArr.fromId,
+                                message : dataArr.msg,
+                                time : dataArr.time,
+                                meetId:dataArr.meetId
+                            };
+                        this.insertChatSql(uid,sqlObj)
+                    }
+                }else{
+                    this.insertChatSql(uid,data);
+                }
             });
             this.socket.on("mySendBox"+uid,msg=>{
                 let data = JSON.parse(msg);
                 this.insertChatSql(uid,data,0);
             });
-            this.socket.on("system",function (msg) {
-            });
+            //好友信息
             let firebaseDb = firebase.firestore();
             let docRef = firebaseDb.collection("Users").doc(uid).collection("Friends_List");
             docRef.get().then((querySnapshot)=>{
@@ -60,17 +87,17 @@ export default class RootNavigator extends React.Component {
                 this.initFriendTable(uid);
                 querySnapshot.forEach((doc)=>{
                     let friendUid = doc.data().uid;
-                    //console.log(friendUid);
                     firebaseDb.collection("Users").doc(friendUid).get()
                         .then((doc) => {
+                            let data = doc.data();
                             let mapping = {
-                                avatar:doc.data().photoURL,
-                                key:doc.data().uid,
-                                title:doc.data().username
+                                avatar:data.photoURL,
+                                key:data.uid,
+                                title:data.username
                             };
                             this.insertFriendSql(uid,mapping.key,mapping.avatar,mapping.title);
                         }).catch((error) => {
-                            console.log("Error getting document: ", error);
+                            //console.log("Error getting document: ", error);
                     })
                 });
             }).catch((error) => {
@@ -133,7 +160,6 @@ export default class RootNavigator extends React.Component {
             place = data.place.name,
             endTime = data.endTime.toString(),
             creator = data.creator;
-        console.log("INSERT INTO meeting"+uid+"(meetingId,creator,endTime,address,tagList,description,title) VALUES ("+meetingId+","+creator+","+endTime+","+place+","+tag+","+description+","+title+")");
         db.transaction(
             tx => {
                 tx.executeSql("INSERT INTO meeting"+uid+"(meetingId,creator,endTime,address,tagList,description,title) VALUES (?,?,?,?,?,?,?)",
@@ -173,19 +199,17 @@ export default class RootNavigator extends React.Component {
         if (status === 1){
             console.log("这里是发送啦");
         }
-        if (data["activityId"]!==undefined){
-            meetingId = data["activityId"];
+        if (data["meetId"]!==undefined){
+            meetingId = data["meetId"];
         }
         db.transaction(
             tx => {
-                tx.executeSql("INSERT INTO db"+uid+"(fromId,msg,status,type,meetingId) VALUES (?,?,?,?,?)",[from,message,status,type,meetingId]);
+                tx.executeSql("INSERT INTO db"+uid+" (fromId,msg,status,type,meetingId) VALUES (?,?,?,?,?)",[from,message,status,type,meetingId]);
             },
             null,
             this.update
         );
     }
-
-
 
     dropFriendTable(uid){
         db.transaction(

@@ -24,7 +24,6 @@ let lastUpdateArr = [],
 
 let chatInfo = new Stack();
 
-//personalInfo[dataArr[i].userId] = [dataArr[i].avatarUrl,dataArr[i].username];
 function Stack() {
     this.dataStore = [];
     this.appendData = function ([type,id,msg]) {
@@ -104,10 +103,8 @@ class FriendChatListView extends Component {
         let user = firebase.auth().currentUser;
         uid = user.uid;
         // this.socket = SocketIOClient('http://47.89.187.42:3000/');
-        this.socket = SocketIOClient('http://192.168.1.232:3000/');
-        setTimeout(() => {
-            this.socket.emit("joinANewMeet",4,uid);
-        },3000);
+        //this.socket = SocketIOClient('http://192.168.1.232:3000/');
+        this.socket = SocketIOClient('http://127.0.0.1:3000/');
         this.getAvatar();
         this.getDBData();
         this.state = {
@@ -122,7 +119,7 @@ class FriendChatListView extends Component {
                 //系统
 
             }else if (parseInt(type)===1){
-                //私聊         
+                //私聊
                 chatInfo.appendData([type,data.from,data.message]);
             }else{
                 chatInfo.appendData([type,data.activityId,data.message]);
@@ -173,11 +170,14 @@ class FriendChatListView extends Component {
             tx => {
                 tx.executeSql('select * from db'+uid, [], (_, { rows }) => {
                     let dataArr =  rows['_array'];
-                    for (let i = dataArr.length-1;i>0;i--){
+                    console.log(dataArr);
+                    for (let i = dataArr.length-1;i>=0;i--){
                         let type = dataArr[i].type;
                         if (type === 1){
+                            console.log("privateChat");
                             chatInfo.appendData([type,dataArr[i].fromId,dataArr[i]['msg']]);
                         }else{
+                            console.log("groupChat");
                             chatInfo.appendData([type,dataArr[i].meetingId,dataArr[i]['msg']]);
                         }
                     }
