@@ -2,7 +2,7 @@ import { Notifications, SQLite } from 'expo';
 const db = SQLite.openDatabase('db.db');
 
 import React from 'react';
-import { StyleSheet, SafeAreaView } from 'react-native';
+import { StyleSheet, SafeAreaView,View,Text } from 'react-native';
 import { StackNavigator } from 'react-navigation';
 
 import MainTabNavigator from './MainTabNavigator';
@@ -12,6 +12,9 @@ import * as firebase from "firebase";
 import SocketIOClient from 'socket.io-client';
 import 'firebase/firestore';
 import { Font } from 'expo'
+
+let getPrivateHistory = false,
+    getMeetsHistory = false;
 
 
 export default class RootNavigator extends React.Component {
@@ -46,7 +49,8 @@ export default class RootNavigator extends React.Component {
                 let data = JSON.parse(msg),
                     type = data.type;
                 //3代表未读私聊
-                if (type === 3){
+                if (type === 3 && !getPrivateHistory){
+                    getPrivateHistory = true;
                     let unReadDataArr = data.message;
                     for (let i in unReadDataArr){
                         let dataArr =  unReadDataArr[i],
@@ -58,7 +62,8 @@ export default class RootNavigator extends React.Component {
                             };
                         this.insertChatSql(uid,sqlObj)
                     }
-                }else if (type === 4){
+                }else if (type === 4 && !getMeetsHistory){
+                    getMeetsHistory = true;
                     let unReadDataArr = data.message;
                     for (let i in unReadDataArr){
                         let dataArr =  unReadDataArr[i],
@@ -112,7 +117,6 @@ export default class RootNavigator extends React.Component {
             }).catch((error) => {
                 console.log("Error getting documents: ", error);
             });
-
             return <MainTabNavigator/>
         } else {
             return <LoginNavigator screenProps={this.props}/>
@@ -255,5 +259,15 @@ export default class RootNavigator extends React.Component {
   _handleNotification = ({ origin, data }) => {
     console.log(`Push notification ${origin} with data: ${JSON.stringify(data)}`);
   };
+}
+
+class WaitingScreen extends React.Component {
+    render() {
+        return (
+            <View>
+                <Text>Waiting</Text>
+            </View>
+        )
+    }
 }
 
