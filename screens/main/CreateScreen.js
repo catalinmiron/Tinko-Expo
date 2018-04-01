@@ -37,6 +37,8 @@ import { EvilIcons } from '@expo/vector-icons';
 const SCREEN_WIDTH = Dimensions.get('window').width;
 const db = SQLite.openDatabase('db.db');
 
+import SocketIOClient from 'socket.io-client';
+
 export default class CreateScreen extends React.Component {
     static navigationOptions = ({ navigation }) => {
         const params = navigation.state.params || {};
@@ -260,6 +262,8 @@ export default class CreateScreen extends React.Component {
             .then((meetRef) => {
                 console.log("Document written with ID: ", meetRef.id);
                 //this.updateUserParticipatingMeets(meetRef.id, userUid);
+                this.socket = SocketIOClient('http://47.89.187.42:4000/');
+                this.socket.emit("createMeets",userUid,meetRef.id);
             })
             .catch((error) => {
                 console.error("Error adding document: ", error);
