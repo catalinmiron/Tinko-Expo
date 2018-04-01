@@ -105,7 +105,7 @@ class FriendChatListView extends Component {
         uid = user.uid;
         // this.socket = SocketIOClient('http://47.89.187.42:3000/');
         //this.socket = SocketIOClient('http://192.168.1.232:3000/');
-        this.socket = SocketIOClient('http://127.0.0.1:3000/');
+        this.socket = SocketIOClient('http://47.89.187.42:4000/');
         this.getAvatar();
         this.getDBData();
         this.state = {
@@ -113,21 +113,22 @@ class FriendChatListView extends Component {
             friendInfo:[]
         };
         this.socket.on("connect" + uid,msg=>{
-            let data = JSON.parse(msg);
-            console.log(data);
-            let type = data.type;
-            if (parseInt(type) === 0){
-                //系统
+            let data = JSON.parse(msg),
+                type = data.type;
+            if (type !== 3 && type !== 4){
+                if (parseInt(type) === 0){
+                    //系统
 
-            }else if (parseInt(type)===1){
-                //私聊
-                chatInfo.appendData([type,data.from,data.message]);
-            }else{
-                chatInfo.appendData([type,data.activityId,data.message]);
+                }else if (parseInt(type)===1){
+                    //私聊
+                    chatInfo.appendData([type,data.from,data.message]);
+                }else{
+                    chatInfo.appendData([type,data.activityId,data.message]);
+                }
+                this.setState({
+                    messages:chatInfo.getData()
+                });
             }
-            this.setState({
-                messages:chatInfo.getData()
-            });
         });
         this.socket.on("mySendBox"+uid,msg=>{
             let data = JSON.parse(msg);

@@ -31,7 +31,7 @@ export default class PrivateChatScreen extends Component {
         this.getFromDB(uid,pid,avatar,name);
         //this.socket = SocketIOClient('http://47.89.187.42:3000/');
         //this.socket = SocketIOClient('http://192.168.1.232:3000/');
-        this.socket = SocketIOClient('http://127.0.0.1:3000/');
+        this.socket = SocketIOClient('http://47.89.187.42:4000/');
         this.socket.on("connect" + uid,(msg)=>{
             let data = JSON.parse(msg),
                 type = data.type;
