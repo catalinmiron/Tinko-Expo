@@ -72,7 +72,8 @@ export default class RootNavigator extends React.Component {
                                 from : dataArr.fromId,
                                 message : dataArr.msg,
                                 time : dataArr.time,
-                                meetId:dataArr.meetId
+                                meetId:dataArr.meetId,
+                                meetUserData:dataArr.data
                             };
                         this.insertChatSql(uid,sqlObj)
                     }
@@ -183,7 +184,8 @@ export default class RootNavigator extends React.Component {
                     'fromId text, msg text , ' +
                     'status int, ' +
                     'type int,' +
-                    'meetingId text'+
+                    'meetingId text, '+
+                    'meetUserData text,'+
                     'timeStamp DATETIME DEFAULT CURRENT_TIMESTAMP);');
             },
             null,
@@ -195,20 +197,28 @@ export default class RootNavigator extends React.Component {
     //type 2 ="groupChat"
     //status 1 = "response"
     insertChatSql(uid,data,isSend){
+        console.log("data:=======",data);
         let type = data["type"],
             message = data["message"],
             from = data["from"],
             meetingId = "",
+            userData = "",
             status = (isSend === undefined)?0:1;
         if (status === 1){
             console.log("这里是发送啦");
         }
         if (data["meetId"]!==undefined){
             meetingId = data["meetId"];
+        }else if (data["activityId"]!==undefined){
+            meetingId = data["activityId"];
         }
+        if (data["meetUserData"]!==undefined){
+            userData = data["meetUserData"].replace("",'');
+        }
+        console.log("INSERT INTO db"+uid+" (fromId,msg,status,type,meetingId,meetUserData) VALUES (?,?,?,?,?,?)",[from,message,status,type,meetingId,userData]);
         db.transaction(
             tx => {
-                tx.executeSql("INSERT INTO db"+uid+" (fromId,msg,status,type,meetingId) VALUES (?,?,?,?,?)",[from,message,status,type,meetingId]);
+                tx.executeSql("INSERT INTO db"+uid+" (fromId,msg,status,type,meetingId,meetUserData) VALUES (?,?,?,?,?,?)",[from,message,status,type,meetingId,userData]);
             },
             null,
             this.update
