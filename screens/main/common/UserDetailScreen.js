@@ -24,7 +24,7 @@ export default class UserDetailScreen extends Component{
     }
 
     componentDidMount(){
-        getUserData(this.state.userUid).fork(
+        getUserData(this.props.navigation.state.params.uid).fork(
             (error) => {
                 console.log(error);
             },

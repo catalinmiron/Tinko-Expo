@@ -23,7 +23,6 @@ export default class PrivateChatScreen extends Component {
     constructor(props){
         super(props);
         let dataStore = this.props.navigation.state.params;
-        console.log(dataStore);
         uid = dataStore.myId;
         pid = dataStore.personId;
         const avatar = dataStore.avatar,
@@ -41,11 +40,6 @@ export default class PrivateChatScreen extends Component {
                 }
             }
         });
-        this.socket.on("mySendBox"+uid,(msg)=>{
-            console.log("hello 在这里");
-            let data = JSON.parse(msg);
-            console.log(data);
-        });
     }
 
     getFromDB(uid,pid,avatar,name){
@@ -53,10 +47,7 @@ export default class PrivateChatScreen extends Component {
         db.transaction(
             tx => {
                 tx.executeSql("SELECT * from db" + uid + " WHERE fromId = '" + pid + "'", [], (_, {rows}) => {
-                    console.log(rows['_array']);
-                    console.log("这里获取到的数据");
                     let dataArr = rows['_array'];
-                    console.log(dataArr);
                     for (let i = 0;i<dataArr.length;i++){
                         //收到的
                         if (dataArr[i].status === 0){
@@ -93,7 +84,7 @@ export default class PrivateChatScreen extends Component {
                 _id: 1,
                 name: 'Developer',
             }
-        }
+        };
         this.setState(previousState => ({
             messages: GiftedChat.append(previousState.messages, chatData),
         }))
@@ -115,9 +106,10 @@ export default class PrivateChatScreen extends Component {
     }
 
     onSend(messages = []) {
-        this.socket.emit("privateChat",uid,pid,messages[0].text);
+        let text = messages[0].text;
+        this.socket.emit("privateChat",uid,pid,text);
         this.setState(previousState => ({
-            messages: GiftedChat.append(previousState.messages, messages),
+            messages: GiftedChat.append(previousState.messages, messages[0]),
         }))
     }
 
