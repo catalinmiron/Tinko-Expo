@@ -135,6 +135,7 @@ export default class Column extends Component {
                         height: this.props.headerHeight,
                     })}}/>
 			  <FlatList
+				scrollEnabled={false}
 				key={this.props.columnKey}
 				data={this.state.images}
 				keyExtractor={this._keyExtractor}

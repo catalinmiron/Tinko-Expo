@@ -1,7 +1,7 @@
 import React, { Component } from 'react';
-import {StyleSheet, Text, View, ImageBackground, Dimensions, Alert, Platform, ScrollView, FlatList, TouchableWithoutFeedback, Image, Animated, TouchableOpacity} from 'react-native';
+import {StyleSheet, Text, View, ImageBackground, Dimensions, Alert, Platform , FlatList, TouchableWithoutFeedback, Image, Animated, TouchableOpacity, PanResponder} from 'react-native';
 import { Input, Button, Card } from 'react-native-elements';
-import { MapView, Constants, Location, Permissions  } from 'expo';
+import { MapView, Constants, Location, Permissions, GestureHandler  } from 'expo';
 import GeoFire from 'geofire';
 import firebase from 'firebase';
 import 'firebase/firestore';
@@ -9,6 +9,16 @@ import {getStartTimeString, getPostTimeString} from "../../modules/CommonUtility
 
 const SCREEN_HEIGHT = Dimensions.get('window').height;
 const SCREEN_WIDTH = Dimensions.get('window').width;
+
+const {ScrollView, PanGestureHandler} = GestureHandler;
+// import {
+//     PanGestureHandler,
+//     TapGestureHandler,
+//     PinchGestureHandler,
+//     ScrollView,
+//     State,
+//     FlatList
+// } from 'react-native-gesture-handler';
 
 var geofireRef;
 
@@ -135,12 +145,13 @@ export default class DiscoverScreen extends Component {
     render() {
         const { location, meets, containerHeight, yOffset, yOriginal, yOnGoing, yOldOffset, yOnScrollOffset,flatListHeight, listHeight, marginBottomValue } = this.state;
         let flatListMarginTopHeight = containerHeight-listHeight-marginBottomValue-yOffset-yOldOffset;
+        //console.log(flatListMarginTopHeight);
         return (
             <View
-                shouldRasterizeIOS={true}
                 style = {styles.container}
                 onLayout={(event) => { this.find_dimesions(event.nativeEvent.layout) }}
             >
+                <PanResponderExample />
                 <MapView
                     style={{ flex: 1 }}
                     showsUserLocation
@@ -151,10 +162,6 @@ export default class DiscoverScreen extends Component {
                         longitudeDelta: 0.0421,
                     }}
                 >
-                    {/*<MapView.UrlTile*/}
-                        {/*urlTemplate="http://c.tile.stamen.com/watercolor/{z}/{x}/{y}.jpg"*/}
-                        {/*zIndex={-1}*/}
-                    {/*/>*/}
                     {meets.map(meet => (
                         <MapView.Marker
                             coordinate={meet.LatLng}
@@ -164,80 +171,79 @@ export default class DiscoverScreen extends Component {
                         />
                     ))}
                 </MapView>
-                <View style = {{position:'absolute',marginTop: flatListMarginTopHeight, zIndex:100}} >
-                    <FlatList
-                        onLayout={(event) => (this.setState({flatListHeight:event.nativeEvent.layout.height}))}
-                        scrollEnabled={false}
-                        onTouchStart = {(event) => (this.setState({yOriginal: event.nativeEvent.pageY, yOldOffset: yOffset+yOldOffset, yOffset: 0}))}
-                        onTouchMove = {(event) => (this.handleFlatListOnTouchMove(event.nativeEvent.pageY))}
-                        onTouchEnd = {(event) => (this.setState({yOriginal:0, yOnGoing:0}))}
-                        //onScroll = {(event) => (this.setState({yOnScrollOffset:event.nativeEvent.contentOffset.y}))}
-                        // ItemSeparatorComponent={Platform.OS !== 'android' && ({highlighted}) => (
-                        //     <View style={[style.separator, highlighted && {marginLeft: 0}]} />
-                        //     )}
+                {/*<View style = {{position:'absolute',marginTop: flatListMarginTopHeight, zIndex:100, backgroundColor:'red'}} >*/}
+                    {/*<ScrollView*/}
+                        {/*onPanResponderMove={(event, gestureState) => {*/}
+                            {/*console.log(event.nativeEvent, gestureState);*/}
+                        {/*}}*/}
+                        {/*style={{flex:1}}*/}
+                        {/*scrollEnabled={false}*/}
+                        {/*onTouchStart = {(event) => (this.setState({yOriginal: event.nativeEvent.pageY, yOldOffset: yOffset+yOldOffset, yOffset: 0}))}*/}
+                        {/*onTouchMove = {(event) => (this.handleFlatListOnTouchMove(event.nativeEvent))}*/}
+                    {/*>*/}
 
-                        getItemLayout={(data, index) => (
-                            {length:listHeight, offset: listHeight * index, index}
-                        )}
-                        keyExtractor={(item, index) => index}
+                        {/*{meets.map((meet) => (*/}
+                            {/*<TouchableOpacity*/}
+                                {/*style={{flex:1, width: SCREEN_WIDTH, height:listHeight, justifyContent: 'center', alignItems: 'center',}}*/}
+                                {/*onPress={() => (this.props.screenProps.navigation.navigate('TinkoDetail', {meetId:meet.key}))}*/}
+                                {/*// onShowUnderlay={separators.highlight}*/}
+                                {/*// onHideUnderlay={separators.unhighlight}*/}
+                                {/*>*/}
 
-                        data={meets}
-                        renderItem={({item, separators}) => (
-                            <TouchableOpacity
-                                style={{flex:1, width: SCREEN_WIDTH, justifyContent: 'center', alignItems: 'center',}}
-                                onPress={() => (this.props.screenProps.navigation.navigate('TinkoDetail', {meetId:item.key}))}
-                                // onShowUnderlay={separators.highlight}
-                                // onHideUnderlay={separators.unhighlight}
-                                >
+                                {/*<View*/}
+                                    {/*//shouldRasterizeIOS={true}*/}
+                                    {/*//renderToHardwareTextureAndroid*/}
+                                {/*>*/}
+                                    {/*<Image*/}
+                                        {/*resizeMethod={'auto'}*/}
+                                        {/*source={require('../../assets/images/tagsTheme/StaindGlass.jpg')}*/}
+                                        {/*style={{ borderRadius:10, width: SCREEN_WIDTH-10, height: listHeight, marginBottom: marginBottomValue }}*/}
+                                    {/*/>*/}
+                                    {/*/!*<View*!/*/}
+                                        {/*/!*style={styles.headerTop}*!/*/}
+                                    {/*/!*>*!/*/}
+                                        {/*/!*<Image*!/*/}
+                                            {/*/!*source={{ uri: item.creator.photoURL }}*!/*/}
+                                            {/*/!*style={styles.userPic}/>*!/*/}
+                                        {/*/!*<View style={{marginTop:10}}>*!/*/}
+                                            {/*/!*<Text style={styles.meetTitle}>{item.title}</Text>*!/*/}
+                                            {/*/!*<Text style={styles.userName}>{item.creator.name}</Text>*!/*/}
+                                            {/*/!*<Text style={styles.startTime}>{item.startTime}</Text>*!/*/}
+                                            {/*/!*<Text style={styles.meetPlaceName}>{item.placeName}</Text>*!/*/}
+                                            {/*/!*<Text style={styles.postTime}>{item.postTime}</Text>*!/*/}
+                                        {/*/!*</View>*!/*/}
+                                    {/*/!*</View>*!/*/}
+                                {/*</View>*/}
+                            {/*</TouchableOpacity>*/}
+                        {/*))}*/}
+                    {/*</ScrollView>*/}
 
-                                <View
-                                    //shouldRasterizeIOS={true}
-                                    //renderToHardwareTextureAndroid
-                                >
-                                    <Image
-                                        resizeMethod={'auto'}
-                                        source={require('../../assets/images/tagsTheme/StaindGlass.jpg')}
-                                        style={{ borderRadius:10, width: SCREEN_WIDTH-10, height: listHeight, marginBottom: marginBottomValue }}
-                                    />
-                                    <View
-                                        style={styles.headerTop}
-                                    >
-                                        <Image
-                                            source={{ uri: item.creator.photoURL }}
-                                            style={styles.userPic}/>
-                                        <View style={{marginTop:10}}>
-                                            <Text style={styles.meetTitle}>{item.title}</Text>
-                                            <Text style={styles.userName}>{item.creator.name}</Text>
-                                            <Text style={styles.startTime}>{item.startTime}</Text>
-                                            <Text style={styles.meetPlaceName}>{item.placeName}</Text>
-                                            <Text style={styles.postTime}>{item.postTime}</Text>
-                                        </View>
-                                    </View>
-                                </View>
-                            </TouchableOpacity>
-                        )}
-                    />
-                </View>
+                {/*</View>*/}
             </View>
 
         );
     }
 
 
-    handleFlatListOnTouchMove(yOnGoing){
-        //console.log(y);
+    handleFlatListOnTouchMove(nativeEvent){
+        console.log(nativeEvent);
+        let yOnGoing = nativeEvent.pageY;
         const {yOriginal, yOffset, containerHeight, yOldOffset, flatListHeight, listHeight,marginBottomValue} = this.state;
         let yOffsetTemp = yOriginal - yOnGoing;
         let flatListMarginTopHeight = containerHeight-listHeight-marginBottomValue-yOffsetTemp-yOldOffset;
-        if((containerHeight-listHeight-marginBottomValue>flatListMarginTopHeight) && (flatListMarginTopHeight>containerHeight-flatListHeight)){
-            //这是合法范围内
-            this.setState({
-                yOffset:yOffsetTemp,
-                //flatListScrollEnabled:false
-            });
-        } else {
-            //this.setState({flatListScrollEnabled:true});
-        }
+        this.setState({
+            yOffset:yOffsetTemp,
+            //flatListScrollEnabled:false
+        });
+        // if((containerHeight-listHeight-marginBottomValue>flatListMarginTopHeight) && (flatListMarginTopHeight>containerHeight-flatListHeight)){
+        //     //这是合法范围内
+        //     this.setState({
+        //         yOffset:yOffsetTemp,
+        //         //flatListScrollEnabled:false
+        //     });
+        // } else {
+        //     //this.setState({flatListScrollEnabled:true});
+        // }
 
     }
 
@@ -248,6 +254,91 @@ export default class DiscoverScreen extends Component {
     }
 
 }
+
+class PanResponderExample extends Component {
+    _panResponder = {};
+    _previousLeft = 0;
+    _previousTop = 0;
+    _circleStyles = {};
+
+    componentWillMount() {
+        this._panResponder = PanResponder.create({
+            onStartShouldSetPanResponder: this._handleStartShouldSetPanResponder,
+            onMoveShouldSetPanResponder: this._handleMoveShouldSetPanResponder,
+            onPanResponderGrant: this._handlePanResponderGrant,
+            onPanResponderMove: this._handlePanResponderMove,
+            onPanResponderRelease: this._handlePanResponderEnd,
+            onPanResponderTerminate: this._handlePanResponderEnd,
+        });
+        this._previousLeft = 20;
+        this._previousTop = 84;
+        this._circleStyles = {
+            style: {
+                left: this._previousLeft,
+                top: this._previousTop,
+                backgroundColor: 'green',
+            },
+        };
+    }
+
+    componentDidMount() {
+        this._updateNativeStyles();
+    }
+
+    render() {
+        return (
+            <View
+                ref={circle => {
+                    this.circle = circle;
+                }}
+                style={styles.circle}
+                {...this._panResponder.panHandlers}
+            />
+        );
+    }
+
+    _highlight = () => {
+        this._circleStyles.style.backgroundColor = 'blue';
+        this._updateNativeStyles();
+    };
+
+    _unHighlight = () => {
+        this._circleStyles.style.backgroundColor = 'green';
+        this._updateNativeStyles();
+    };
+
+    _updateNativeStyles = () => {
+        this.circle && this.circle.setNativeProps(this._circleStyles);
+    };
+
+    _handleStartShouldSetPanResponder = (e, gestureState) => {
+        // Should we become active when the user presses down on the circle?
+        return true;
+    };
+
+    _handleMoveShouldSetPanResponder = (e, gestureState) => {
+        // Should we become active when the user moves a touch over the circle?
+        return true;
+    };
+
+    _handlePanResponderGrant = (e, gestureState) => {
+        this._highlight();
+    };
+
+    _handlePanResponderMove = (e, gestureState) => {
+        console.log(e, gestureState);
+        this._circleStyles.style.left = this._previousLeft + gestureState.dx;
+        this._circleStyles.style.top = this._previousTop + gestureState.dy;
+        this._updateNativeStyles();
+    };
+
+    _handlePanResponderEnd = (e, gestureState) => {
+        this._unHighlight();
+        this._previousLeft += gestureState.dx;
+        this._previousTop += gestureState.dy;
+    };
+}
+
 
 const styles = StyleSheet.create({
     container: {
@@ -306,6 +397,13 @@ const styles = StyleSheet.create({
         zIndex: 50,
         position: 'absolute',
         bottom: 0
+
+    },
+    circle: {
+        width: 80,
+        height: 80,
+        borderRadius: 80 / 2,
+        zIndex: 100,
 
     },
 });
