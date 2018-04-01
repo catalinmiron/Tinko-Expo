@@ -16,6 +16,7 @@ import TinkoDetailScreen from "../screens/main/tinko/TinkoDetailScreen";
 import UserDetailScreen from '../screens/main/common/UserDetailScreen';
 import MeScreen from "../screens/main/MeScreen";
 import PrivateChatScreen from '../screens/main/common/PrivateChatScreen';
+import GroupChatScreen from '../screens/main/common/GroupChatScreen';
 
 
 
@@ -88,7 +89,9 @@ const MainTabNavigatorWithDetailScreens = StackNavigator(
         },
         PrivateChatPage: {
             screen: PrivateChatScreen,
-
+        },
+        GroupChatPage: {
+            screen: GroupChatScreen,
         }
     }
 );

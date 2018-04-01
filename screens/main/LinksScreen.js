@@ -15,6 +15,7 @@ import {
     StackNavigator
 } from 'react-navigation';
 import PrivateChatScreen from './common/PrivateChatScreen';
+import GroupChatScreen from './common/GroupChatScreen';
 
 let friendList = [];
 let uid = "";
@@ -24,7 +25,6 @@ let lastUpdateArr = [],
 
 let chatInfo = new Stack();
 
-//personalInfo[dataArr[i].userId] = [dataArr[i].avatarUrl,dataArr[i].username];
 function Stack() {
     this.dataStore = [];
     this.appendData = function ([type,id,msg]) {
@@ -104,10 +104,8 @@ class FriendChatListView extends Component {
         let user = firebase.auth().currentUser;
         uid = user.uid;
         // this.socket = SocketIOClient('http://47.89.187.42:3000/');
-        this.socket = SocketIOClient('http://192.168.1.232:3000/');
-        setTimeout(() => {
-            this.socket.emit("joinANewMeet",4,uid);
-        },3000);
+        //this.socket = SocketIOClient('http://192.168.1.232:3000/');
+        this.socket = SocketIOClient('http://127.0.0.1:3000/');
         this.getAvatar();
         this.getDBData();
         this.state = {
@@ -122,7 +120,7 @@ class FriendChatListView extends Component {
                 //系统
 
             }else if (parseInt(type)===1){
-                //私聊         
+                //私聊
                 chatInfo.appendData([type,data.from,data.message]);
             }else{
                 chatInfo.appendData([type,data.activityId,data.message]);
@@ -173,7 +171,8 @@ class FriendChatListView extends Component {
             tx => {
                 tx.executeSql('select * from db'+uid, [], (_, { rows }) => {
                     let dataArr =  rows['_array'];
-                    for (let i = dataArr.length-1;i>0;i--){
+                    console.log(dataArr);
+                    for (let i = dataArr.length-1;i>=0;i--){
                         let type = dataArr[i].type;
                         if (type === 1){
                             chatInfo.appendData([type,dataArr[i].fromId,dataArr[i]['msg']]);
@@ -195,6 +194,7 @@ class FriendChatListView extends Component {
     render() {
         let friendList = [];
         if (this.state.messages.length!==0){
+            console.log(this.state.messages);
             for (let i = 0;i<this.state.messages.length ; i++){
                 let messages = this.state.messages[i];
                 friendList.push(
@@ -204,12 +204,24 @@ class FriendChatListView extends Component {
                         key={messages.id}
                         title={messages.personName}
                         subtitle={messages.msg}
-                        onPress={() => this.props.navigation.navigate('PrivateChatPage', {
-                            avatar:messages.imageURL,
-                            name:messages.personName,
-                            personId:messages.id,
-                            myId:uid
-                        })}
+                        onPress={() => {
+                                 if (messages.type === 1){
+                                     this.props.navigation.navigate('PrivateChatPage', {
+                                         avatar:messages.imageURL,
+                                         name:messages.personName,
+                                         personId:messages.id,
+                                         myId:uid
+                                     })
+                                 }else{
+                                     this.props.navigation.navigate('GroupChatPage', {
+                                         avatar:messages.imageURL,
+                                         name:messages.personName,
+                                         personId:messages.id,
+                                         myId:uid
+                                     })
+                                 }
+                            }
+                        }
                     />
                 )
             }

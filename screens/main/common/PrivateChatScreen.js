@@ -26,15 +26,19 @@ export default class PrivateChatScreen extends Component {
         console.log(dataStore);
         uid = dataStore.myId;
         pid = dataStore.personId;
-             const avatar = dataStore.avatar,
+        const avatar = dataStore.avatar,
               name = dataStore.name;
         this.getFromDB(uid,pid,avatar,name);
         //this.socket = SocketIOClient('http://47.89.187.42:3000/');
-        this.socket = SocketIOClient('http://192.168.1.232:3000/');
+        //this.socket = SocketIOClient('http://192.168.1.232:3000/');
+        this.socket = SocketIOClient('http://127.0.0.1:3000/');
         this.socket.on("connect" + uid,(msg)=>{
-            let data = JSON.parse(msg);
-            if (data.from === pid){
-                this.appendMessage(name,avatar,data.message,Date.parse(new Date()),new Date())
+            let data = JSON.parse(msg),
+                type = data.type;
+            if (type !== 3 && type !== 4){
+                if (data.from === pid){
+                    this.appendFriendMessage(name,avatar,data.message,Date.parse(new Date()),new Date())
+                }
             }
         });
         this.socket.on("mySendBox"+uid,(msg)=>{
@@ -52,13 +56,14 @@ export default class PrivateChatScreen extends Component {
                     console.log(rows['_array']);
                     console.log("这里获取到的数据");
                     let dataArr = rows['_array'];
+                    console.log(dataArr);
                     for (let i = 0;i<dataArr.length;i++){
-                        console.log(dataArr[i].status);
-                        // console.log(new Date(dataArr[i].timeStamp));
+                        //收到的
                         if (dataArr[i].status === 0){
-                            this.appendMessage(name,avatar,dataArr[i].msg,"cache"+dataArr[i].id,dataArr[i].timeStamp)
+                            this.appendFriendMessage(name,avatar,dataArr[i].msg,"cache"+dataArr[i].id)
                         }else{
-                            this.appendMessage(name,avatar,"我发送的"+dataArr[i].msg,"cache"+dataArr[i].id,dataArr[i].timeStamp)
+                            //发出去的
+                            this.appendMessage(dataArr[i].msg);
                         }
                     }
                 })
@@ -79,13 +84,27 @@ export default class PrivateChatScreen extends Component {
     }
 
 
-    appendMessage(name,avatar,msg,key,time){
+    appendMessage(msg){
+        let chatData = {
+            _id: Math.round(Math.random() * 10000),
+            text: msg,
+            createdAt: new Date(),
+            user: {
+                _id: 1,
+                name: 'Developer',
+            }
+        }
+        this.setState(previousState => ({
+            messages: GiftedChat.append(previousState.messages, chatData),
+        }))
+    }
+    appendFriendMessage(name,avatar,msg,key){
         let chatData = {
             _id: key,
             text: msg,
-            createdAt: time,
+            createdAt: new Date(),
             user: {
-                _id: Math.floor(Math.random()*10),
+                _id: 2,
                 name: name,
                 avatar: avatar,
             },
