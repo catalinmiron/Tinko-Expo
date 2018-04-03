@@ -27,6 +27,23 @@ export default class PrivateChatScreen extends Component {
         uid = dataStore.myId;
         MeetId = dataStore.personId;
         this.socket = SocketIOClient('http://47.89.187.42:4000/');
+        this.socket.on("connect" + uid,(msg)=>{
+            let data = JSON.parse(msg);
+            console.log(data);
+            this.setState(previousState => ({
+                messages: GiftedChat.append(previousState.messages,{
+                    _id: Math.floor(Math.random()*10000),
+                    text: data.message,
+                    user: {
+                        _id: data.userData.uid,
+                        name: data.userData.username,
+                        avatar: data.userData.photoURL,
+                    },
+                    sent: true,
+                    received: true,
+                }),
+            }))
+        });
         this.getFromDB(uid,MeetId);
     }
 
@@ -53,8 +70,11 @@ export default class PrivateChatScreen extends Component {
                             let userData =  JSON.parse(dataArr[i].meetUserData);
                             this.appendMessageFromCache(dataArr[i].msg,userData.uid,userData.username,userData.photoURL);
                         }else{
-                            console.log(dataArr[i].msg);
-                            this.appendMessage(dataArr[i].msg);
+                            if (dataArr[i] === 0 ){
+                                this.appendMessage(dataArr[i].msg,0);
+                            }else{
+                                this.appendMessage(dataArr[i].msg);
+                            }
                         }
                     }
                 })
@@ -64,16 +84,26 @@ export default class PrivateChatScreen extends Component {
         );
     }
 
-    appendMessage(msg){
-        let chatData = {
-            _id: Math.round(Math.random() * 10000),
-            text: msg,
-            createdAt: new Date(),
-            user: {
-                _id: 1,
-                name: 'Developer',
-            }
-        };
+    appendMessage(msg,type){
+        let chatData = {};
+        if (type === 0){
+            chatData = {
+                _id: Math.round(Math.random() * 10000),
+                text: msg,
+                createdAt: new Date(),
+                user: {
+                    _id: 1,
+                    name: 'Developer',
+                }
+            };
+        } else{
+            chatData = {
+                _id: Math.round(Math.random() * 10000),
+                text: msg,
+                createdAt: new Date(),
+                system:true
+            };
+        }
         this.setState(previousState => ({
             messages: GiftedChat.append(previousState.messages, chatData),
         }))

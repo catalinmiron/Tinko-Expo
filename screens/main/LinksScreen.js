@@ -118,7 +118,7 @@ class FriendChatListView extends Component {
             if (type !== 3 && type !== 4){
                 if (parseInt(type) === 0){
                     //系统
-
+                    chatInfo.appendData([type,data.activityId,data.message]);
                 }else if (parseInt(type)===1){
                     //私聊
                     chatInfo.appendData([type,data.from,data.message]);
@@ -132,11 +132,12 @@ class FriendChatListView extends Component {
         });
         this.socket.on("mySendBox"+uid,msg=>{
             let data = JSON.parse(msg);
+            console.log("这里是Links存储");
             console.log(data);
             let type = data.type;
             if (parseInt(type) === 0){
                 //系统
-
+                chatInfo.appendData([type,data.activityId,data.message]);
             }else if (parseInt(type)===1){
                 //私聊
                 chatInfo.appendData([type,data.from,data.message]);
@@ -195,7 +196,7 @@ class FriendChatListView extends Component {
     render() {
         let friendList = [];
         if (this.state.messages.length!==0){
-            console.log(this.state.messages);
+            console.log("lalalallala " ,this.state.messages);
             for (let i = 0;i<this.state.messages.length ; i++){
                 let messages = this.state.messages[i];
                 friendList.push(
