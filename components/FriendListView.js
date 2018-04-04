@@ -17,21 +17,28 @@ let friendList = [];
 
 export default class FriendListView extends Component {
 
-    constructor(){
-        super();
+    constructor(props){
+        super(props);
         let user = firebase.auth().currentUser;
         let uid = user.uid;
-        this.getSql(uid);
+        this.getSql = this.getSql.bind(this);
+        props.onRef(this);
         this.state = {
+            userUid:uid,
             sqlRows: [],
             rows: []
         };
     }
 
-    getSql(uid){
+    componentDidMount(){
+        this.getSql();
+    }
+
+    getSql(){
+        const { userUid } = this.state;
         db.transaction(
             tx => {
-                tx.executeSql('select * from friend_list'+uid, [], (_, { rows }) => {
+                tx.executeSql('select * from friend_list'+userUid, [], (_, { rows }) => {
                     let dataArr =  rows['_array'],
                         rtnArr = [];
                     console.log(dataArr);
@@ -80,7 +87,9 @@ export default class FriendListView extends Component {
         return (
             <View>
                 <View style={{width:"90%",marginTop:35,marginLeft:"5%"}}>
-                    <List containerStyle={{marginBottom: 20}}>
+                    <List containerStyle={{marginBottom: 20, borderTopWidth: 0,
+                        borderBottomWidth:0,
+                        borderBottomColor:'transparent'}}>
                         {friendList}
                     </List>
                 </View>

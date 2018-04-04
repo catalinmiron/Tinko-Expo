@@ -87,7 +87,6 @@ export default class RootNavigator extends React.Component {
             });
 
 
-            this.processFriendsList(uid);
 
             let meetRef = firebase.firestore().collection("Meets").where(`participatingUsersList.${uid}.status`, "==", true);
             meetRef.get().then((querySnapshot)=>{
@@ -104,45 +103,6 @@ export default class RootNavigator extends React.Component {
       //return <RootStackNavigator/>;
   }
 
-  processFriendsList(uid){
-      //好友信息
-      let firebaseDb = firebase.firestore();
-      let docRef = firebaseDb.collection("Users").doc(uid).collection("Friends_List");
-      docRef.get().then(async (querySnapshot)=>{
-          //this.dropFriendTable(uid);
-          this.initFriendTable(uid);
-
-          var usersData = [];
-          await querySnapshot.docs.reduce((p,e,i) => p.then(async ()=> {
-              //console.log(p, e.data(), i);
-              let user = e.data();
-              let userUid = e.id;
-              let firestoreDb = firebase.firestore();
-              var userRef = firestoreDb.collection("Users").doc(userUid);
-              await userRef.get().then((userDoc) => {
-                  if (userDoc.exists) {
-                      //console.log("Document data:", userDoc.data());
-                      let user = userDoc.data();
-                      usersData.push(user);
-                  } else {
-                      console.log("No such document!");
-                  }
-              }).catch((error) => {
-                  console.log("Error getting document:", error);
-              });
-
-          }),Promise.resolve());
-
-          //console.log(usersData);
-          this.insertFriendsSql(uid, usersData)
-
-      }).catch((error) => {
-          console.log("Error getting documents: ", error);
-      });
-
-
-
-  }
 
     dropChatTable(uid){
         db.transaction(
@@ -247,49 +207,6 @@ export default class RootNavigator extends React.Component {
         );
     }
 
-    dropFriendTable(uid){
-        db.transaction(
-            tx => {
-                tx.executeSql('drop table friend_list'+uid);
-            },
-            null,
-            this.update
-        );
-    }
-
-    initFriendTable(uid){
-        db.transaction(
-            tx => {
-                tx.executeSql('create table if not exists friend_list'+uid+' (id integer primary key not null , userId text UNIQUE, avatarUrl text , username text);');
-            },
-            null,
-            this.update
-        );
-    }
-
-    insertFriendSql(uid,friendId,avatarUrl,friendName){
-        db.transaction(
-            tx => {
-                tx.executeSql('insert or replace into friend_list'+uid+' (userId,avatarUrl,username) values (?,?,?)',[friendId,avatarUrl,friendName], ()=> console.log('insertSingleSql', friendName));
-            }
-            ,
-            null,
-            () => console.log('insertFriendSql complete')
-        );
-    }
-
-    insertFriendsSql(uid, usersData){
-        db.transaction(
-            tx => {
-                usersData.map((userData) => {
-                    tx.executeSql('insert or replace into friend_list'+uid+' (userId,avatarUrl,username) values (?,?,?)',[userData.uid,userData.photoURL,userData.username], ()=> console.log('insertSingleSql', userData.username));
-                })
-            }
-            ,
-            null,
-            () => console.log('insertCompleteFriendSql complete')
-        );
-    }
 
 
   _registerForPushNotifications() {

@@ -11,7 +11,9 @@ import firebase from 'firebase';
 import {StackNavigator} from "react-navigation";
 import {getUserData} from "../../modules/CommonUtility";
 import SubButton from '../../components/SettingSubButton';
+import {SQLite} from "expo";
 
+const db = SQLite.openDatabase('db.db');
 
 export default class Me extends React.Component {
 
@@ -28,6 +30,7 @@ export default class Me extends React.Component {
 
     componentWillMount(){
         this.getThisUserData()
+        this.processFriendsList(this.state.userUid)
     }
 
     getThisUserData(){
@@ -37,6 +40,70 @@ export default class Me extends React.Component {
             },
             (userObj) => {
                 this.setState({userData:userObj});
+            }
+        );
+    }
+
+
+    processFriendsList(uid){
+        //好友信息
+        let firebaseDb = firebase.firestore();
+        let docRef = firebaseDb.collection("Users").doc(uid).collection("Friends_List");
+        docRef.get().then(async (querySnapshot)=>{
+            //this.dropFriendTable(uid);
+            this.initFriendsTable(uid);
+
+            var usersData = [];
+            await querySnapshot.docs.reduce((p,e,i) => p.then(async ()=> {
+                //console.log(p, e.data(), i);
+                let user = e.data();
+                let userUid = e.id;
+                var userRef = firebaseDb.collection("Users").doc(userUid);
+                await userRef.get().then((userDoc) => {
+                    if (userDoc.exists) {
+                        //console.log("Document data:", userDoc.data());
+                        let user = userDoc.data();
+                        usersData.push(user);
+                    } else {
+                        console.log("No such document!");
+                    }
+                }).catch((error) => {
+                    console.log("Error getting document:", error);
+                });
+
+            }),Promise.resolve());
+
+            //console.log(usersData);
+            this.insertFriendsSql(uid, usersData)
+
+        }).catch((error) => {
+            console.log("Error getting documents: ", error);
+        });
+    }
+
+    initFriendsTable(uid){
+        db.transaction(
+            tx => {
+                tx.executeSql('create table if not exists friend_list'+uid+' (id integer primary key not null , userId text UNIQUE, avatarUrl text , username text);');
+            },
+            null,
+            this.update
+        );
+    }
+
+
+    insertFriendsSql(uid, usersData){
+        db.transaction(
+            tx => {
+                usersData.map((userData) => {
+                    tx.executeSql('insert or replace into friend_list'+uid+' (userId,avatarUrl,username) values (?,?,?)',[userData.uid,userData.photoURL,userData.username]);
+                })
+            }
+            ,
+            null,
+            () => {
+                //console.log('insertCompleteFriendSql complete');
+                this.friendsList.getSql();
             }
         );
     }
@@ -87,7 +154,10 @@ export default class Me extends React.Component {
                         </View>
                     </View>
 
-                    <FriendsList navigation={this.props.navigation}/>
+                    <FriendsList
+                        onRef={ref => this.friendsList = ref}
+                        navigation={this.props.navigation}
+                    />
                 </ScrollView>
             </SafeAreaView>
         );

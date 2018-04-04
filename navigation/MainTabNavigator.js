@@ -72,6 +72,7 @@ const MainTabNavigator = TabNavigator(
     swipeEnabled: false,
     headerMode: 'none',
     headerVisible: false,
+      lazy:false
   }
 );
 
