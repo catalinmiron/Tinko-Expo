@@ -23,8 +23,7 @@ import {
     Col,
     Row,
     Icon,
-    Avatar,
-    List, ListItem,
+    Avatar, ListItem,
 } from 'react-native-elements';
 import CustomButton from '../../components/CustomButton';
 import  DatePicker from 'react-native-datepicker';
@@ -350,113 +349,107 @@ export default class CreateScreen extends React.Component {
                         </View>
                     </View>
 
-                    <List containerStyle={styles.listStyle}>
-                        <ListItem
-                            hideChevron
-                            containerStyle={styles.listStyle}
-                            title='Starts:'
-                            rightTitle={startTime}
-                            rightTitleStyle={{color:'blue'}}
-                            onPress={() => this.myDatePicker && this.myDatePicker.onPressDate()}
-                        />
-                        <DatePicker
-                            key={'datepicker'}
-                            ref={(datepicker) => this.myDatePicker = datepicker}
-                            style={{width: 0, height: 0}}
-                            hideText={true}
-                            showIcon={false}
+                    <ListItem
+                        hideChevron
+                        containerStyle={styles.listStyle}
+                        title='Starts:'
+                        rightTitle={startTime}
+                        rightTitleStyle={{color:'blue'}}
+                        onPress={() => this.myDatePicker && this.myDatePicker.onPressDate()}
+                    />
+                    <DatePicker
+                        key={'datepicker'}
+                        ref={(datepicker) => this.myDatePicker = datepicker}
+                        style={{width: 0, height: 0}}
+                        hideText={true}
+                        showIcon={false}
 
-                            date={startTime}
-                            mode="datetime"
-                            format="YYYY-MM-DD HH:mm"
-                            confirmBtnText="Confirm"
-                            cancelBtnText="Cancel"
+                        date={startTime}
+                        mode="datetime"
+                        format="YYYY-MM-DD HH:mm"
+                        confirmBtnText="Confirm"
+                        cancelBtnText="Cancel"
 
-                            minuteInterval={10}
-                            onDateChange={(startTime) => {this.setState({startTime});}}
-                        />
-                        <ListItem
-                            hideChevron
-                            containerStyle={styles.listStyle}
-                            title='Duration:'
-                            rightTitle='1 Hour'
-                            rightTitleStyle={{color:'blue'}}
-                        />
-                        <ListItem
-                            containerStyle={styles.listStyle}
-                            title='Place:'
-                            rightTitle={placeName}
-                            rightTitleStyle={{color:'black'}}
-                            onPress={() => this.props.navigation.navigate('GooglePlacesAutocomplete', {setPlaceDetail: this.setPlaceDetail})}
-                        />
-                    </List>
-                    <List containerStyle={styles.listStyle}>
-                        <ListItem
-                            containerStyle={styles.listStyle}
-                            title='Invitation Range'
-                            onPress={() => this.props.navigation.navigate('InvitationRange', {
-                                setInvitationRange: this.setInvitationRange,
-                                allFriends: allFriends,
-                                allowPeopleNearby: allowPeopleNearby,
-                                allowParticipantsInvite: allowParticipantsInvite,
-                                selectedFriendsList: selectedFriendsList,})}
-                        />
-                        <ListItem
-                            hideChevron
-                            containerStyle={styles.listStyle}
-                            title='Max Participants'
-                            // rightTitle={
-                            //     <View style={{flexDirection:'row', flex:1, height:30, width:50, marginRight:10}}>
-                            //         <EvilIcons.Button
-                            //             name="minus" size={20} color="black" backgroundColor="transparent"
-                            //             onPress = {() => {
-                            //                 this.setState((state) => {
-                            //                     return {maxNo: state.maxNo -1};
-                            //                 });
-                            //             }}
-                            //         />
-                            //         <Text>{maxNo}</Text>
-                            //         <EvilIcons.Button
-                            //             name="plus" size={20} color="black" backgroundColor="transparent"
-                            //             onPress = {() => {
-                            //                 console.log("plus pressed")
-                            //                 this.setState((state) => {
-                            //                     return {maxNo: state.maxNo +1};
-                            //                 });
-                            //             }}
-                            //         />
-                            //     </View>
-                            //
-                            // }
-                        />
-                    </List>
+                        minuteInterval={10}
+                        onDateChange={(startTime) => {this.setState({startTime});}}
+                    />
+                    <ListItem
+                        hideChevron
+                        containerStyle={styles.listStyle}
+                        title='Duration:'
+                        rightTitle='1 Hour'
+                        rightTitleStyle={{color:'blue'}}
+                    />
+                    <ListItem
+                        containerStyle={styles.listStyle}
+                        title='Place:'
+                        rightTitle={placeName}
+                        rightTitleStyle={{color:'black'}}
+                        onPress={() => this.props.navigation.navigate('GooglePlacesAutocomplete', {setPlaceDetail: this.setPlaceDetail})}
+                    />
+                    <ListItem
+                        containerStyle={styles.listStyle}
+                        title='Invitation Range'
+                        onPress={() => this.props.navigation.navigate('InvitationRange', {
+                            setInvitationRange: this.setInvitationRange,
+                            allFriends: allFriends,
+                            allowPeopleNearby: allowPeopleNearby,
+                            allowParticipantsInvite: allowParticipantsInvite,
+                            selectedFriendsList: selectedFriendsList,})}
+                    />
+                    <ListItem
+                        hideChevron
+                        containerStyle={styles.listStyle}
+                        title='Max Participants'
+                        // rightTitle={
+                        //     <View style={{flexDirection:'row', flex:1, height:30, width:50, marginRight:10}}>
+                        //         <EvilIcons.Button
+                        //             name="minus" size={20} color="black" backgroundColor="transparent"
+                        //             onPress = {() => {
+                        //                 this.setState((state) => {
+                        //                     return {maxNo: state.maxNo -1};
+                        //                 });
+                        //             }}
+                        //         />
+                        //         <Text>{maxNo}</Text>
+                        //         <EvilIcons.Button
+                        //             name="plus" size={20} color="black" backgroundColor="transparent"
+                        //             onPress = {() => {
+                        //                 console.log("plus pressed")
+                        //                 this.setState((state) => {
+                        //                     return {maxNo: state.maxNo +1};
+                        //                 });
+                        //             }}
+                        //         />
+                        //     </View>
+                        //
+                        // }
+                    />
 
-                    <List containerStyle={styles.listStyle}>
-                        <ListItem
-                            hideChevron
-                            title={
-                                <TextInput
-                                    multiline = {true}
-                                    onContentSizeChange={(event) => this.handleSizeChange(event)}
-                                    onChangeText={(description) => this.setState({description})}
-                                    style={[ styles.inputStyling, {height: inputHeight} ]}
-                                    value={description}
-                                    keyboardAppearance="light"
-                                    placeholder="Description..."
-                                    autoFocus={false}
-                                    //autoCapitalize
-                                    autoCorrect={true}
-                                    //returnKeyType="Done"
-                                    //ref={ input => this.description = input }
-                                    onSubmitEditing={() => {
-                                        Keyboard.dismiss()
-                                    }}
-                                    blurOnSubmit={false}
-                                    placeholderTextColor="black"
-                                />
-                            }
-                        />
-                    </List>
+                    <ListItem
+                        hideChevron
+                        title={
+                            <TextInput
+                                multiline = {true}
+                                onContentSizeChange={(event) => this.handleSizeChange(event)}
+                                onChangeText={(description) => this.setState({description})}
+                                style={[ styles.inputStyling, {height: inputHeight} ]}
+                                value={description}
+                                keyboardAppearance="light"
+                                placeholder="Description..."
+                                autoFocus={false}
+                                //autoCapitalize
+                                autoCorrect={true}
+                                //returnKeyType="Done"
+                                //ref={ input => this.description = input }
+                                onSubmitEditing={() => {
+                                    Keyboard.dismiss()
+                                }}
+                                blurOnSubmit={false}
+                                placeholderTextColor="black"
+                            />
+                        }
+                    />
 
                 </Card>
             </ScrollView>

@@ -4,7 +4,7 @@ import React, {
 import {
     StyleSheet,View,WebView
 } from 'react-native'
-import { List, ListItem } from 'react-native-elements'
+import { ListItem } from 'react-native-elements'
 import Expo, { SQLite } from 'expo';
 import * as firebase from "firebase";
 const db = SQLite.openDatabase('db.db');
@@ -229,9 +229,7 @@ class FriendChatListView extends Component {
         }
         return (
             <View>
-                <List>
-                    {friendList}
-                </List>
+                {friendList}
             </View>
         )
     }

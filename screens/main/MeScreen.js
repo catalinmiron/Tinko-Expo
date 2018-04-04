@@ -8,10 +8,10 @@ import InfoMenu from '../../components/InfoMenu';
 import CreateStoryButton from '../../components/CreateStoryButton';
 import FriendsList from '../../components/FriendListView';
 import firebase from 'firebase';
-import {StackNavigator} from "react-navigation";
 import {getUserData} from "../../modules/CommonUtility";
 import SubButton from '../../components/SettingSubButton';
 import {SQLite} from "expo";
+//import {Button} from 'react-native-elements'
 
 const db = SQLite.openDatabase('db.db');
 

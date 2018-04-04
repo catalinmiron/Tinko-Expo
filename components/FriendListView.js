@@ -7,7 +7,7 @@ import {
 } from 'react-native'
 import Expo, { SQLite } from 'expo';
 import * as firebase from 'firebase';
-import { List, ListItem } from 'react-native-elements';
+import { ListItem } from 'react-native-elements';
 
 require("firebase/firestore");
 
@@ -76,8 +76,7 @@ export default class FriendListView extends Component {
             friendList.push(
                 <ListItem
                     hideChevron
-                    roundAvatar
-                    avatar={this.state.sqlRows[i].avatar}
+                    leftAvatar={{ rounded: true, source: { uri: this.state.sqlRows[i].avatar } }}
                     key={this.state.sqlRows[i].key}
                     title={this.state.sqlRows[i].title}
                     onPress={() => this.goToDetailPage(this.state.sqlRows[i].key)}
@@ -87,11 +86,7 @@ export default class FriendListView extends Component {
         return (
             <View>
                 <View style={{width:"90%",marginTop:35,marginLeft:"5%"}}>
-                    <List containerStyle={{marginBottom: 20, borderTopWidth: 0,
-                        borderBottomWidth:0,
-                        borderBottomColor:'transparent'}}>
-                        {friendList}
-                    </List>
+                    {friendList}
                 </View>
             </View>
         )
