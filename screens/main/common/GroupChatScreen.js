@@ -72,8 +72,6 @@ export default class PrivateChatScreen extends Component {
                     let dataArr = rows['_array'];
                     for (let i = 0;i<dataArr.length;i++){
                         if (dataArr[i].status === 0){
-                            console.log(typeof dataArr[i].meetUserData);
-                            console.log(dataArr[i]);
                             let userData =  JSON.parse(dataArr[i].meetUserData);
                             this.appendMessageFromCache(dataArr[i].msg,userData.uid,userData.username,userData.photoURL);
                         }else{

@@ -41,42 +41,16 @@ export default class RootNavigator extends React.Component {
             //this.dropMeetingTable(uid);
             this.initMeetingTable(uid);
             this.initChatTable(uid);
-            //this.socket = SocketIOClient('http://47.89.187.42:3000/');
-            //this.socket = SocketIOClient('http://192.168.1.232:3000/');
             this.socket = SocketIOClient('http://47.89.187.42:4000/');
-            this.socket.emit("userLogin",uid);
+            // this.socket.emit("userLogin",uid);
             this.socket.on("connect" + uid,msg=>{
                 let data = JSON.parse(msg),
                     type = data.type;
                 //3代表未读私聊
                 if (type === 3 && !getPrivateHistory){
                     getPrivateHistory = true;
-                    let unReadDataArr = data.message;
-                    for (let i in unReadDataArr){
-                        let dataArr =  unReadDataArr[i],
-                            sqlObj = {
-                                type :1,
-                                from : dataArr.fromId,
-                                message : dataArr.msg,
-                                time : dataArr.time
-                            };
-                        this.insertChatSql(uid,sqlObj)
-                    }
                 }else if (type === 4 && !getMeetsHistory){
                     getMeetsHistory = true;
-                    let unReadDataArr = data.message;
-                    for (let i in unReadDataArr){
-                        let dataArr =  unReadDataArr[i],
-                            sqlObj = {
-                                type :2,
-                                from : dataArr.fromId,
-                                message : dataArr.msg,
-                                time : dataArr.time,
-                                meetId:dataArr.meetId,
-                                meetUserData:dataArr.data
-                            };
-                        this.insertChatSql(uid,sqlObj)
-                    }
                 }else{
                     this.insertChatSql(uid,data);
                 }
@@ -224,14 +198,3 @@ export default class RootNavigator extends React.Component {
     console.log(`Push notification ${origin} with data: ${JSON.stringify(data)}`);
   };
 }
-
-class WaitingScreen extends React.Component {
-    render() {
-        return (
-            <View>
-                <Text>Waiting</Text>
-            </View>
-        )
-    }
-}
-
