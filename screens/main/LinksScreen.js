@@ -59,7 +59,7 @@ function Stack() {
                     type:2,
                     msg:msg,
                     imageURL:"http://larissayuan.com/home/img/prisma.png",
-                    personName :"Group Chat",
+                    personName :id,
                 }
             }
             this.dataStore.unshift(rtnData);
@@ -132,8 +132,6 @@ class FriendChatListView extends Component {
         });
         this.socket.on("mySendBox"+uid,msg=>{
             let data = JSON.parse(msg);
-            console.log("这里是Links存储");
-            console.log(data);
             let type = data.type;
             if (parseInt(type) === 0){
                 //系统

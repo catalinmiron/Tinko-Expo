@@ -29,20 +29,25 @@ export default class PrivateChatScreen extends Component {
         this.socket = SocketIOClient('http://47.89.187.42:4000/');
         this.socket.on("connect" + uid,(msg)=>{
             let data = JSON.parse(msg);
-            console.log(data);
-            this.setState(previousState => ({
-                messages: GiftedChat.append(previousState.messages,{
-                    _id: Math.floor(Math.random()*10000),
-                    text: data.message,
-                    user: {
-                        _id: data.userData.uid,
-                        name: data.userData.username,
-                        avatar: data.userData.photoURL,
-                    },
-                    sent: true,
-                    received: true,
-                }),
-            }))
+            if (data.type === 2){
+                if (MeetId === data.activityId){
+                    let user = data.userData;
+                   // let user = JSON.parse(data.userData);
+                    this.setState(previousState => ({
+                        messages: GiftedChat.append(previousState.messages,{
+                            _id: Math.floor(Math.random()*10000),
+                            text: data.message,
+                            user: {
+                                _id: user.uid,
+                                name: user.username,
+                                avatar: user.photoURL,
+                            },
+                            sent: true,
+                            received: true,
+                        }),
+                    }))
+                }
+            }
         });
         this.getFromDB(uid,MeetId);
     }
@@ -67,10 +72,12 @@ export default class PrivateChatScreen extends Component {
                     let dataArr = rows['_array'];
                     for (let i = 0;i<dataArr.length;i++){
                         if (dataArr[i].status === 0){
+                            console.log(typeof dataArr[i].meetUserData);
+                            console.log(dataArr[i]);
                             let userData =  JSON.parse(dataArr[i].meetUserData);
                             this.appendMessageFromCache(dataArr[i].msg,userData.uid,userData.username,userData.photoURL);
                         }else{
-                            if (dataArr[i] === 0 ){
+                            if (dataArr[i].type !== 0 ){
                                 this.appendMessage(dataArr[i].msg,0);
                             }else{
                                 this.appendMessage(dataArr[i].msg);
@@ -80,7 +87,7 @@ export default class PrivateChatScreen extends Component {
                 })
             },
             null,
-            this.update
+            null,
         );
     }
 
