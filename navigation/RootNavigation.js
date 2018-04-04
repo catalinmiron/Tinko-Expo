@@ -232,7 +232,10 @@ export default class RootNavigator extends React.Component {
             meetingId = data["activityId"];
         }
         if (data["meetUserData"]!==undefined){
-            userData = data["meetUserData"].replace("",'');
+            userData = data["meetUserData"];
+        }
+        if (data["userData"]!==undefined){
+            userData = JSON.stringify(data["userData"]);
         }
         //console.log("INSERT INTO db"+uid+" (fromId,msg,status,type,meetingId,meetUserData) VALUES (?,?,?,?,?,?)",[from,message,status,type,meetingId,userData]);
         db.transaction(
