@@ -28,7 +28,7 @@ export default class Me extends React.Component {
     }
 
 
-    componentWillMount(){
+    componentDidMount(){
         this.getThisUserData()
         this.processFriendsList(this.state.userUid)
     }

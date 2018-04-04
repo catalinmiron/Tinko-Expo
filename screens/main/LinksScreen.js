@@ -25,6 +25,10 @@ let lastUpdateArr = [],
 
 let chatInfo = new Stack();
 
+let getPrivateHistory = false,
+    getMeetsHistory = false;
+
+
 function Stack() {
     this.dataStore = [];
     this.appendData = function ([type,id,msg]) {
@@ -40,7 +44,7 @@ function Stack() {
             this.dataStore.unshift(data);
         }else{
             let rtnData = {};
-            if (type === 1){
+            if (type === 1|| type === 3){
                 //私聊
                 let data = personalInfo[id];
                 let imageURL =  (data[0]!==undefined)?data[0]:"http://larissayuan.com/home/img/prisma.png",
@@ -103,8 +107,6 @@ class FriendChatListView extends Component {
         super();
         let user = firebase.auth().currentUser;
         uid = user.uid;
-        // this.socket = SocketIOClient('http://47.89.187.42:3000/');
-        //this.socket = SocketIOClient('http://192.168.1.232:3000/');
         this.socket = SocketIOClient('http://47.89.187.42:4000/');
         this.getAvatar();
         this.getDBData();
@@ -115,6 +117,44 @@ class FriendChatListView extends Component {
         this.socket.on("connect" + uid,msg=>{
             let data = JSON.parse(msg),
                 type = data.type;
+            if (type === 3 && !getPrivateHistory){
+                getPrivateHistory = true;
+                let unReadDataArr = data.message;
+                for (let i in unReadDataArr){
+                    let dataArr =  unReadDataArr[i],
+                        sqlObj = {
+                            type :1,
+                            from : dataArr.fromId,
+                            message : dataArr.msg,
+                            time : dataArr.time
+                        };
+                    this.insertChatSql(uid,sqlObj);
+                    chatInfo.appendData([type,dataArr.fromId,dataArr.msg]);
+                }
+
+                this.setState({
+                    messages:chatInfo.getData()
+                });
+            }else if (type === 4 && !getMeetsHistory){
+                getMeetsHistory = true;
+                let unReadDataArr = data.message;
+                for (let i in unReadDataArr){
+                    let dataArr =  unReadDataArr[i],
+                        sqlObj = {
+                            type :2,
+                            from : dataArr.fromId,
+                            message : dataArr.msg,
+                            time : dataArr.time,
+                            meetId:dataArr.meetId,
+                            meetUserData:dataArr.data
+                        };
+                    this.insertChatSql(uid,sqlObj);
+                    chatInfo.appendData([type,dataArr.meetId,dataArr.msg]);
+                }
+                this.setState({
+                    messages:chatInfo.getData()
+                });
+            }
             if (type !== 3 && type !== 4){
                 if (parseInt(type) === 0){
                     //系统
@@ -156,10 +196,43 @@ class FriendChatListView extends Component {
                     for (let i = 0;i<dataArr.length;i++){
                         personalInfo[dataArr[i].userId] = [dataArr[i].avatarUrl,dataArr[i].username];
                     }
+                    this.socket.emit("userLogin",uid);
                     this.setState({
                         friendInfo:personalInfo
                     });
                 });
+            },
+            null,
+            this.update
+        );
+    }
+
+    insertChatSql(uid,data,isSend){
+        console.log("data:=======",data);
+        let type = data["type"],
+            message = data["message"],
+            from = data["from"],
+            meetingId = "",
+            userData = "",
+            status = (isSend === undefined)?0:1;
+        if (status === 1){
+            console.log("这里是发送啦");
+        }
+        if (data["meetId"]!==undefined){
+            meetingId = data["meetId"];
+        }else if (data["activityId"]!==undefined){
+            meetingId = data["activityId"];
+        }
+        if (data["meetUserData"]!==undefined){
+            userData = data["meetUserData"];
+        }
+        if (data["userData"]!==undefined){
+            userData = JSON.stringify(data["userData"]);
+        }
+        //console.log("INSERT INTO db"+uid+" (fromId,msg,status,type,meetingId,meetUserData) VALUES (?,?,?,?,?,?)",[from,message,status,type,meetingId,userData]);
+        db.transaction(
+            tx => {
+                tx.executeSql("INSERT INTO db"+uid+" (fromId,msg,status,type,meetingId,meetUserData) VALUES (?,?,?,?,?,?)",[from,message,status,type,meetingId,userData]);
             },
             null,
             this.update
