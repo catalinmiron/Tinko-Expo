@@ -208,7 +208,6 @@ class FriendChatListView extends Component {
     }
 
     insertChatSql(uid,data,isSend){
-        console.log("data:=======",data);
         let type = data["type"],
             message = data["message"],
             from = data["from"],
@@ -229,13 +228,13 @@ class FriendChatListView extends Component {
         if (data["userData"]!==undefined){
             userData = JSON.stringify(data["userData"]);
         }
-        //console.log("INSERT INTO db"+uid+" (fromId,msg,status,type,meetingId,meetUserData) VALUES (?,?,?,?,?,?)",[from,message,status,type,meetingId,userData]);
+        console.log("INSERT INTO db"+uid+" (fromId,msg,status,type,meetingId,meetUserData) VALUES (?,?,?,?,?,?)",[from,message,status,type,meetingId,userData]);
         db.transaction(
             tx => {
                 tx.executeSql("INSERT INTO db"+uid+" (fromId,msg,status,type,meetingId,meetUserData) VALUES (?,?,?,?,?,?)",[from,message,status,type,meetingId,userData]);
             },
-            null,
-            this.update
+            (error) => console.log(error),
+            () => console.log('transaction success')
         );
     }
 
@@ -244,7 +243,6 @@ class FriendChatListView extends Component {
             tx => {
                 tx.executeSql('select * from db'+uid, [], (_, { rows }) => {
                     let dataArr =  rows['_array'];
-                    console.log(dataArr);
                     for (let i = dataArr.length-1;i>=0;i--){
                         let type = dataArr[i].type;
                         if (type === 1){
@@ -267,7 +265,6 @@ class FriendChatListView extends Component {
     render() {
         let friendList = [];
         if (this.state.messages.length!==0){
-            console.log("lalalallala " ,this.state.messages);
             for (let i = 0;i<this.state.messages.length ; i++){
                 let messages = this.state.messages[i];
                 friendList.push(

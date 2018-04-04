@@ -38,9 +38,9 @@ export default class RootNavigator extends React.Component {
             let uid = user.uid;
             // 测试时才用drop
             this.dropChatTable(uid);
+            this.initChatTable(uid);
             //this.dropMeetingTable(uid);
             this.initMeetingTable(uid);
-            this.initChatTable(uid);
             this.socket = SocketIOClient('http://47.89.187.42:4000/');
             // this.socket.emit("userLogin",uid);
             this.socket.on("connect" + uid,msg=>{
@@ -141,8 +141,8 @@ export default class RootNavigator extends React.Component {
                     'meetUserData text,'+
                     'timeStamp DATETIME DEFAULT CURRENT_TIMESTAMP);');
             },
-            null,
-            this.update
+            (error) => console.log('transaction failed'),
+            () => console.log('transaction success123321')
         );
     }
 
@@ -150,7 +150,6 @@ export default class RootNavigator extends React.Component {
     //type 2 ="groupChat"
     //status 1 = "response"
     insertChatSql(uid,data,isSend){
-        console.log("data:=======",data);
         let type = data["type"],
             message = data["message"],
             from = data["from"],
