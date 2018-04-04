@@ -34,11 +34,12 @@ export default class PrivateChatScreen extends Component {
         this.socket.on("connect" + uid,(msg)=>{
             let data = JSON.parse(msg),
                 type = data.type;
-            if (type !== 3 && type !== 4){
+            if (type === 1){
                 if (data.from === pid){
                     this.appendFriendMessage(name,avatar,data.message,Date.parse(new Date()),new Date())
                 }
             }
+            
         });
     }
 
@@ -46,7 +47,7 @@ export default class PrivateChatScreen extends Component {
         // ORDER BY id DESC limit 10
         db.transaction(
             tx => {
-                tx.executeSql("SELECT * from db" + uid + " WHERE fromId = '" + pid + "'", [], (_, {rows}) => {
+                tx.executeSql("SELECT * from db" + uid + " WHERE fromId = '" + pid + "' and meetingId = ''", [], (_, {rows}) => {
                     let dataArr = rows['_array'];
                     for (let i = 0;i<dataArr.length;i++){
                         //收到的
