@@ -272,8 +272,7 @@ class FriendChatListView extends Component {
                 let messages = this.state.messages[i];
                 friendList.push(
                     <ListItem
-                        roundAvatar
-                        avatar={{uri:messages.imageURL}}
+                        leftAvatar={{ rounded: true, source: { uri: messages.imageURL } }}
                         key={messages.id}
                         title={messages.personName}
                         subtitle={messages.msg}
