@@ -3,7 +3,7 @@ import {StyleSheet,View,Image,Text} from 'react-native';
 
 export default class AvatarBox extends React.Component {
     render() {
-        console.log(this.props);
+        //console.log(this.props);
         return (
             <View style={styles.outerDiv}>
                 <Image

@@ -26,7 +26,7 @@ const styles = StyleSheet.create({
     settingOuter: {
         width:"90%",
         marginTop:15,
-        backgroundColor:"rgb(54,53,59)",
+        backgroundColor:"#F2F4F4",
         height:55,
         borderRadius:10,
         flexDirection: 'row'

@@ -68,6 +68,7 @@ export default class FriendListView extends Component {
             console.log(this.state.sqlRows[i]);
             friendList.push(
                 <ListItem
+                    hideChevron
                     roundAvatar
                     avatar={this.state.sqlRows[i].avatar}
                     key={this.state.sqlRows[i].key}

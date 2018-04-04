@@ -1,6 +1,6 @@
 import _ from 'lodash';
 import React from 'react';
-import {View, Alert, TouchableWithoutFeedback, Image, ScrollView, Text, StyleSheet, Dimensions, SafeAreaView} from 'react-native';
+import {View, Alert, TouchableWithoutFeedback, Image, ScrollView, Text, StyleSheet, Dimensions, SafeAreaView, TouchableOpacity} from 'react-native';
 import firebase from 'firebase';
 import 'firebase/firestore';
 import Swiper from 'react-native-swiper';
@@ -46,7 +46,7 @@ export default class TinkoDetailScreen extends React.Component {
                         onPress = {threeDots}/>
                 </View>
                 ),
-            headerStyle:{ position: 'absolute', backgroundColor: 'transparent', zIndex: 100, top: 0, left: 0, right: 0, headerLeft:null, boaderBottomWidth: 0,borderBottomColor: 'transparent',}
+            headerStyle:{ position: 'absolute', backgroundColor: 'transparent', zIndex: 100, top: 0, left: 0, right: 0, borderBottomWidth: 0,borderBottomColor: 'transparent',}
         };
     };
 
@@ -425,30 +425,34 @@ export default class TinkoDetailScreen extends React.Component {
                         {/*</List>*/}
                     </View>
 
-
-                    <MapView
-                        style={{marginTop:30, width:SCREEN_WIDTH, height: SCREEN_WIDTH*2/3 }}
-                        showsUserLocation
-                        region={{
-                            latitude: placeCoordinate.lat,
-                            longitude: placeCoordinate.lng,
-                            latitudeDelta: 0.0922,
-                            longitudeDelta: 0.0421,
-                        }}
-                        onRegionChangeComplete={() => this.marker.showCallout()}
-                    >
-                        <MapView.Marker
-                            coordinate={{
+                    <TouchableOpacity>
+                        <MapView
+                            rotateEnabled={false}
+                            scrollEnabled={false}
+                            style={{marginTop:30, width:SCREEN_WIDTH, height: SCREEN_WIDTH*2/3 }}
+                            showsUserLocation
+                            region={{
                                 latitude: placeCoordinate.lat,
                                 longitude: placeCoordinate.lng,
+                                latitudeDelta: 0.0922,
+                                longitudeDelta: 0.0421,
                             }}
-                            title={placeName}
-                            description={placeAddress}
-                            key={placeId}
-                            ref={ref => { this.marker = ref; }}
-                        />
-                        <MapView.Callout/>
-                    </MapView>
+                            onRegionChangeComplete={() => this.marker.showCallout()}
+                        >
+
+                            <MapView.Marker
+                                coordinate={{
+                                    latitude: placeCoordinate.lat,
+                                    longitude: placeCoordinate.lng,
+                                }}
+                                title={placeName}
+                                description={placeAddress}
+                                key={placeId}
+                                ref={ref => { this.marker = ref; }}
+                            />
+                            <MapView.Callout/>
+                        </MapView>
+                    </TouchableOpacity>
 
 
                 </ScrollView>

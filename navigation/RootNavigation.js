@@ -85,32 +85,11 @@ export default class RootNavigator extends React.Component {
                 let data = JSON.parse(msg);
                 this.insertChatSql(uid,data,0);
             });
-            //好友信息
-            let firebaseDb = firebase.firestore();
-            let docRef = firebaseDb.collection("Users").doc(uid).collection("Friends_List");
-            docRef.get().then((querySnapshot)=>{
-                this.dropFriendTable(uid);
-                this.initFriendTable(uid);
-                querySnapshot.forEach((doc)=>{
-                    let friendUid = doc.data().uid;
-                    firebaseDb.collection("Users").doc(friendUid).get()
-                        .then((doc) => {
-                            let data = doc.data();
-                            let mapping = {
-                                avatar:data.photoURL,
-                                key:data.uid,
-                                title:data.username
-                            };
-                            this.insertFriendSql(uid,mapping.key,mapping.avatar,mapping.title);
-                        }).catch((error) => {
-                            //console.log("Error getting document: ", error);
-                    })
-                });
-            }).catch((error) => {
-                console.log("Error getting documents: ", error);
-            });
 
-            let meetRef = firebaseDb.collection("Meets").where(`participatingUsersList.${uid}.status`, "==", true);
+
+            this.processFriendsList(uid);
+
+            let meetRef = firebase.firestore().collection("Meets").where(`participatingUsersList.${uid}.status`, "==", true);
             meetRef.get().then((querySnapshot)=>{
                 for (let i = 0;i<querySnapshot.docs.length;i++){
                     this.insertMeetingId(uid,querySnapshot.docs[i]);
@@ -123,6 +102,46 @@ export default class RootNavigator extends React.Component {
             return <LoginNavigator screenProps={this.props}/>
         }
       //return <RootStackNavigator/>;
+  }
+
+  processFriendsList(uid){
+      //好友信息
+      let firebaseDb = firebase.firestore();
+      let docRef = firebaseDb.collection("Users").doc(uid).collection("Friends_List");
+      docRef.get().then(async (querySnapshot)=>{
+          //this.dropFriendTable(uid);
+          this.initFriendTable(uid);
+
+          var usersData = [];
+          await querySnapshot.docs.reduce((p,e,i) => p.then(async ()=> {
+              //console.log(p, e.data(), i);
+              let user = e.data();
+              let userUid = e.id;
+              let firestoreDb = firebase.firestore();
+              var userRef = firestoreDb.collection("Users").doc(userUid);
+              await userRef.get().then((userDoc) => {
+                  if (userDoc.exists) {
+                      //console.log("Document data:", userDoc.data());
+                      let user = userDoc.data();
+                      usersData.push(user);
+                  } else {
+                      console.log("No such document!");
+                  }
+              }).catch((error) => {
+                  console.log("Error getting document:", error);
+              });
+
+          }),Promise.resolve());
+
+          //console.log(usersData);
+          this.insertFriendsSql(uid, usersData)
+
+      }).catch((error) => {
+          console.log("Error getting documents: ", error);
+      });
+
+
+
   }
 
     dropChatTable(uid){
@@ -215,7 +234,7 @@ export default class RootNavigator extends React.Component {
         if (data["meetUserData"]!==undefined){
             userData = data["meetUserData"].replace("",'');
         }
-        console.log("INSERT INTO db"+uid+" (fromId,msg,status,type,meetingId,meetUserData) VALUES (?,?,?,?,?,?)",[from,message,status,type,meetingId,userData]);
+        //console.log("INSERT INTO db"+uid+" (fromId,msg,status,type,meetingId,meetUserData) VALUES (?,?,?,?,?,?)",[from,message,status,type,meetingId,userData]);
         db.transaction(
             tx => {
                 tx.executeSql("INSERT INTO db"+uid+" (fromId,msg,status,type,meetingId,meetUserData) VALUES (?,?,?,?,?,?)",[from,message,status,type,meetingId,userData]);
@@ -248,12 +267,27 @@ export default class RootNavigator extends React.Component {
     insertFriendSql(uid,friendId,avatarUrl,friendName){
         db.transaction(
             tx => {
-                tx.executeSql('insert into friend_list'+uid+' (userId,avatarUrl,username) values (?,?,?)',[friendId,avatarUrl,friendName]);
-            },
+                tx.executeSql('insert or replace into friend_list'+uid+' (userId,avatarUrl,username) values (?,?,?)',[friendId,avatarUrl,friendName], ()=> console.log('insertSingleSql', friendName));
+            }
+            ,
             null,
-            this.update
+            () => console.log('insertFriendSql complete')
         );
     }
+
+    insertFriendsSql(uid, usersData){
+        db.transaction(
+            tx => {
+                usersData.map((userData) => {
+                    tx.executeSql('insert or replace into friend_list'+uid+' (userId,avatarUrl,username) values (?,?,?)',[userData.uid,userData.photoURL,userData.username], ()=> console.log('insertSingleSql', userData.username));
+                })
+            }
+            ,
+            null,
+            () => console.log('insertCompleteFriendSql complete')
+        );
+    }
+
 
   _registerForPushNotifications() {
     // Send our push token over to our backend so we can receive notifications
