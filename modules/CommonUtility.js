@@ -23,7 +23,7 @@ export const getPostRequest = (code, bodyData, onComplete, onError) => {
         //Alert.alert('Error ' + error);
         onError(error);
     });
-}
+};
 
 export const getUserData = (userUid) => {
     return new Task((reject, resolve) => {
@@ -131,7 +131,7 @@ export const getPostTimeString = (postTime) => {
     } else {
         return `${Math.round(dif/(24*60*60*1000))} days ago`;
     }
-}
+};
 
 export const getDurationString = (duration) => {
     if(duration>2*24*60*60*1000){
@@ -147,4 +147,31 @@ export const getDurationString = (duration) => {
     } else{
         return "1 min";
     }
-}
+};
+
+
+export const getImageSource = (tagName) => {
+    switch(tagName){
+        case "Party":
+            return require('../assets/images/tagsTheme/StaindGlass.jpg');
+        case "Sport":
+            return require('../assets/images/tagsTheme/lines.jpg');
+        case "Food":
+            return require('../assets/images/tagsTheme/yumao.jpg');
+        case "Shop":
+            return require('../assets/images/tagsTheme/city.png');
+        case "Movie":
+            return require('../assets/images/tagsTheme/city.png');
+        case "KTV":
+            return require('../assets/images/tagsTheme/leaves.jpg');
+        case "Travel":
+            return require('../assets/images/tagsTheme/humian.jpg');
+        case "Study":
+            return require('../assets/images/tagsTheme/cloud.jpg');
+        case "ESports":
+            return require('../assets/images/tagsTheme/humian.jpg');
+        default:
+            return require('../assets/images/tagsTheme/StaindGlass.jpg');
+
+    }
+};
