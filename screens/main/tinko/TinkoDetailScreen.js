@@ -4,13 +4,14 @@ import {View, Alert, TouchableWithoutFeedback, Image, ScrollView, Text, StyleShe
 import firebase from 'firebase';
 import 'firebase/firestore';
 import Swiper from 'react-native-swiper';
-import { getStartTimeString,  getDurationString, getUserData } from "../../../modules/CommonUtility";
+import { getStartTimeString,  getDurationString, getUserData, getImageSource } from "../../../modules/CommonUtility";
 import { MapView } from 'expo';
 import { Ionicons, MaterialIcons, Entypo,  } from '@expo/vector-icons';
 import { Avatar, Button, Header} from 'react-native-elements';
 import { ifIphoneX } from 'react-native-iphone-x-helper';
 import { getPostRequest } from "../../../modules/CommonUtility";
 import { ActionSheetProvider, connectActionSheet } from '@expo/react-native-action-sheet';
+import SocketIOClient from "socket.io-client";
 
 const SCREEN_WIDTH = Dimensions.get('window').width;
 
@@ -255,6 +256,8 @@ export default class TinkoDetailScreen extends React.Component {
             (response) => {
                 console.log(response);
                 this.setState({buttonShowLoading:false})
+                this.socket = SocketIOClient('http://47.89.187.42:4000/');
+                this.socket.emit("createMeets",userUid,meetId);
             }, (error) => {
                 Alert.alert("Error", error);
                 this.setState({buttonShowLoading:false})
@@ -327,7 +330,7 @@ export default class TinkoDetailScreen extends React.Component {
     render() {
         const { creatorLoadingDone, placePhotosLoadingDone, userUid, creatorUid, identity,
             creatorPhotoURL, creatorUsername, title, placePhotos, startTime, allowPeopleNearby, participatingUsersList,
-            maxNo, description, duration, participatingUsersData, placeName, placeCoordinate, placeAddress, placeId } = this.state;
+            maxNo, description, duration, participatingUsersData, placeName, placeCoordinate, placeAddress, placeId, tagList } = this.state;
 
         if(!(creatorLoadingDone && placePhotosLoadingDone)){
             return(
@@ -360,7 +363,7 @@ export default class TinkoDetailScreen extends React.Component {
                                     resizeMethod={'auto'}
                                     style={{width:SCREEN_WIDTH, height:SCREEN_WIDTH/2}}
                                     key = {'placePhoto'}
-                                    source={require('../../../assets/images/tagsTheme/StaindGlass.jpg')}/>
+                                    source={getImageSource(tagList[0])}/>
                             }
                         </Swiper>
                     </View>

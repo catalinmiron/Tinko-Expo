@@ -1,5 +1,6 @@
 import React, { Component } from 'react';
 import {Text, View, Image, TouchableHighlight, TouchableOpacity, StyleSheet} from 'react-native';
+import {getImageSource} from "../../CommonUtility";
 
 export default function Brick (props) {
 	// Avoid margins for first element
@@ -53,109 +54,14 @@ export function _getImageTag (image, gutter = 0) {
 
 
 	//console.log(image);
-
-	switch(image.data.tags[0]){
-		case "Party":
-            return (
-                <Image
-                    key={image.uri}
-                    resizeMethod={'auto'}
-                    source={require('../../../assets/images/tagsTheme/StaindGlass.jpg')}
-                    style={{ borderRadius:10, width: image.width, height: image.height, marginTop: gutter, ...image.imageContainerStyle }}
-                />
-            )
-			break;
-        case "Sport":
-            return (
-                <Image
-                    key={image.uri}
-                    resizeMethod={'auto'}
-                    source={require('../../../assets/images/tagsTheme/lines.jpg')}
-                    style={{ borderRadius:10, width: image.width, height: image.height, marginTop: gutter, ...image.imageContainerStyle }}
-                />
-            )
-            break;
-        case "Food":
-            return (
-                <Image
-                    key={image.uri}
-                    resizeMethod={'auto'}
-                    source={require('../../../assets/images/tagsTheme/yumao.jpg')}
-                    style={{ borderRadius:10, width: image.width, height: image.height, marginTop: gutter, ...image.imageContainerStyle }}
-                />
-            )
-            break;
-        case "Shop":
-            return (
-                <Image
-                    key={image.uri}
-                    resizeMethod={'auto'}
-                    source={require('../../../assets/images/tagsTheme/city.png')}
-                    style={{ borderRadius:10, width: image.width, height: image.height, marginTop: gutter, ...image.imageContainerStyle }}
-                />
-            )
-            break;
-        case "Movie":
-            return (
-                <Image
-                    key={image.uri}
-                    resizeMethod={'auto'}
-                    source={require('../../../assets/images/tagsTheme/city.png')}
-                    style={{ borderRadius:10, width: image.width, height: image.height, marginTop: gutter, ...image.imageContainerStyle }}
-                />
-            )
-            break;
-        case "KTV":
-            return (
-                <Image
-                    key={image.uri}
-                    resizeMethod={'auto'}
-                    source={require('../../../assets/images/tagsTheme/leaves.jpg')}
-                    style={{ borderRadius:10, width: image.width, height: image.height, marginTop: gutter, ...image.imageContainerStyle }}
-                />
-            )
-            break;
-        case "Travel":
-            return (
-                <Image
-                    key={image.uri}
-                    resizeMethod={'auto'}
-                    source={require('../../../assets/images/tagsTheme/humian.jpg')}
-                    style={{ borderRadius:10, width: image.width, height: image.height, marginTop: gutter, ...image.imageContainerStyle }}
-                />
-            )
-            break;
-        case "Study":
-            return (
-                <Image
-                    key={image.uri}
-                    resizeMethod={'auto'}
-                    source={require('../../../assets/images/tagsTheme/cloud.jpg')}
-                    style={{ borderRadius:10, width: image.width, height: image.height, marginTop: gutter, ...image.imageContainerStyle }}
-                />
-            )
-            break;
-        case "ESports":
-            return (
-                <Image
-                    key={image.uri}
-                    resizeMethod={'auto'}
-                    source={require('../../../assets/images/tagsTheme/humian.jpg')}
-                    style={{ borderRadius:10, width: image.width, height: image.height, marginTop: gutter, ...image.imageContainerStyle }}
-                />
-            )
-            break;
-		default:
-            return (
-                <Image
-                    key={image.uri}
-                    resizeMethod={'auto'}
-                    source={require('../../../assets/images/tagsTheme/StaindGlass.jpg')}
-                    style={{ borderRadius:10, width: image.width, height: image.height, marginTop: gutter, ...image.imageContainerStyle }}
-                />
-            )
-
-	}
+    return (
+        <Image
+            key={image.uri}
+            resizeMethod={'auto'}
+            source={getImageSource(image.data.tags[0])}
+            style={{ borderRadius:10, width: image.width, height: image.height, marginTop: gutter, ...image.imageContainerStyle }}
+        />
+    )
 
 }
 
