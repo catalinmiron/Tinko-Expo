@@ -39,6 +39,8 @@ export default class RootNavigator extends React.Component {
             // 测试时才用drop
             this.dropChatTable(uid);
             this.initChatTable(uid);
+            this.dropFriendsTable(uid);
+            this.initFriendsTable(uid);
             //this.dropMeetingTable(uid);
             this.initMeetingTable(uid);
             this.socket = SocketIOClient('http://47.89.187.42:4000/');
@@ -59,8 +61,6 @@ export default class RootNavigator extends React.Component {
                 let data = JSON.parse(msg);
                 this.insertChatSql(uid,data,0);
             });
-
-
 
             let meetRef = firebase.firestore().collection("Meets").where(`participatingUsersList.${uid}.status`, "==", true);
             meetRef.get().then((querySnapshot)=>{
@@ -96,8 +96,38 @@ export default class RootNavigator extends React.Component {
             tx => {
                 tx.executeSql('drop table db'+ uid);
             },
+            (error) => console.log("db drop :" + error),
+            () => {
+                console.log('db complete');
+            }
+        );
+    }
+
+    dropFriendsTable(uid){
+        db.transaction(
+            tx => {
+                tx.executeSql('drop table friend_list'+ uid);
+            },
             null,
-            this.update
+            null
+        );
+    }
+
+
+    initFriendsTable(uid){
+        db.transaction(
+            tx => {
+                tx.executeSql('create table if not exists friend_list'+ uid +' (' +
+                    'id integer primary key not null , ' +
+                    'userId text, avatarUrl text , ' +
+                    'username text, ' +
+                    'location text,' +
+                    'gender text);');
+            },
+            (error) => console.log("friendList :" + error),
+            () => {
+                console.log('friend_list complete');
+            }
         );
     }
 
@@ -107,8 +137,10 @@ export default class RootNavigator extends React.Component {
             tx => {
                 tx.executeSql('drop table meeting'+ uid);
             },
-            null,
-            this.update
+            (error) => console.log("meeting drop :" + error),
+            () => {
+                console.log('meeting complete');
+            }
         );
     }
 
@@ -116,10 +148,20 @@ export default class RootNavigator extends React.Component {
         db.transaction(
             tx => {
                 //tx.executeSql('create table if not exists friend_list'+uid+' (id integer primary key not null , userId text UNIQUE, avatarUrl text, username text, location text, gender text)');
-                tx.executeSql('create table if not exists meeting'+ uid + "(id integer primary key not null ,meetingId text UNIQUE, creator text, endTime text, address text, tagList text, description text, title text)");
+                tx.executeSql('create table if not exists meeting'+ uid + "(" +
+                    "id integer primary key not null ," +
+                    "meetingId text UNIQUE, " +
+                    "creator text, " +
+                    "endTime text, " +
+                    "address text, " +
+                    "tagList text, " +
+                    "description text, " +
+                    "title text)");
             },
-            null,
-            this.update
+            (error) => console.log("meeting :" + error),
+            () => {
+                console.log('meeting complete');
+            }
         );
     }
 
@@ -137,8 +179,10 @@ export default class RootNavigator extends React.Component {
                 tx.executeSql("INSERT INTO meeting"+uid+"(meetingId,creator,endTime,address,tagList,description,title) VALUES (?,?,?,?,?,?,?)",
                     [meetingId,creator,endTime,place,tag,description,title]);
             },
-            null,
-            this.update
+            (error) => console.log("meeting insert:" + error),
+            () => {
+                console.log('insert meeting complete');
+            }
         );
     }
 
@@ -155,8 +199,10 @@ export default class RootNavigator extends React.Component {
                     'meetUserData text,'+
                     'timeStamp DATETIME DEFAULT CURRENT_TIMESTAMP);');
             },
-            null,
-            null
+            (error) => console.log("db insert:" + error),
+            () => {
+                console.log('db insert complete');
+            }
         );
     }
 

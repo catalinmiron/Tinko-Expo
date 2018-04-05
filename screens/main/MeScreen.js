@@ -19,7 +19,7 @@ export default class Me extends React.Component {
     constructor(props){
         super(props);
         //console.log(props);
-        let user = firebase.auth().currentUser;
+        user = firebase.auth().currentUser;
         this.state={
             userUid:user.uid,
             userData:{},
@@ -28,8 +28,6 @@ export default class Me extends React.Component {
 
 
     componentDidMount(){
-        //this.dropFriendsTable();
-        this.initFriendsTable(this.state.userUid);
         this.getThisUserData();
         this.processFriendsList(this.state.userUid)
     }
@@ -51,15 +49,12 @@ export default class Me extends React.Component {
         let firebaseDb = firebase.firestore();
         let docRef = firebaseDb.collection("Users").doc(uid).collection("Friends_List");
         docRef.get().then(async (querySnapshot)=>{
-
-
-
-            var usersData = [];
+            let usersData = [];
             await querySnapshot.docs.reduce((p,e,i) => p.then(async ()=> {
                 //console.log(p, e.data(), i);
                 let user = e.data();
                 let userUid = e.id;
-                var userRef = firebaseDb.collection("Users").doc(userUid);
+                let userRef = firebaseDb.collection("Users").doc(userUid);
                 await userRef.get().then((userDoc) => {
                     if (userDoc.exists) {
                         //console.log("Document data:", userDoc.data());
@@ -73,7 +68,6 @@ export default class Me extends React.Component {
                 });
 
             }),Promise.resolve());
-
             //console.log(usersData);
             this.insertFriendsSql(uid, usersData);
             this.seeTables(uid);
@@ -83,30 +77,20 @@ export default class Me extends React.Component {
         });
     }
 
-    initFriendsTable(uid){
-        db.transaction(
-            tx => {
-                tx.executeSql('create table if not exists friend_list'+uid+' (id integer primary key not null , userId text UNIQUE, avatarUrl text, username text, location text, gender text)');
-            },
-            (error)=> console.log('initFriendsTable ', error),
-            () => {
-                console.log('initFriendsTable success');
-            }
-        );
-    }
-
 
     insertFriendsSql(uid, usersData){
         db.transaction(
             tx => {
                 usersData.map((userData) => {
+                    console.log("开始插入了");
+                    console.log(userData);
                     tx.executeSql(
                         'insert or replace into friend_list'+uid+' (userId,avatarUrl,username, location, gender) values (?,?,?,?,?)',
                         [userData.uid,userData.photoURL,userData.username,userData.location,userData.gender]);
                 })
             }
             ,
-            (error) => console.log(error),
+            (error) => console.log("这里报错" + error),
             () => {
                 console.log('insertCompleteFriendSql complete');
                 this.friendsList.getSql();
@@ -114,20 +98,10 @@ export default class Me extends React.Component {
         );
     }
 
-    dropFriendsTable(uid){
-        db.transaction(
-            tx => {
-                tx.executeSql('drop table friend_list'+ uid);
-            },
-            null,
-            this.update
-        );
-    }
-
     seeTables(uid){
         db.transaction(
             tx => {
-                tx.executeSql('select * from sqlite_master',[],(_,rows)=>{
+                tx.executeSql('select * from friend_list',[],(_,rows)=>{
                     console.log(rows);
                 });
             },

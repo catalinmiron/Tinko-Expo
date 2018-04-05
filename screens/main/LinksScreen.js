@@ -256,7 +256,9 @@ class FriendChatListView extends Component {
                 });
             },
             null,
-            this.update
+            () => {
+                console.log('聊天数据插入成功');
+            }
         )
     }
 
