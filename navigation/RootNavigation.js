@@ -11,7 +11,7 @@ import registerForPushNotificationsAsync from '../api/registerForPushNotificatio
 import * as firebase from "firebase";
 import SocketIOClient from 'socket.io-client';
 import 'firebase/firestore';
-import { Font } from 'expo'
+import UserDetailOverlay from '../screens/main/common/UserDetailOverlay'
 
 let getPrivateHistory = false,
     getMeetsHistory = false;
@@ -70,11 +70,24 @@ export default class RootNavigator extends React.Component {
             }).catch((error) => {
                 console.log("Error getting documents: ", error);
             });
-            return <MainTabNavigator/>
+            return (
+                <View style={{flex:1}}>
+                    <MainTabNavigator screenProps={{showThisUser:this.showThisUser.bind(this)}}/>
+                    <UserDetailOverlay
+                        onRef={ref => this.userDetailOverlay = ref}
+                        isVisible={false}
+                    />
+                </View>)
+
+
         } else {
             return <LoginNavigator screenProps={this.props}/>
         }
       //return <RootStackNavigator/>;
+  }
+
+  showThisUser(uid, navigation){
+        this.userDetailOverlay.showThisUser(uid, navigation);
   }
 
 
@@ -102,6 +115,7 @@ export default class RootNavigator extends React.Component {
     initMeetingTable(uid){
         db.transaction(
             tx => {
+                //tx.executeSql('create table if not exists friend_list'+uid+' (id integer primary key not null , userId text UNIQUE, avatarUrl text, username text, location text, gender text)');
                 tx.executeSql('create table if not exists meeting'+ uid + "(id integer primary key not null ,meetingId text UNIQUE, creator text, endTime text, address text, tagList text, description text, title text)");
             },
             null,

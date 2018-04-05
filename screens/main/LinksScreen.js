@@ -2,7 +2,7 @@ import React, {
     Component
 } from 'react'
 import {
-    StyleSheet,View,WebView
+    StyleSheet,View,WebView,ScrollView
 } from 'react-native'
 import { ListItem } from 'react-native-elements'
 import Expo, { SQLite } from 'expo';
@@ -297,7 +297,9 @@ class FriendChatListView extends Component {
         }
         return (
             <View>
-                {friendList}
+                <ScrollView>
+                    {friendList}
+                </ScrollView>
             </View>
         )
     }
