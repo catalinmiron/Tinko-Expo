@@ -10,7 +10,8 @@ import { GiftedChat } from 'react-native-gifted-chat';
 import SocketIOClient from 'socket.io-client';
 
 let uid = "",
-    pid = "";
+    pid = "",
+    messagesArr = [];
 
 export default class PrivateChatScreen extends Component {
 
@@ -52,26 +53,21 @@ export default class PrivateChatScreen extends Component {
                     for (let i = 0;i<dataArr.length;i++){
                         //收到的
                         if (dataArr[i].status === 0){
-                            this.appendFriendMessage(name,avatar,dataArr[i].msg,"cache"+dataArr[i].id)
+                            this.appendFriendMessage(name,avatar,dataArr[i].msg,"cache"+dataArr[i].id);
                         }else{
                             //发出去的
                             this.appendMessage(dataArr[i].msg);
                         }
                     }
+                    // this.setState(() => {
+                    //     return {
+                    //         messages: messagesArr,
+                    //     };
+                    // })
                 })
             },
             null,
-            this.update
-        );
-    }
-
-    insertChatSql(uid,fromId,msg){
-        db.transaction(
-            tx => {
-                tx.executeSql("INSERT INTO db"+uid+"(fromId,msg,status) VALUES (?,?,?)",[fromId,msg,-1]);
-            },
-            null,
-            this.update
+            null
         );
     }
 
@@ -86,6 +82,7 @@ export default class PrivateChatScreen extends Component {
                 name: 'Developer',
             }
         };
+        messagesArr.push(chatData);
         this.setState(previousState => ({
             messages: GiftedChat.append(previousState.messages, chatData),
         }))
@@ -101,6 +98,7 @@ export default class PrivateChatScreen extends Component {
                 avatar: avatar,
             },
         };
+        messagesArr.push(chatData);
         this.setState(previousState => ({
             messages: GiftedChat.append(previousState.messages, chatData),
         }))

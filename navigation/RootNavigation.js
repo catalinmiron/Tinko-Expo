@@ -141,8 +141,8 @@ export default class RootNavigator extends React.Component {
                     'meetUserData text,'+
                     'timeStamp DATETIME DEFAULT CURRENT_TIMESTAMP);');
             },
-            (error) => console.log('transaction failed'),
-            () => console.log('transaction success123321')
+            null,
+            null
         );
     }
 

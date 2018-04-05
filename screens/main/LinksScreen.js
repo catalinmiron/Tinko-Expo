@@ -228,13 +228,12 @@ class FriendChatListView extends Component {
         if (data["userData"]!==undefined){
             userData = JSON.stringify(data["userData"]);
         }
-        console.log("INSERT INTO db"+uid+" (fromId,msg,status,type,meetingId,meetUserData) VALUES (?,?,?,?,?,?)",[from,message,status,type,meetingId,userData]);
         db.transaction(
             tx => {
                 tx.executeSql("INSERT INTO db"+uid+" (fromId,msg,status,type,meetingId,meetUserData) VALUES (?,?,?,?,?,?)",[from,message,status,type,meetingId,userData]);
             },
-            (error) => console.log(error),
-            () => console.log('transaction success')
+            null,
+            null
         );
     }
 
