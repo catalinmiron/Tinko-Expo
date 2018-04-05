@@ -13,7 +13,7 @@ import CreateScreen from '../screens/main/CreateScreen';
 import GooglePlacesInputScreen from '../screens/main/create/GooglePlacesInput';
 import CreateNavigator from './CreateNavigator';
 import TinkoDetailScreen from "../screens/main/tinko/TinkoDetailScreen";
-import UserDetailScreen from '../screens/main/common/UserDetailScreen';
+import UserDetailScreen from '../screens/main/common/UserDetailOverlay';
 import MeScreen from "../screens/main/MeScreen";
 import PrivateChatScreen from '../screens/main/common/PrivateChatScreen';
 import GroupChatScreen from '../screens/main/common/GroupChatScreen';
@@ -85,9 +85,9 @@ const MainTabNavigatorWithDetailScreens = StackNavigator(
         TinkoDetail:{
             screen: TinkoDetailScreen,
         },
-        UserDetail:{
-            screen:UserDetailScreen,
-        },
+        // UserDetail:{
+        //     screen:UserDetailScreen,
+        // },
         PrivateChatPage: {
             screen: PrivateChatScreen,
         },

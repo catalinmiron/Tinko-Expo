@@ -9,6 +9,7 @@ import Expo, { SQLite } from 'expo';
 import * as firebase from 'firebase';
 import { ListItem } from 'react-native-elements';
 
+
 require("firebase/firestore");
 
 const db = SQLite.openDatabase('db.db');
@@ -26,7 +27,9 @@ export default class FriendListView extends Component {
         this.state = {
             userUid:uid,
             sqlRows: [],
-            rows: []
+            rows: [],
+            selectedUid:'',
+            overlayIsVisible:false,
         };
     }
 
@@ -62,14 +65,16 @@ export default class FriendListView extends Component {
 
 
     goToDetailPage(key){
-        console.log(key);
-        this.props.navigation.navigate('UserDetail', {uid:key});
+        //console.log(key);
+        //this.props.navigation.navigate('UserDetail', {uid:key});
+        this.props.showThisUser(key, this.props.navigation);
 
     }
 
 
 
     render() {
+        const{selectedUid, overlayIsVisible} = this.state;
         let friendList = [];
         for (let i = 0;i<this.state.sqlRows.length ; i++){
             console.log(this.state.sqlRows[i]);
