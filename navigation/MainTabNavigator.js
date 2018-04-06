@@ -1,5 +1,5 @@
 import React from 'react';
-import { Platform } from 'react-native';
+import { Platform, View, Image, StyleSheet } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { TabNavigator, TabBarBottom, StackNavigator } from 'react-navigation';
 
@@ -77,6 +77,41 @@ const MainTabNavigator = TabNavigator(
 );
 
 
+class Detail extends React.Component {
+    static navigationOptions = {
+        header:null,
+    }
+    render() {
+        return (
+            <View style={styles.container}>
+
+                <Image
+                    style={{height:100, width:100}}
+                    source={{uri: 'https://s-media-cache-ak0.pinimg.com/736x/b1/21/df/b121df29b41b771d6610dba71834e512.jpg'}}
+                />
+                <Image
+                    style={{height:100, width:100}}
+                    source={{uri: 'https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcTQpD8mz-2Wwix8hHbGgR-mCFQVFTF7TF7hU05BxwLVO1PS5j-rZA'}}
+                />
+                <Image
+                    style={{height:100, width:100}}
+                    source={{uri: 'https://s-media-cache-ak0.pinimg.com/736x/04/63/3f/04633fcc08f9d405064391bd80cb0828.jpg'}}
+                />
+                <Image
+                    style={{height:100, width:100}}
+                    source={{uri: 'https://encrypted-tbn1.gstatic.com/images?q=tbn:ANd9GcQRWkuUMpLyu3QnFu5Xsi_7SpbabzRtSis-_QhKas6Oyj3neJoeug'}}
+                />
+                <Image
+                    style={{height:100, width:100}}
+                    source={{uri: 'https://s-media-cache-ak0.pinimg.com/736x/a5/c9/43/a5c943e02b1c43b5cf7d5a4b1efdcabb.jpg'}}
+                />
+
+            </View>
+        );
+    }
+}
+
+
 const MainTabNavigatorWithDetailScreens = StackNavigator(
     {
         Main:{
@@ -93,6 +128,9 @@ const MainTabNavigatorWithDetailScreens = StackNavigator(
         },
         GroupChatPage: {
             screen: GroupChatScreen,
+        },
+        testImageCache:{
+            screen:Detail,
         }
     }
 );
@@ -114,3 +152,12 @@ export default StackNavigator(
         headerMode:'screen'
     }
 );
+
+const styles = StyleSheet.create({
+    container: {
+        flex: 1,
+        backgroundColor: '#fff',
+        alignItems: 'center',
+        justifyContent: 'center',
+    },
+});

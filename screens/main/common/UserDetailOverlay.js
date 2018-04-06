@@ -135,12 +135,18 @@ export default class UserDetailScreen extends Component{
                         <Text style={{fontFamily:'regular', fontSize:20}}>{userData.location}</Text>
 
                     </View>
-                    <Avatar
-                        large
-                        rounded
-                        source={{uri: userData.photoURL}}
-                        //onPress={() => console.log("Works!")}
-                        activeOpacity={0.7}
+                    {/*<Avatar*/}
+                        {/*large*/}
+                        {/*rounded*/}
+                        {/*source={{uri: userData.photoURL}}*/}
+                        {/*//onPress={() => console.log("Works!")}*/}
+                        {/*activeOpacity={0.7}*/}
+                    {/*/>*/}
+
+                    <Image
+                        style={{height:75, width:75}}
+                        // source={{uri:userData.photoURL}}
+                        source={{uri:'https://s-media-cache-ak0.pinimg.com/736x/b1/21/df/b121df29b41b771d6610dba71834e512.jpg'}}
                     />
 
                 </View>

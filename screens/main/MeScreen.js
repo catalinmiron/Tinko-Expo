@@ -186,6 +186,11 @@ export default class Me extends React.Component {
                         </View>
                     </View>
 
+                    <Button
+                        title={'test Image Cache'}
+                        onPress={() => this.props.navigation.navigate('testImageCache')}
+                    />
+
                     <FriendsList
                         showThisUser={this.props.screenProps.showThisUser}
                         onRef={ref => this.friendsList = ref}
