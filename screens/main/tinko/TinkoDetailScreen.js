@@ -52,7 +52,7 @@ export default class TinkoDetailScreen extends React.Component {
 
     constructor(props){
         super(props);
-        //console.log(props);
+        console.log(props);
         let user = firebase.auth().currentUser;
         this.onJoinButtonPressed = this.onJoinButtonPressed.bind(this);
         this.renderActivityBar = this.renderActivityBar.bind(this);
@@ -369,12 +369,19 @@ export default class TinkoDetailScreen extends React.Component {
                     </View>
 
                     <View style={{flexDirection: 'row', alignItems:'center', position:'absolute', marginTop:SCREEN_WIDTH/2-60, right:0}}>
-                        <Text style={{marginRight:30, color:'white', fontSize: 18, fontWeight:'bold'}}>{creatorUsername}</Text>
-                        <Image
-                            style={{width:80, height:80, marginRight:15, borderWidth:1.5, borderColor:'white'}}
-                            key='creatorPhoto'
-                            source={{uri: creatorPhotoURL}}
-                        />
+                        <Text
+                            onPress={() => this.props.screenProps.showThisUser(creatorUid, this.props.navigation)}
+                            style={{marginRight:30, color:'white', fontSize: 18, fontWeight:'bold'}}>{creatorUsername}</Text>
+                        <TouchableWithoutFeedback
+                            onPress={() => this.props.screenProps.showThisUser(creatorUid, this.props.navigation)}
+                        >
+                            <Image
+                                onPress={() => this.props.screenProps.showThisUser(creatorUid, this.props.navigation)}
+                                style={{width:80, height:80, marginRight:15, borderWidth:1.5, borderColor:'white'}}
+                                key='creatorPhoto'
+                                source={{uri: creatorPhotoURL}}
+                            />
+                        </TouchableWithoutFeedback>
                     </View>
 
                     <View style={{margin:26}}>
@@ -415,6 +422,7 @@ export default class TinkoDetailScreen extends React.Component {
                                             source={userData.photoURL ? { uri: userData.photoURL } : null}
                                             title='TK'
                                             key={userData.uid}
+                                            onPress={() => this.props.screenProps.showThisUser(userData.uid, this.props.navigation)}
                                         />
                                     ))}
                                 </View>

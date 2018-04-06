@@ -1,5 +1,8 @@
 import React from 'react';
-import {View, Alert, TouchableWithoutFeedback, Image, ScrollView, SafeAreaView, StyleSheet, Text} from 'react-native';
+import {
+    View, Alert, TouchableWithoutFeedback, Image, ScrollView, SafeAreaView, StyleSheet, Text,
+    AsyncStorage
+} from 'react-native';
 import { List, ListItem,Button } from 'react-native-elements';
 import Icon from 'react-native-vector-icons/FontAwesome';
 import Avatar from "../../components/AvatarBox";
@@ -19,11 +22,12 @@ export default class Me extends React.Component {
     constructor(props){
         super(props);
         //console.log(props);
-        user = firebase.auth().currentUser;
+        let user = firebase.auth().currentUser;
         this.state={
             userUid:user.uid,
             userData:{},
         }
+        this.getThisUserInDatabase();
     }
 
 
@@ -39,8 +43,34 @@ export default class Me extends React.Component {
             },
             (userObj) => {
                 this.setState({userData:userObj});
+                this.writeThisUserInDatabase(userObj);
             }
         );
+    }
+
+    writeThisUserInDatabase(userData){
+        let thisUserDataString = JSON.stringify(userData);
+        try {
+            AsyncStorage.setItem('ThisUser'+this.state.userUid, thisUserDataString);
+        } catch (error) {
+            // Error saving data
+            console.log(error);
+        }
+    }
+
+    async getThisUserInDatabase(){
+        try {
+            const value = await AsyncStorage.getItem('ThisUser'+this.state.userUid);
+            if (value !== null){
+                // We have data!!
+                //console.log(value);
+                let userData = JSON.parse(value);
+                this.setState({userData});
+            }
+        } catch (error) {
+            // Error retrieving data
+            console.log(error);
+        }
     }
 
 

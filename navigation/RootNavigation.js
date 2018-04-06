@@ -37,9 +37,9 @@ export default class RootNavigator extends React.Component {
             let user = firebase.auth().currentUser;
             let uid = user.uid;
             // 测试时才用drop
-            this.dropChatTable(uid);
+            //this.dropChatTable(uid);
             this.initChatTable(uid);
-            this.dropFriendsTable(uid);
+            //this.dropFriendsTable(uid);
             this.initFriendsTable(uid);
             //this.dropMeetingTable(uid);
             this.initMeetingTable(uid);
@@ -119,7 +119,7 @@ export default class RootNavigator extends React.Component {
             tx => {
                 tx.executeSql('create table if not exists friend_list'+ uid +' (' +
                     'id integer primary key not null , ' +
-                    'userId text, avatarUrl text , ' +
+                    'userId text UNIQUE, avatarUrl text , ' +
                     'username text, ' +
                     'location text,' +
                     'gender text);');
