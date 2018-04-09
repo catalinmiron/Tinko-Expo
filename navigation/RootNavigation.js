@@ -56,13 +56,14 @@ export default class RootNavigator extends React.Component {
                 }else{
                     this.insertChatSql(uid,data);
                 }
+                this.sendFriendRequest(uid,uid,0,"msg hhhh");
             });
             this.socket.on("mySendBox"+uid,msg=>{
                 let data = JSON.parse(msg);
                 this.insertChatSql(uid,data,0);
             });
             this.socket.on("systemListener"+uid,msg=>{
-                getFriendRequestInfo(JSON.parse(msg))
+                this.getFriendRequestInfo(JSON.parse(msg))
             });
 
             let meetRef = firebase.firestore().collection("Meets").where(`participatingUsersList.${uid}.status`, "==", true);
@@ -182,7 +183,8 @@ export default class RootNavigator extends React.Component {
                 tx.executeSql("INSERT INTO meeting"+uid+"(meetingId,creator,endTime,address,tagList,description,title) VALUES (?,?,?,?,?,?,?)",
                     [meetingId,creator,endTime,place,tag,description,title]);
             },
-            (error) => console.log("meeting insert:" + error),
+            // (error) => console.log("meeting insert:" + error),
+            null,
             () => {
                 console.log('insert meeting complete');
             }
@@ -247,9 +249,9 @@ export default class RootNavigator extends React.Component {
     //     2 = "facebook好友确认"
     //     1 = "普通的好友确认" 比如a给b发送了请求 b确认了 就发送这个
     //     -1 = "确认了这个请求" 比如a给b发送了请求 b拒绝了 就发送这个
-    sendFriendRequest(requesterId,responser,type,msg){
+    sendFriendRequest(requester,responser,type,msg){
         this.socket.emit("NewFriendRequest",JSON.stringify({
-            requesterId:requesterId,
+            requester:requester,
             responser:responser,
             type:type,
             msg:msg
