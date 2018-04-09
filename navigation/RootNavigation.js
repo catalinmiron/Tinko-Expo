@@ -44,8 +44,9 @@ export default class RootNavigator extends React.Component {
             this.dropMeetingTable(uid);
             this.initMeetingTable(uid);
             this.socket = SocketIOClient('http://47.89.187.42:4000/');
-            // this.socket.emit("userLogin",uid);
+            this.socket.emit("userLogin",uid);
             this.socket.on("connect" + uid,msg=>{
+                this.sendFriendRequest(uid,uid,0,"msg hhhh");
                 let data = JSON.parse(msg),
                     type = data.type;
                 //3代表未读私聊
@@ -56,7 +57,6 @@ export default class RootNavigator extends React.Component {
                 }else{
                     this.insertChatSql(uid,data);
                 }
-                this.sendFriendRequest(uid,uid,0,"msg hhhh");
             });
             this.socket.on("mySendBox"+uid,msg=>{
                 let data = JSON.parse(msg);
@@ -183,7 +183,7 @@ export default class RootNavigator extends React.Component {
                 tx.executeSql("INSERT INTO meeting"+uid+"(meetingId,creator,endTime,address,tagList,description,title) VALUES (?,?,?,?,?,?,?)",
                     [meetingId,creator,endTime,place,tag,description,title]);
             },
-            // (error) => console.log("meeting insert:" + error),
+            (error) => console.log("meeting insert:" + error),
             null,
             () => {
                 console.log('insert meeting complete');
@@ -260,6 +260,7 @@ export default class RootNavigator extends React.Component {
 
     getFriendRequestInfo(data){
         //data.msg 代表想说的话
+        console.log("===================getFriendRequest",data);
         if (data.type === 0){
             //data.requester 发送了好友请求
         }else if (data.type === -1){
