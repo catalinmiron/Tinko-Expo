@@ -47,8 +47,12 @@ function Stack() {
             if (type === 1|| type === 3){
                 //私聊
                 let data = personalInfo[id];
-                let imageURL =  (data[0]!==undefined)?data[0]:"http://larissayuan.com/home/img/prisma.png",
+                let imageURL =  "http://larissayuan.com/home/img/prisma.png",
+                    personName = "Private Chat";
+                if (data !== undefined){
+                    imageURL =  (data[0]!==undefined)?data[0]:"http://larissayuan.com/home/img/prisma.png";
                     personName = (data[1]!==undefined)?data[1]:"Private Chat";
+                }
                 rtnData = {
                     id:id,
                     type:1,

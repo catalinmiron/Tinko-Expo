@@ -41,7 +41,7 @@ export default class RootNavigator extends React.Component {
             this.initChatTable(uid);
             this.dropFriendsTable(uid);
             this.initFriendsTable(uid);
-            //this.dropMeetingTable(uid);
+            this.dropMeetingTable(uid);
             this.initMeetingTable(uid);
             this.socket = SocketIOClient('http://47.89.187.42:4000/');
             // this.socket.emit("userLogin",uid);
@@ -60,6 +60,9 @@ export default class RootNavigator extends React.Component {
             this.socket.on("mySendBox"+uid,msg=>{
                 let data = JSON.parse(msg);
                 this.insertChatSql(uid,data,0);
+            });
+            this.socket.on("systemListener"+uid,msg=>{
+                getFriendRequestInfo(JSON.parse(msg))
             });
 
             let meetRef = firebase.firestore().collection("Meets").where(`participatingUsersList.${uid}.status`, "==", true);
@@ -119,7 +122,8 @@ export default class RootNavigator extends React.Component {
             tx => {
                 tx.executeSql('create table if not exists friend_list'+ uid +' (' +
                     'id integer primary key not null , ' +
-                    'userId text, avatarUrl text , ' +
+                    'userId text, ' +
+                    'avatarUrl text , ' +
                     'username text, ' +
                     'location text,' +
                     'gender text);');
@@ -240,6 +244,31 @@ export default class RootNavigator extends React.Component {
         );
     }
 
+    //type 0 = "发送好友请求"
+    //     2 = "facebook好友确认"
+    //     1 = "普通的好友确认" 比如a给b发送了请求 b确认了 就发送这个
+    //     -1 = "确认了这个请求" 比如a给b发送了请求 b拒绝了 就发送这个
+    sendFriendRequest(requesterId,responser,type,msg){
+        this.socket.emit("NewFriendRequest",JSON.stringify({
+            requesterId:requesterId,
+            responser:responser,
+            type:type,
+            msg:msg
+        }));
+    }
+
+    getFriendRequestInfo(data){
+        //data.msg 代表想说的话
+        if (data.type === 0){
+            //data.requester 发送了好友请求
+        }else if (data.type === -1){
+            //data.requester 拒绝了好友请求
+        }else if (data.type === 1){
+            //data.requester 接受了好友请求
+        }else if (data.type === 2){
+            //facebook自动确认了好友 好友id = data.requester
+        }
+    }
 
 
   _registerForPushNotifications() {

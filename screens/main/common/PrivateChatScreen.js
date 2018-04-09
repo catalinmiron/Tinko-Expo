@@ -93,7 +93,7 @@ export default class PrivateChatScreen extends Component {
             text: msg,
             createdAt: new Date(),
             user: {
-                _id: 2,
+                _id: Math.random()*100000,
                 name: name,
                 avatar: avatar,
             },
