@@ -145,16 +145,15 @@ export default class Me extends React.Component {
         return (
             <SafeAreaView style={{backgroundColor:'white'}}>
                 <ScrollView style={{backgroundColor: "white", height: "100%" ,width: "100%"}}>
-                    {/*<View style={{height:60,width:"100%",marginTop:35}}>*/}
-                    {/*/!*这是设置按钮*!/*/}
-                    {/*<TouchableWithoutFeedback onPress={() => this.props.navigation.navigate('Setting')}>*/}
-                    {/*<Image style={{alignSelf: 'flex-end', marginRight:20, width:30,height:30}}*/}
-                    {/*source={require('../../assets/images/setting.png')}*/}
-                    {/*/>*/}
-                    {/*</TouchableWithoutFeedback>*/}
-                    {/*</View>*/}
+                    <View style={{height:60,width:"100%",marginTop:35}}>
+                    {/*这是设置按钮*/}
+                    <TouchableWithoutFeedback onPress={() => this.props.navigation.navigate('Setting')}>
+                    <Image style={{alignSelf: 'flex-end', marginRight:20, width:30,height:30}}
+                    source={require('../../assets/images/setting.png')}
+                    />
+                    </TouchableWithoutFeedback>
+                    </View>
 
-                    {/*<Avatar userData={this.state.userData}/>*/}
                     <View style={styles.outerDiv}>
                         <Image
                             style={{width: 130,height: 130,marginTop:20,borderRadius: 25}}
@@ -186,10 +185,6 @@ export default class Me extends React.Component {
                         </View>
                     </View>
 
-                    <Button
-                        title={'test Image Cache'}
-                        onPress={() => this.props.navigation.navigate('testImageCache')}
-                    />
 
                     <FriendsList
                         showThisUser={this.props.screenProps.showThisUser}

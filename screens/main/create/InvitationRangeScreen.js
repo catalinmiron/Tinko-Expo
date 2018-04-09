@@ -21,8 +21,7 @@ import {
     Col,
     Row,
     Icon,
-    Avatar,
-    List, ListItem,
+    Avatar, ListItem,
 } from 'react-native-elements';
 import Expo, { SQLite } from 'expo';
 
@@ -164,43 +163,40 @@ export default class InvitationRangeScreen extends React.Component{
 
         return(
             <ScrollView style={styles.container}>
-                <List>
-                    <ListItem
-                        title='All Friends'
-                        rightIcon={
-                            <Switch
-                                value={allFriends}
-                                onValueChange={this.onAllFriendsToggled.bind(this)}
-                            />
-                        }
-                    />
-                    <ListItem
-                        title='Allow People Nearby'
-                        rightIcon={
-                            <Switch
-                                value={allowPeopleNearby}
-                                onValueChange={(allowPeopleNearby) => this.setState({allowPeopleNearby})}
-                            />
-                        }
-                    />
-                    <ListItem
-                        title='Allow Participants Invite Friends'
-                        rightIcon={
-                            <Switch
-                                value={allowParticipantsInvite}
-                                onValueChange={(allowParticipantsInvite) => this.setState({allowParticipantsInvite})}
-                            />
-                        }
-                    />
-                </List>
+                <ListItem
+                    title='All Friends'
+                    rightIcon={
+                        <Switch
+                            value={allFriends}
+                            onValueChange={this.onAllFriendsToggled.bind(this)}
+                        />
+                    }
+                />
+                <ListItem
+                    title='Allow People Nearby'
+                    rightIcon={
+                        <Switch
+                            value={allowPeopleNearby}
+                            onValueChange={(allowPeopleNearby) => this.setState({allowPeopleNearby})}
+                        />
+                    }
+                />
+                <ListItem
+                    title='Allow Participants Invite Friends'
+                    rightIcon={
+                        <Switch
+                            value={allowParticipantsInvite}
+                            onValueChange={(allowParticipantsInvite) => this.setState({allowParticipantsInvite})}
+                        />
+                    }
+                />
                 {(sqlRows===null || sqlRows.length ===0) ?
                     null
                     :
-                    (<List>
+                    (<View style={{marginTop:30}}>
                         {sqlRows.map((l, i) => (
                             <ListItem
-                                roundAvatar
-                                avatar={{uri:l.avatar}}
+                                leftAvatar={{ rounded: true, source: { uri: l.avatar } }}
                                 title={l.title}
                                 rightIcon = {{name: l.selected ? 'done' : 'hideChevron'}}
                                 onPress={() => {
@@ -211,7 +207,7 @@ export default class InvitationRangeScreen extends React.Component{
                                 }}
                             />
                         ))}
-                    </List>)}
+                    </View>)}
 
             </ScrollView>
         )

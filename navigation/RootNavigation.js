@@ -43,8 +43,9 @@ export default class RootNavigator extends React.Component {
             this.initFriendsTable(uid);
             this.dropMeetingTable(uid);
             this.initMeetingTable(uid);
+
             this.socket = SocketIOClient('http://47.89.187.42:4000/');
-            // this.socket.emit("userLogin",uid);
+            this.socket.emit("userLogin",uid);
             this.socket.on("connect" + uid,msg=>{
                 let data = JSON.parse(msg),
                     type = data.type;
@@ -66,6 +67,8 @@ export default class RootNavigator extends React.Component {
                 this.getFriendRequestInfo(JSON.parse(msg))
             });
 
+
+
             let meetRef = firebase.firestore().collection("Meets").where(`participatingUsersList.${uid}.status`, "==", true);
             meetRef.get().then((querySnapshot)=>{
                 for (let i = 0;i<querySnapshot.docs.length;i++){
@@ -76,7 +79,11 @@ export default class RootNavigator extends React.Component {
             });
             return (
                 <View style={{flex:1}}>
-                    <MainTabNavigator screenProps={{showThisUser:this.showThisUser.bind(this)}}/>
+                    <MainTabNavigator
+                        screenProps={{
+                            showThisUser:this.showThisUser.bind(this)
+                        }}
+                    />
                     <UserDetailOverlay
                         onRef={ref => this.userDetailOverlay = ref}
                         isVisible={false}
@@ -250,6 +257,7 @@ export default class RootNavigator extends React.Component {
     //     1 = "普通的好友确认" 比如a给b发送了请求 b确认了 就发送这个
     //     -1 = "确认了这个请求" 比如a给b发送了请求 b拒绝了 就发送这个
     sendFriendRequest(requester,responser,type,msg){
+        console.log('+++++++++++++++++++++++++++++++++++++++++++++sendFriendRequest');
         this.socket.emit("NewFriendRequest",JSON.stringify({
             requester:requester,
             responser:responser,
@@ -260,6 +268,7 @@ export default class RootNavigator extends React.Component {
 
     getFriendRequestInfo(data){
         //data.msg 代表想说的话
+        console.log('-----------------------------------------------------------',data);
         if (data.type === 0){
             //data.requester 发送了好友请求
         }else if (data.type === -1){
