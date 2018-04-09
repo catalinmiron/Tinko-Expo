@@ -43,6 +43,7 @@ export default class RootNavigator extends React.Component {
             this.initFriendsTable(uid);
             this.dropMeetingTable(uid);
             this.initMeetingTable(uid);
+
             this.socket = SocketIOClient('http://47.89.187.42:4000/');
             this.socket.emit("userLogin",uid);
             this.socket.on("connect" + uid,msg=>{
@@ -65,6 +66,8 @@ export default class RootNavigator extends React.Component {
             this.socket.on("systemListener"+uid,msg=>{
                 this.getFriendRequestInfo(JSON.parse(msg))
             });
+
+
 
             let meetRef = firebase.firestore().collection("Meets").where(`participatingUsersList.${uid}.status`, "==", true);
             meetRef.get().then((querySnapshot)=>{
@@ -250,6 +253,7 @@ export default class RootNavigator extends React.Component {
     //     1 = "普通的好友确认" 比如a给b发送了请求 b确认了 就发送这个
     //     -1 = "确认了这个请求" 比如a给b发送了请求 b拒绝了 就发送这个
     sendFriendRequest(requester,responser,type,msg){
+        console.log('+++++++++++++++++++++++++++++++++++++++++++++sendFriendRequest');
         this.socket.emit("NewFriendRequest",JSON.stringify({
             requester:requester,
             responser:responser,
