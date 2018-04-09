@@ -27,7 +27,6 @@ export default class TinkoScreen extends Component {
         super(props);
         //console.log(props);
         let user = firebase.auth().currentUser;
-        this.getMeetsInDatabase(user.uid);
         this.getMeets=this.getMeets.bind(this);
         this.state = {
             userUid:user.uid,
@@ -38,11 +37,13 @@ export default class TinkoScreen extends Component {
             lastVisible:null,
             orderByPostTime:true,
         }
+        this.getMeetsInDatabase();
     }
 
     componentDidMount(){
         //this.setState({meetsData:data});
         //console.log('componentDidMount');
+
         this.getMeets();
         this.props.screenProps.getRef(this);
     }
@@ -103,9 +104,9 @@ export default class TinkoScreen extends Component {
 
     }
 
-    async getMeetsInDatabase(uid){
+    async getMeetsInDatabase(){
         try {
-            const value = await AsyncStorage.getItem('TinkoMeets'+uid);
+            const value = await AsyncStorage.getItem('TinkoMeets'+this.state.userUid);
             if (value !== null){
                 // We have data!!
                 //console.log(value);

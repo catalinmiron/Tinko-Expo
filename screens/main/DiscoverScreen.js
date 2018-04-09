@@ -28,7 +28,7 @@ var onKeyEnteredRegistration;
 export default class DiscoverScreen extends Component {
 
     _panResponder = {};
-    _previousLeft = 0;
+    //_previousLeft = 0;
     _previousTop = 0;
     _circleStyles = {};
     _minTop = 0;
@@ -352,7 +352,7 @@ export default class DiscoverScreen extends Component {
             onPanResponderRelease: this._handlePanResponderEnd,
             onPanResponderTerminate: this._handlePanResponderEnd,
         });
-        this._previousLeft = 0;
+        //this._previousLeft = 0;
         this._previousTop = listTopHeight;
         this._circleStyles = {
             style: {
@@ -406,6 +406,7 @@ export default class DiscoverScreen extends Component {
     };
 
 }
+
 
 
 const styles = StyleSheet.create({

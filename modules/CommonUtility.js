@@ -37,6 +37,8 @@ export const getUserData = (userUid) => {
                     username: user.username,
                     photoURL: user.photoURL,
                     uid: user.uid,
+                    location:user.location,
+                    gender:user.gender,
                 });
             } else {
                 console.log("No such document!");

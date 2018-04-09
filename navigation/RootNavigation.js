@@ -122,8 +122,7 @@ export default class RootNavigator extends React.Component {
             tx => {
                 tx.executeSql('create table if not exists friend_list'+ uid +' (' +
                     'id integer primary key not null , ' +
-                    'userId text, ' +
-                    'avatarUrl text , ' +
+                    'userId text UNIQUE, avatarUrl text , ' +
                     'username text, ' +
                     'location text,' +
                     'gender text);');

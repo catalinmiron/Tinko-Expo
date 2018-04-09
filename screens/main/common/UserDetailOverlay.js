@@ -1,7 +1,7 @@
 import React, {
     Component
 } from 'react'
-import {Text, Image} from 'react-native';
+import {Text, Image, AsyncStorage} from 'react-native';
 import {Button, Header, Avatar, Overlay} from 'react-native-elements'
 import {getUserData} from "../../../modules/CommonUtility";
 
@@ -49,8 +49,27 @@ export default class UserDetailScreen extends Component{
     }
 
     showThisUser(uid, navigation){
-        this.getUserDataFromSql(uid);
+        if(uid===this.state.userUid){
+            this.getThisUserFromDatabase();
+        } else {
+            this.getUserDataFromSql(uid);
+        }
         this.setState({isVisible:true, navigation:navigation});
+    }
+
+    async getThisUserFromDatabase(){
+        try {
+            const value = await AsyncStorage.getItem('ThisUser'+this.state.userUid);
+            if (value !== null){
+                // We have data!!
+                //console.log(value);
+                let userData = JSON.parse(value);
+                this.setState({userData});
+            }
+        } catch (error) {
+            // Error retrieving data
+            console.log(error);
+        }
     }
 
     getUserDataFromSql(uid){
@@ -116,12 +135,18 @@ export default class UserDetailScreen extends Component{
                         <Text style={{fontFamily:'regular', fontSize:20}}>{userData.location}</Text>
 
                     </View>
-                    <Avatar
-                        large
-                        rounded
-                        source={{uri: userData.photoURL}}
-                        //onPress={() => console.log("Works!")}
-                        activeOpacity={0.7}
+                    {/*<Avatar*/}
+                        {/*large*/}
+                        {/*rounded*/}
+                        {/*source={{uri: userData.photoURL}}*/}
+                        {/*//onPress={() => console.log("Works!")}*/}
+                        {/*activeOpacity={0.7}*/}
+                    {/*/>*/}
+
+                    <Image
+                        style={{height:75, width:75}}
+                        // source={{uri:userData.photoURL}}
+                        source={{uri:'https://s-media-cache-ak0.pinimg.com/736x/b1/21/df/b121df29b41b771d6610dba71834e512.jpg'}}
                     />
 
                 </View>
