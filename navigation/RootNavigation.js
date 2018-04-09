@@ -37,9 +37,9 @@ export default class RootNavigator extends React.Component {
             let user = firebase.auth().currentUser;
             let uid = user.uid;
             // 测试时才用drop
-            this.dropChatTable(uid);
+            //this.dropChatTable(uid);
             this.initChatTable(uid);
-            this.dropFriendsTable(uid);
+            //this.dropFriendsTable(uid);
             this.initFriendsTable(uid);
             this.dropMeetingTable(uid);
             this.initMeetingTable(uid);
@@ -64,6 +64,7 @@ export default class RootNavigator extends React.Component {
                 this.insertChatSql(uid,data,0);
             });
             this.socket.on("systemListener"+uid,msg=>{
+                console.log('systemListener foiwoiefjowifoisjioefjosjioofjsoje');
                 this.getFriendRequestInfo(JSON.parse(msg))
             });
 
