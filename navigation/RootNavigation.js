@@ -102,7 +102,7 @@ export default class RootNavigator extends React.Component {
     dropChatTable(uid){
         db.transaction(
             tx => {
-                tx.executeSql('drop table db'+ uid);
+                tx.executeSql('drop table if exists db'+ uid);
             },
             (error) => console.log("db drop :" + error),
             () => {
@@ -114,7 +114,7 @@ export default class RootNavigator extends React.Component {
     dropFriendsTable(uid){
         db.transaction(
             tx => {
-                tx.executeSql('drop table friend_list'+ uid);
+                tx.executeSql('drop table if exists friend_list'+ uid);
             },
             null,
             null
@@ -143,7 +143,7 @@ export default class RootNavigator extends React.Component {
     dropMeetingTable(uid){
         db.transaction(
             tx => {
-                tx.executeSql('drop table meeting'+ uid);
+                tx.executeSql('drop table if exists meeting'+ uid);
             },
             (error) => console.log("meeting drop :" + error),
             () => {
