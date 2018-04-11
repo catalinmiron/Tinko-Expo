@@ -47,6 +47,8 @@ export default class SettingSubButton extends React.Component {
 
             </TouchableOpacity>
 
+
+
         );
     }
 }

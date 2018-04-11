@@ -1,10 +1,11 @@
 import React from 'react';
 import {Alert, View, Button} from "react-native";
 import firebase from "firebase";
+import {Header} from 'react-native-elements';
 
 export default class SettingsScreen extends React.Component {
     static navigationOptions = ({
-        title:"Setting"
+        header:null,
     });
 
     onLogoutButtonPressed(){
@@ -22,6 +23,9 @@ export default class SettingsScreen extends React.Component {
     render() {
         return (
             <View>
+                <Header
+                    centerComponent={{ text: 'Settings', style: { color: '#fff' } }}
+                />
                 <Button
                     onPress={() => this.onLogoutButtonPressed()}
                     title="Logout"

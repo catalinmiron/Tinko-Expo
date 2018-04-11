@@ -10,7 +10,7 @@ import firebase from "firebase";
 import 'firebase/firestore';
 import { NavigationActions } from 'react-navigation';
 import { MaterialIcons } from '@expo/vector-icons';
-import { getStartTimeString, getPostTimeString, getPostRequest, getUserData } from "../../modules/CommonUtility";
+import { getStartTimeString, getPostTimeString, getPostRequest, getUserData,writeInAsyncStorage, getFromAsyncStorage } from "../../modules/CommonUtility";
 
 
 const SCREEN_WIDTH = Dimensions.get('window').width;
@@ -36,8 +36,8 @@ export default class TinkoScreen extends Component {
             refreshing:false,
             lastVisible:null,
             orderByPostTime:true,
-        }
-        this.getMeetsInDatabase();
+        };
+        getFromAsyncStorage('TinkoMeets', user.uid).then((meetsData) => this.setState({meetsData}))
     }
 
     componentDidMount(){
@@ -85,40 +85,11 @@ export default class TinkoScreen extends Component {
             console.log("Done");
             var lastVisible = querySnapshot.docs[querySnapshot.docs.length-1];
             this.setState({refreshing:false, loadingDone:true, lastVisible:lastVisible});
-            this.writeMeetsInDatabase(meetsData);
+            writeInAsyncStorage('TinkoMeets', meetsData, this.state.userUid);
         }).catch((error) => {
             console.log(error);
         });
     }
-
-    writeMeetsInDatabase(meetsData){
-        var meetsDataString = JSON.stringify(meetsData);
-        //var obj = JSON.parse(meetsDataString);
-        //console.log(obj);
-        try {
-            AsyncStorage.setItem('TinkoMeets'+this.state.userUid, meetsDataString);
-        } catch (error) {
-            // Error saving data
-            console.log(error);
-        }
-
-    }
-
-    async getMeetsInDatabase(){
-        try {
-            const value = await AsyncStorage.getItem('TinkoMeets'+this.state.userUid);
-            if (value !== null){
-                // We have data!!
-                //console.log(value);
-                let meetsData = JSON.parse(value);
-                this.setState({meetsData});
-            }
-        } catch (error) {
-            // Error retrieving data
-            console.log(error);
-        }
-    }
-
 
     async processMeets(queryDatas){
         var meetsData = [];

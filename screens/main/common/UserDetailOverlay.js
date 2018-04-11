@@ -2,8 +2,9 @@ import React, {
     Component
 } from 'react'
 import {Text, Image, AsyncStorage} from 'react-native';
-import {Button, Header, Avatar, Overlay} from 'react-native-elements'
+import {Button, Header, Avatar, Overlay, Input} from 'react-native-elements'
 import {getUserData} from "../../../modules/CommonUtility";
+import {sendFriendRequest} from "../../../modules/SocketClient";
 
 import {
     View
@@ -40,6 +41,7 @@ export default class UserDetailScreen extends Component{
             isFriends:true,
             isVisible:props.isVisible,
             navigation:null,
+            requestMessage:'',
         }
     }
 
@@ -64,7 +66,7 @@ export default class UserDetailScreen extends Component{
                 // We have data!!
                 //console.log(value);
                 let userData = JSON.parse(value);
-                this.setState({userData});
+                this.setState({userData, isFriends:true});
             }
         } catch (error) {
             // Error retrieving data
@@ -90,7 +92,11 @@ export default class UserDetailScreen extends Component{
                             location:data[0].location,
                             gender:data[0].gender,
                         }
-                        this.setState({userData:userData});
+                        this.setState({
+                            userData:userData,
+                            requestMessage:`I am ${data[0].username}`,
+                            isFriends:true,
+                        });
                     }
                 });
             },
@@ -109,7 +115,11 @@ export default class UserDetailScreen extends Component{
             if (userDoc.exists) {
                 //console.log("Document data:", userDoc.data());
                 let user = userDoc.data();
-                this.setState({userData:user, isFriends:false});
+                this.setState({
+                    userData:user,
+                    requestMessage:`I am ${user.username}`,
+                    isFriends:false
+                });
             } else {
                 console.log("No such document!");
             }
@@ -120,7 +130,7 @@ export default class UserDetailScreen extends Component{
 
     render() {
         //console.log(this.props);
-        const { userData, userUid, isFriends, isVisible}  = this.state;
+        const { userData, userUid, isFriends, isVisible, requestMessage}  = this.state;
         //console.log(userData);
         return (
             <Overlay
@@ -165,12 +175,20 @@ export default class UserDetailScreen extends Component{
                         }}
                     />
                     :
-                    <Button
-                        title='Add Friend'
-                        onPress={() => {
-                            //sendFriendRequest(userUid, userData.uid, 0, "I want to be your friend!")
-                        }}
-                    />
+                    <View>
+                        <Input
+                            placeholder={`I am ${userData.username}`}
+                            onChangeText={(requestMessage) => this.setState({requestMessage})}
+                            value={requestMessage}
+                        />
+                        <Button
+                            containerStyle={{marginTop:10}}
+                            title='Add Friend'
+                            onPress={() => {
+                                sendFriendRequest(userUid, userData.uid, 0, requestMessage)
+                            }}
+                        />
+                    </View>
                 }
                 <Button
                     containerStyle={{marginTop:15}}

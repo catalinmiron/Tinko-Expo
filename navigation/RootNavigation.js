@@ -20,6 +20,7 @@ let getPrivateHistory = false,
 export default class RootNavigator extends React.Component {
     constructor(props){
         super(props);
+
         //console.log(props);
     }
 
@@ -47,7 +48,6 @@ export default class RootNavigator extends React.Component {
             this.socket = SocketIOClient('http://47.89.187.42:4000/');
             this.socket.emit("userLogin",uid);
             this.socket.on("connect" + uid,msg=>{
-                this.sendFriendRequest(uid,uid,0,"msg hhhh");
                 let data = JSON.parse(msg),
                     type = data.type;
                 //3代表未读私聊
@@ -64,7 +64,6 @@ export default class RootNavigator extends React.Component {
                 this.insertChatSql(uid,data,0);
             });
             this.socket.on("systemListener"+uid,msg=>{
-                console.log('systemListener foiwoiefjowifoisjioefjosjioofjsoje');
                 this.getFriendRequestInfo(JSON.parse(msg))
             });
 
@@ -80,7 +79,11 @@ export default class RootNavigator extends React.Component {
             });
             return (
                 <View style={{flex:1}}>
-                    <MainTabNavigator screenProps={{showThisUser:this.showThisUser.bind(this)}}/>
+                    <MainTabNavigator
+                        screenProps={{
+                            showThisUser:this.showThisUser.bind(this),
+                            meRef:ref => this.meRef = ref,
+                        }}/>
                     <UserDetailOverlay
                         onRef={ref => this.userDetailOverlay = ref}
                         isVisible={false}
@@ -139,6 +142,22 @@ export default class RootNavigator extends React.Component {
         );
     }
 
+    // initNewFriendsRequestTable(uid){
+    //     db.transaction(
+    //         tx => {
+    //             tx.executeSql('create table if not exists new_friends_request'+ uid +' (' +
+    //                 'id integer primary key not null , ' +
+    //                 'uid text UNIQUE, avatarUrl text , ' +
+    //                 'username text, ' +
+    //                 'location text,' +
+    //                 'gender text);');
+    //         },
+    //         (error) => console.log("friendList :" + error),
+    //         () => {
+    //             console.log('friend_list complete');
+    //         }
+    //     );
+    // }
 
     dropMeetingTable(uid){
         db.transaction(
@@ -266,8 +285,10 @@ export default class RootNavigator extends React.Component {
     getFriendRequestInfo(data){
         //data.msg 代表想说的话
         console.log("===================getFriendRequest",data);
+        //console.log(this.meRef);
         if (data.type === 0){
             //data.requester 发送了好友请求
+            this.meRef.showBadge();
         }else if (data.type === -1){
             //data.requester 拒绝了好友请求
         }else if (data.type === 1){

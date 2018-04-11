@@ -8,9 +8,9 @@ import Swiper from 'react-native-swiper';
 import DiscoverScreen from '../screens/main/DiscoverScreen';
 import TinkoScreen from '../screens/main/TinkoScreen'
 import TinkoDetailScreen from "../screens/main/tinko/TinkoDetailScreen";
-import MeNavigator from "./MeNavigator";
 import LinksScreen from "../screens/main/LinksScreen";
 import Colors from "../constants/Colors";
+import IconBadge from '../modules/react-native-icon-badge'
 
 const TinkoTabNavigator = TabNavigator(
     {
@@ -49,11 +49,32 @@ export default class TinkoTabNavigatorScreen extends React.Component {
 
     static navigationOptions = ({ navigation }) => {
         const params = navigation.state.params || {};
-        const { allowParticipantsInvite, identity, threeDots } = params;
 
         return {
 
             title: 'Tinko',
+
+            tabBarIcon: ({ tintColor, focused }) =>
+                <IconBadge
+                    MainElement={
+                        <View style={{height:30, width:30, alignItems: 'center',
+                            justifyContent: 'center',}}>
+                            <Ionicons
+                                name={focused ? 'ios-home' : 'ios-home-outline'}
+                                size={30}
+                                style={{ marginBottom: -3 }}
+                                color={focused ? Colors.tabIconSelected : Colors.tabIconDefault}
+                            />
+                        </View>
+
+                    }
+                    IconBadgeStyle={
+                        {width:10, height:10, backgroundColor: 'red'}
+                    }
+                    Hidden={params.badgeHidden}
+                />,
+
+
             headerTitle:params.tinkoHeaderTitle,
             headerRight:(params.stateIndex===0?
                 <MaterialIcons.Button
@@ -77,16 +98,18 @@ export default class TinkoTabNavigatorScreen extends React.Component {
     //static navigationOptions = {title:'Tinko'};
     //static  navigationOptions = {header:null};
     componentDidMount(){
-        this.props.navigation.setParams({tinkoHeaderTitle:this.tinkoHeaderTitle.bind(this), sortButton:this.onSortButtonPressed.bind(this), stateIndex:this.state.stateIndex});
+        this.props.navigation.setParams({
+            tinkoHeaderTitle:this.tinkoHeaderTitle.bind(this),
+            sortButton:this.onSortButtonPressed.bind(this),
+            stateIndex:this.state.stateIndex,
+            badgeHidden:true
+        });
     }
 
-
-    // disableScroll(){
-    //     this.setState({scrollEnabled: false})
-    // }
-    //
-    // enableScroll(){
-    //     this.setState({scrollEnabled: true})
+    // showBadge(){
+    //     this.props.navigation.setParams({
+    //         badgeHidden:false
+    //     });
     // }
 
     onSortButtonPressed(){

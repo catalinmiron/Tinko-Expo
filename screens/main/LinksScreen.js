@@ -2,12 +2,14 @@ import React, {
     Component
 } from 'react'
 import {
-    StyleSheet,View,WebView,ScrollView
+    StyleSheet,View,WebView,ScrollView, Text
 } from 'react-native'
 import { ListItem } from 'react-native-elements'
 import Expo, { SQLite } from 'expo';
 import * as firebase from "firebase";
 const db = SQLite.openDatabase('db.db');
+import IconBadge from '../../modules/react-native-icon-badge'
+import {Ionicons} from '@expo/vector-icons'
 
 require("firebase/firestore");
 import SocketIOClient from 'socket.io-client';
@@ -16,6 +18,8 @@ import {
 } from 'react-navigation';
 import PrivateChatScreen from './common/PrivateChatScreen';
 import GroupChatScreen from './common/GroupChatScreen';
+import Colors from "../../constants/Colors";
+import TinkoScreen from "./TinkoScreen";
 
 let friendList = [];
 let uid = "";
@@ -96,17 +100,9 @@ class ChatPage extends Component{
 }
 
 
-class TinkoWebView extends Component {
-    render() {
-        return (
-            <WebView
-                source={{uri: 'https://github.com/facebook/react-native'}}
-            />
-        );
-    }
-}
 
-class FriendChatListView extends Component {
+
+export default class FriendChatListView extends Component {
     constructor(){
         super();
         let user = firebase.auth().currentUser;
@@ -191,6 +187,46 @@ class FriendChatListView extends Component {
             });
         })
     }
+
+
+    static navigationOptions = ({ navigation }) => {
+        const params = navigation.state.params || {};
+
+        return {
+
+            title: 'Message',
+
+            tabBarIcon: ({tintColor, focused}) =>
+                <IconBadge
+                    MainElement={
+                        <View style={{
+                            height: 30, width: 30, alignItems: 'center',
+                            justifyContent: 'center',
+                        }}>
+                            <Ionicons
+                                name={focused ? 'ios-chatbubbles' : 'ios-chatbubbles-outline'}
+                                size={30}
+                                style={{marginBottom: -3}}
+                                color={focused ? Colors.tabIconSelected : Colors.tabIconDefault}
+                            />
+                        </View>
+
+                    }
+                    BadgeElement={
+                        <Text style={{color: '#FFFFFF'}}>{''}</Text>
+                    }
+                    IconBadgeStyle={
+                        {width: 10, height: 10, backgroundColor: 'red'}
+                    }
+                    Hidden={true}
+                />,
+
+
+            headerTitle: (<Text>Message</Text>),
+        }
+
+    };
+
 
     getAvatar(){
         db.transaction(
@@ -340,18 +376,3 @@ const styles = StyleSheet.create(
             color: 'grey'
         }
     });
-
-export default StackNavigator({
-    FriendChatListView: {
-        screen: FriendChatListView
-    },
-    TinkoWebView:{
-        screen: TinkoWebView,
-        navigationOptions: {
-            tabBarVisible: false
-        }
-    }
-
-},{
-    initialRouteName: 'FriendChatListView',
-});

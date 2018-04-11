@@ -1,7 +1,7 @@
 import React from 'react';
 import {
     View, Alert, TouchableWithoutFeedback, Image, ScrollView, SafeAreaView, StyleSheet, Text,
-    AsyncStorage
+    AsyncStorage, TouchableOpacity, Dimensions
 } from 'react-native';
 import { List, ListItem,Button } from 'react-native-elements';
 import Icon from 'react-native-vector-icons/FontAwesome';
@@ -14,64 +14,98 @@ import firebase from 'firebase';
 import {getUserData} from "../../modules/CommonUtility";
 import SubButton from '../../components/SettingSubButton';
 import {SQLite} from "expo";
+import Colors from "../../constants/Colors";
+import IconBadge from '../../modules/react-native-icon-badge';
+import {Ionicons} from '@expo/vector-icons';
+import {writeInAsyncStorage, getFromAsyncStorage} from "../../modules/CommonUtility";
 
 const db = SQLite.openDatabase('db.db');
+const SCREEN_WIDTH = Dimensions.get('window').width;
 
 export default class Me extends React.Component {
 
     constructor(props){
         super(props);
         //console.log(props);
+        this.props.navigation.setParams({badgeHidden:true});
         let user = firebase.auth().currentUser;
         this.state={
             userUid:user.uid,
             userData:{},
-        }
-        this.getThisUserInDatabase();
+            badgeHidden:true,
+        };
+        getFromAsyncStorage('ThisUser', user.uid).then((userData) => this.setState({userData}));
+        getFromAsyncStorage('NewFriendsBadgeHidden', user.uid).then((badgeHidden) => {
+            if(badgeHidden===undefined){
+                badgeHidden = true;
+            }
+            this.setState({badgeHidden});
+            this.props.navigation.setParams({badgeHidden});
+        });
     }
+
+    static navigationOptions = ({ navigation }) => {
+        const params = navigation.state.params || {};
+        return{
+            title:'Me',
+            tabBarIcon: ({ tintColor, focused }) =>
+                <IconBadge
+                    MainElement={
+                        <View style={{height:30, width:30, alignItems: 'center',
+                            justifyContent: 'center',}}>
+                            <Ionicons
+                                name={focused ? 'ios-person' : 'ios-person-outline'}
+                                size={30}
+                                style={{ marginBottom: -3 }}
+                                color={focused ? Colors.tabIconSelected : Colors.tabIconDefault}
+                            />
+                        </View>
+
+                    }
+                    IconBadgeStyle={
+                        {width:10, height:10, backgroundColor: 'red'}
+                    }
+                    Hidden={params.badgeHidden}
+                />,
+            header:null
+        }
+    };
 
 
     componentDidMount(){
         this.getThisUserData();
-        this.processFriendsList(this.state.userUid)
+        this.processFriendsList(this.state.userUid);
+        this.props.screenProps.meRef(this);
+    }
+
+
+    componentWillUnmount(){
+        //writeInAsyncStorage('NewFriendsBadgeHidden', {123:234}, this.state.userUid);
+    }
+
+
+
+    showBadge(){
+        this.setState({badgeHidden:false});
+        this.props.navigation.setParams({badgeHidden:false});
+        writeInAsyncStorage('NewFriendsBadgeHidden', false, this.state.userUid);
     }
 
     getThisUserData(){
-        getUserData(this.state.userUid).fork(
+        const {userUid} = this.state;
+        getUserData(userUid).fork(
             (error) => {
                 console.log(error);
             },
             (userObj) => {
                 this.setState({userData:userObj});
-                this.writeThisUserInDatabase(userObj);
+                writeInAsyncStorage('ThisUser', userObj, userUid);
             }
         );
     }
 
-    writeThisUserInDatabase(userData){
-        let thisUserDataString = JSON.stringify(userData);
-        try {
-            AsyncStorage.setItem('ThisUser'+this.state.userUid, thisUserDataString);
-        } catch (error) {
-            // Error saving data
-            console.log(error);
-        }
-    }
 
-    async getThisUserInDatabase(){
-        try {
-            const value = await AsyncStorage.getItem('ThisUser'+this.state.userUid);
-            if (value !== null){
-                // We have data!!
-                //console.log(value);
-                let userData = JSON.parse(value);
-                this.setState({userData});
-            }
-        } catch (error) {
-            // Error retrieving data
-            console.log(error);
-        }
-    }
+
 
 
     processFriendsList(uid){
@@ -140,20 +174,26 @@ export default class Me extends React.Component {
         );
     }
 
+    newFriendsButtonPressed(){
+        this.setState({badgeHidden:true});
+        this.props.navigation.setParams({badgeHidden:true});
+        this.props.navigation.navigate('NewFriends');
+        writeInAsyncStorage('NewFriendsBadgeHidden', true, this.state.userUid);
+    }
+
     render() {
-        const { userData } = this.state;
+        const { userData ,badgeHidden} = this.state;
         return (
             <SafeAreaView style={{backgroundColor:'white'}}>
                 <ScrollView style={{backgroundColor: "white", height: "100%" ,width: "100%"}}>
-                    <View style={{height:60,width:"100%",marginTop:35}}>
-                    {/*这是设置按钮*/}
-                    <TouchableWithoutFeedback onPress={() => this.props.navigation.navigate('Setting')}>
-                    <Image style={{alignSelf: 'flex-end', marginRight:20, width:30,height:30}}
-                    source={require('../../assets/images/setting.png')}
+                    <Ionicons
+                        onPress={() => this.props.navigation.navigate('Setting')}
+                        style={{position:'absolute',zIndex:100,top:20, right:SCREEN_WIDTH*0.05}}
+                        name={'ios-settings'}
+                        size={30}
+                        color={'black'}
+                        backgroundColor={'transparent'}
                     />
-                    </TouchableWithoutFeedback>
-                    </View>
-
                     <View style={styles.outerDiv}>
                         <Image
                             style={{width: 130,height: 130,marginTop:20,borderRadius: 25}}
@@ -169,10 +209,26 @@ export default class Me extends React.Component {
                             borderRadius:10,
                             flexDirection: 'row'
                         }}>
-                            <SubButton
-                                index={0}
-                                onPress={() => console.log('first')}
-                            />
+                            <TouchableOpacity
+                                onPress={() => this.newFriendsButtonPressed()}
+                                style={{flex:1, height:55,alignItems: 'center',justifyContent: 'center',}}>
+                                <IconBadge
+                                    MainElement={
+                                        <View style={{height:35, width:35, alignItems: 'center',justifyContent: 'center',}}>
+                                            <Ionicons
+                                                name='md-person-add'
+                                                size={26}
+                                                color="#626567"
+                                             />
+                                        </View>
+
+                                    }
+                                    IconBadgeStyle={
+                                        {width:10, height:10, backgroundColor: 'red'}
+                                    }
+                                    Hidden={badgeHidden}
+                                />
+                            </TouchableOpacity>
                             <SubButton
                                 index={1}
                                 onPress={() => console.log('second')}

@@ -1,5 +1,5 @@
 import React from 'react';
-import { Platform, View, Image, StyleSheet } from 'react-native';
+import { Platform, View, Image, StyleSheet, Text } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { TabNavigator, TabBarBottom, StackNavigator } from 'react-navigation';
 
@@ -7,7 +7,6 @@ import Colors from '../constants/Colors';
 
 import LinksScreen from '../screens/main/LinksScreen';
 import SettingsScreen from '../screens/main/second/SettingsScreen';
-import MeNavigator from './MeNavigator';
 import TinkoTabNavigator from './TinkoTabNavigator';
 import CreateScreen from '../screens/main/CreateScreen';
 import GooglePlacesInputScreen from '../screens/main/create/GooglePlacesInput';
@@ -17,8 +16,10 @@ import UserDetailScreen from '../screens/main/common/UserDetailOverlay';
 import MeScreen from "../screens/main/MeScreen";
 import PrivateChatScreen from '../screens/main/common/PrivateChatScreen';
 import GroupChatScreen from '../screens/main/common/GroupChatScreen';
-
-
+import IconBadge from '../modules/react-native-icon-badge';
+import Setting from '../screens/main/second/SettingsScreen';
+import TinkoWebView from '../screens/main/common/TinkoWebView';
+import NewFriendsScreen from '../screens/main/second/NewFriendsScreen';
 
 const MainTabNavigator = TabNavigator(
   {
@@ -28,44 +29,63 @@ const MainTabNavigator = TabNavigator(
     Links: {
       screen: LinksScreen,
         header: null,
-        navigationOptions:({navigation}) => ({
-            header: false
-        })
     },
     Settings: {
-      screen: MeNavigator,
+      screen: MeScreen,
     },
   },
   {
-    navigationOptions: ({ navigation }) => ({
-      tabBarIcon: ({ focused }) => {
-        const { routeName } = navigation.state;
-        let iconName;
-        switch (routeName) {
-          case 'Home':
-            iconName =
-              Platform.OS === 'ios'
-                ? `ios-information-circle${focused ? '' : '-outline'}`
-                : 'md-information-circle';
-            break;
-          case 'Links':
-            iconName = Platform.OS === 'ios' ? `ios-link${focused ? '' : '-outline'}` : 'md-link';
-            break;
-          case 'Settings':
-            iconName =
-              Platform.OS === 'ios' ? `ios-options${focused ? '' : '-outline'}` : 'md-options';
-        }
-        return (
-          <Ionicons
-            name={iconName}
-            size={28}
-            style={{ marginBottom: -3 }}
-            color={focused ? Colors.tabIconSelected : Colors.tabIconDefault}
-          />
-        );
-      },
-    }),
-      //tabBarOptions:{style:{height:0}, showLabel:false},
+    // navigationOptions: ({ navigation }) => ({
+    //   tabBarIcon: ({ focused }) => {
+    //     const { routeName } = navigation.state;
+    //     let iconName;
+    //     switch (routeName) {
+    //       case 'Home':
+    //         iconName =
+    //           Platform.OS === 'ios'
+    //             ? `ios-information-circle${focused ? '' : '-outline'}`
+    //             : 'md-information-circle';
+    //         break;
+    //       case 'Links':
+    //         iconName = Platform.OS === 'ios' ? `ios-link${focused ? '' : '-outline'}` : 'md-link';
+    //         break;
+    //       case 'Settings':
+    //         iconName =
+    //           Platform.OS === 'ios' ? `ios-person${focused ? '' : '-outline'}` : 'md-person';
+    //     }
+    //     return (
+    //         <View>
+    //             {/*<Ionicons*/}
+    //                 {/*name={iconName}*/}
+    //                 {/*size={28}*/}
+    //                 {/*style={{ marginBottom: -3 }}*/}
+    //                 {/*color={focused ? Colors.tabIconSelected : Colors.tabIconDefault}*/}
+    //             {/*/>*/}
+    //             <IconBadge
+    //                 MainElement={
+    //                     <View style={{height:30, width:30, alignItems: 'center',
+    //                         justifyContent: 'center',}}>
+    //                         <Ionicons
+    //                             name={iconName}
+    //                             size={30}
+    //                             style={{ marginBottom: -3 }}
+    //                             color={focused ? Colors.tabIconSelected : Colors.tabIconDefault}
+    //                         />
+    //                     </View>
+    //
+    //                 }
+    //                 BadgeElement={
+    //                     <Text style={{color:'#FFFFFF'}}>{''}</Text>
+    //                 }
+    //                 IconBadgeStyle={
+    //                     {width:10, height:10, backgroundColor: 'red'}
+    //                 }
+    //                 Hidden={false}
+    //             />
+    //         </View>
+    //     );
+    //   },
+    // }),
     tabBarComponent: TabBarBottom,
     tabBarPosition: 'bottom',
     animationEnabled: false,
@@ -87,16 +107,23 @@ const MainTabNavigatorWithDetailScreens = StackNavigator(
         TinkoDetail:{
             screen: TinkoDetailScreen,
         },
-        // UserDetail:{
-        //     screen:UserDetailScreen,
-        // },
         PrivateChatPage: {
             screen: PrivateChatScreen,
         },
         GroupChatPage: {
             screen: GroupChatScreen,
         },
-    }
+        Setting: {
+            screen:Setting,
+        },
+        TinkoWebView:{
+            screen: TinkoWebView,
+        },
+        NewFriends:{
+            screen:NewFriendsScreen
+        }
+    },
+    { headerMode: 'none' }
 );
 
 export default StackNavigator(

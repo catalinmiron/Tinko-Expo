@@ -1,7 +1,35 @@
 import Task from 'data.task';
 import firebase from "firebase";
 import 'firebase/firestore'
-import {Alert} from "react-native";
+import {Alert, AsyncStorage} from "react-native";
+
+
+
+export const writeInAsyncStorage = (code, data, userUid) => {
+    let dataString = JSON.stringify(data);
+    try {
+        AsyncStorage.setItem(code+userUid, dataString);
+    } catch (error) {
+        // Error saving data
+        console.log(error);
+    }
+};
+
+export const getFromAsyncStorage = async (code, userUid) => {
+    try {
+        const value = await AsyncStorage.getItem(code + userUid);
+        if (value !== null){
+            // We have data!!
+            //console.log(value);
+            let data = JSON.parse(value);
+            return data;
+        }
+    } catch (error) {
+        // Error retrieving data
+        console.log(error);
+        return {};
+    }
+}
 
 export const getPostRequest = (code, bodyData, onComplete, onError) => {
     fetch(`https://us-central1-tinko-64673.cloudfunctions.net/${code}`, {
