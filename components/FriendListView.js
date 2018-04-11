@@ -59,7 +59,7 @@ export default class FriendListView extends Component {
                 });
             },
             null,
-            this.update
+            null
         )
     }
 

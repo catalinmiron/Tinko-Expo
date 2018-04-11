@@ -12,6 +12,7 @@ import * as firebase from "firebase";
 import SocketIOClient from 'socket.io-client';
 import 'firebase/firestore';
 import UserDetailOverlay from '../screens/main/common/UserDetailOverlay'
+import {initNewFriendsRequestTable, insertNewFriendsRequest} from "../modules/SqliteClient";
 
 let getPrivateHistory = false,
     getMeetsHistory = false;
@@ -20,63 +21,72 @@ let getPrivateHistory = false,
 export default class RootNavigator extends React.Component {
     constructor(props){
         super(props);
-
+        this.state={
+            userUid:''
+        }
         //console.log(props);
     }
 
     componentDidMount() {
     this._notificationSubscription = this._registerForPushNotifications();
+        if(this.props.loggedIn){
+            this.loggedInSetup();
+        }
   }
 
   componentWillUnmount() {
     this._notificationSubscription && this._notificationSubscription.remove();
   }
 
+  loggedInSetup(){
+      let user = firebase.auth().currentUser;
+      let uid = user.uid;
+      this.setState({userUid:uid})
+      // 测试时才用drop
+      //this.dropChatTable(uid);
+      this.initChatTable(uid);
+      //this.dropFriendsTable(uid);
+      this.initFriendsTable(uid);
+      this.dropMeetingTable(uid);
+      this.initMeetingTable(uid);
+      initNewFriendsRequestTable(uid);
+
+      this.socket = SocketIOClient('http://47.89.187.42:4000/');
+      this.socket.emit("userLogin",uid);
+      this.socket.on("connect" + uid,msg=>{
+          let data = JSON.parse(msg),
+              type = data.type;
+          //3代表未读私聊
+          if (type === 3 && !getPrivateHistory){
+              getPrivateHistory = true;
+          }else if (type === 4 && !getMeetsHistory){
+              getMeetsHistory = true;
+          }else{
+              this.insertChatSql(uid,data);
+          }
+      });
+      this.socket.on("mySendBox"+uid,msg=>{
+          let data = JSON.parse(msg);
+          this.insertChatSql(uid,data,0);
+      });
+      this.socket.on("systemListener"+uid,msg=>{
+          this.getFriendRequestInfo(JSON.parse(msg))
+      });
+
+
+
+      let meetRef = firebase.firestore().collection("Meets").where(`participatingUsersList.${uid}.status`, "==", true);
+      meetRef.get().then((querySnapshot)=>{
+          for (let i = 0;i<querySnapshot.docs.length;i++){
+              this.insertMeetingId(uid,querySnapshot.docs[i]);
+          }
+      }).catch((error) => {
+          console.log("Error getting documents: ", error);
+      });
+  }
 
   render() {
         if(this.props.loggedIn){
-            let user = firebase.auth().currentUser;
-            let uid = user.uid;
-            // 测试时才用drop
-            //this.dropChatTable(uid);
-            this.initChatTable(uid);
-            //this.dropFriendsTable(uid);
-            this.initFriendsTable(uid);
-            this.dropMeetingTable(uid);
-            this.initMeetingTable(uid);
-
-            this.socket = SocketIOClient('http://47.89.187.42:4000/');
-            this.socket.emit("userLogin",uid);
-            this.socket.on("connect" + uid,msg=>{
-                let data = JSON.parse(msg),
-                    type = data.type;
-                //3代表未读私聊
-                if (type === 3 && !getPrivateHistory){
-                    getPrivateHistory = true;
-                }else if (type === 4 && !getMeetsHistory){
-                    getMeetsHistory = true;
-                }else{
-                    this.insertChatSql(uid,data);
-                }
-            });
-            this.socket.on("mySendBox"+uid,msg=>{
-                let data = JSON.parse(msg);
-                this.insertChatSql(uid,data,0);
-            });
-            this.socket.on("systemListener"+uid,msg=>{
-                this.getFriendRequestInfo(JSON.parse(msg))
-            });
-
-
-
-            let meetRef = firebase.firestore().collection("Meets").where(`participatingUsersList.${uid}.status`, "==", true);
-            meetRef.get().then((querySnapshot)=>{
-                for (let i = 0;i<querySnapshot.docs.length;i++){
-                    this.insertMeetingId(uid,querySnapshot.docs[i]);
-                }
-            }).catch((error) => {
-                console.log("Error getting documents: ", error);
-            });
             return (
                 <View style={{flex:1}}>
                     <MainTabNavigator
@@ -143,22 +153,7 @@ export default class RootNavigator extends React.Component {
         );
     }
 
-    // initNewFriendsRequestTable(uid){
-    //     db.transaction(
-    //         tx => {
-    //             tx.executeSql('create table if not exists new_friends_request'+ uid +' (' +
-    //                 'id integer primary key not null , ' +
-    //                 'uid text UNIQUE, avatarUrl text , ' +
-    //                 'username text, ' +
-    //                 'location text,' +
-    //                 'gender text);');
-    //         },
-    //         (error) => console.log("friendList :" + error),
-    //         () => {
-    //             console.log('friend_list complete');
-    //         }
-    //     );
-    // }
+
 
     dropMeetingTable(uid){
         db.transaction(
@@ -289,6 +284,7 @@ export default class RootNavigator extends React.Component {
         //console.log(this.meRef);
         if (data.type === 0){
             //data.requester 发送了好友请求
+            insertNewFriendsRequest(this.state.userUid, data);
             this.meRef.showBadge();
         }else if (data.type === -1){
             //data.requester 拒绝了好友请求
