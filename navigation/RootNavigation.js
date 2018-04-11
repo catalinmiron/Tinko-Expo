@@ -81,6 +81,7 @@ export default class RootNavigator extends React.Component {
                 <View style={{flex:1}}>
                     <MainTabNavigator
                         screenProps={{
+                            friendsListIsReady:this.friendsListIsReady.bind(this),
                             showThisUser:this.showThisUser.bind(this),
                             meRef:ref => this.meRef = ref,
                         }}/>
@@ -298,6 +299,9 @@ export default class RootNavigator extends React.Component {
         }
     }
 
+    friendsListIsReady(){
+        console.log('Root Navigator: friendsListIsReady');
+    }
 
   _registerForPushNotifications() {
     // Send our push token over to our backend so we can receive notifications

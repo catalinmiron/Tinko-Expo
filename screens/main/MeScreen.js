@@ -48,10 +48,12 @@ export default class Me extends React.Component {
         });
         getFromAsyncStorage('NewFriendsBadgeHidden', user.uid).then((badgeHidden) => {
             if(badgeHidden===undefined){
-                badgeHidden = true;
+                this.setState({badgeHidden:true});
+                this.props.navigation.setParams({badgeHidden:true});
+            }else {
+                this.setState({badgeHidden});
+                this.props.navigation.setParams({badgeHidden});
             }
-            this.setState({badgeHidden});
-            this.props.navigation.setParams({badgeHidden});
         });
     }
 
@@ -168,6 +170,7 @@ export default class Me extends React.Component {
             (error) => console.log("这里报错" + error),
             () => {
                 console.log('insertCompleteFriendSql complete');
+                this.props.screenProps.friendsListIsReady();
                 this.friendsList.getSql();
             }
         );
