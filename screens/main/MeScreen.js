@@ -34,7 +34,18 @@ export default class Me extends React.Component {
             userData:{},
             badgeHidden:true,
         };
-        getFromAsyncStorage('ThisUser', user.uid).then((userData) => this.setState({userData}));
+        getFromAsyncStorage('ThisUser', user.uid).then((userData) => {
+            if(userData){
+                this.setState({userData})
+            } else {
+                this.setState({
+                    userData:{
+                        photoURL:'',
+                        username:'',
+                    }})
+            }
+
+        });
         getFromAsyncStorage('NewFriendsBadgeHidden', user.uid).then((badgeHidden) => {
             if(badgeHidden===undefined){
                 badgeHidden = true;
