@@ -52,10 +52,12 @@ function Stack() {
                 //私聊
                 let data = personalInfo[id];
                 let imageURL =  "http://larissayuan.com/home/img/prisma.png",
-                    personName = "Private Chat";
+                    personName = "Tinko好友";
                 if (data !== undefined){
                     imageURL =  (data[0]!==undefined)?data[0]:"http://larissayuan.com/home/img/prisma.png";
-                    personName = (data[1]!==undefined)?data[1]:"Private Chat";
+                    personName = (data[1]!==undefined)?data[1]:"Tinko好友";
+                }else{
+                    console.log("找不到头像");
                 }
                 rtnData = {
                     id:id,
@@ -77,6 +79,17 @@ function Stack() {
             this.dataStore.unshift(rtnData);
         }
         return this.dataStore;
+    };
+    this.updateUserInfo = function (data) {
+        let uid = data.uid;
+        for (element in this.dataStore){
+            let ele = this.dataStore[element];
+            if (ele.id === uid){
+                ele.imageURL = data.photoURL;
+                ele.personName = data.username
+            }
+        }
+        console.log("update");
     };
     this.getData = function () {
         return this.dataStore;
@@ -114,46 +127,53 @@ export default class FriendChatListView extends Component {
             messages: [],
             friendInfo:[]
         };
+        this.socket.emit("userLogin",uid);
         this.socket.on("connect" + uid,msg=>{
             let data = JSON.parse(msg),
                 type = data.type;
             if (type === 3 && !getPrivateHistory){
                 getPrivateHistory = true;
-                let unReadDataArr = data.message;
-                for (let i in unReadDataArr){
-                    let dataArr =  unReadDataArr[i],
-                        sqlObj = {
-                            type :1,
-                            from : dataArr.fromId,
-                            message : dataArr.msg,
-                            time : dataArr.time
-                        };
-                    this.insertChatSql(uid,sqlObj);
-                    chatInfo.appendData([type,dataArr.fromId,dataArr.msg]);
-                }
+                if (data.message){
+                    let unReadDataArr = data.message;
+                    for (let i in unReadDataArr){
+                        let dataArr =  unReadDataArr[i],
+                            sqlObj = {
+                                type :1,
+                                from : dataArr.fromId,
+                                message : dataArr.msg,
+                                time : dataArr.time
+                            };
+                        if (dataArr!==""){
+                            this.insertChatSql(uid,sqlObj);
+                            chatInfo.appendData([type,dataArr.fromId,dataArr.msg]);
+                        }
+                    }
 
-                this.setState({
-                    messages:chatInfo.getData()
-                });
+                    this.setState({
+                        messages:chatInfo.getData()
+                    });
+                }
             }else if (type === 4 && !getMeetsHistory){
                 getMeetsHistory = true;
-                let unReadDataArr = data.message;
-                for (let i in unReadDataArr){
-                    let dataArr =  unReadDataArr[i],
-                        sqlObj = {
-                            type :2,
-                            from : dataArr.fromId,
-                            message : dataArr.msg,
-                            time : dataArr.time,
-                            meetId:dataArr.meetId,
-                            meetUserData:dataArr.data
-                        };
-                    this.insertChatSql(uid,sqlObj);
-                    chatInfo.appendData([type,dataArr.meetId,dataArr.msg]);
+                if (data.message.length!==0){
+                    let unReadDataArr = data.message;
+                    for (let i in unReadDataArr){
+                        let dataArr =  unReadDataArr[i],
+                            sqlObj = {
+                                type :2,
+                                from : dataArr.fromId,
+                                message : dataArr.msg,
+                                time : dataArr.time,
+                                meetId:dataArr.meetId,
+                                meetUserData:dataArr.data
+                            };
+                        this.insertChatSql(uid,sqlObj);
+                        chatInfo.appendData([type,dataArr.meetId,dataArr.msg]);
+                    }
+                    this.setState({
+                        messages:chatInfo.getData()
+                    });
                 }
-                this.setState({
-                    messages:chatInfo.getData()
-                });
             }
             if (type !== 3 && type !== 4){
                 if (parseInt(type) === 0){
@@ -236,7 +256,6 @@ export default class FriendChatListView extends Component {
                     for (let i = 0;i<dataArr.length;i++){
                         personalInfo[dataArr[i].userId] = [dataArr[i].avatarUrl,dataArr[i].username];
                     }
-                    this.socket.emit("userLogin",uid);
                     this.setState({
                         friendInfo:personalInfo
                     });
@@ -288,6 +307,27 @@ export default class FriendChatListView extends Component {
                             chatInfo.appendData([type,dataArr[i].fromId,dataArr[i]['msg']]);
                         }else{
                             chatInfo.appendData([type,dataArr[i].meetingId,dataArr[i]['msg']]);
+                        }
+                    }
+                    let chat = chatInfo.getData();
+                    for (element in chat){
+                        let ele = chat[element];
+                        if (ele.imageURL === "http://larissayuan.com/home/img/prisma.png"&&(ele.type === 1||ele.type ===3)){
+                            let docRef = firebase.firestore().collection("Users").doc(ele.id);
+                            let getDoc = docRef.get().then(
+                                doc =>{
+                                    if (!doc.exists){
+                                        console.log("no data");
+                                    }else{
+                                        chatInfo.updateUserInfo(doc.data());
+                                        this.setState({
+                                            messages:chatInfo.getData()
+                                        });
+                                    }
+                                }
+                            ).catch(err => {
+                                console.log("ERROR: ",err);
+                            })
                         }
                     }
                     this.setState({

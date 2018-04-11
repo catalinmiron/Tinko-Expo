@@ -57,11 +57,14 @@ export default class RootNavigator extends React.Component {
           let data = JSON.parse(msg),
               type = data.type;
           //3代表未读私聊
-          if (type === 3 && !getPrivateHistory){
-              getPrivateHistory = true;
-          }else if (type === 4 && !getMeetsHistory){
-              getMeetsHistory = true;
-          }else{
+          // if (type === 3 && !getPrivateHistory){
+          //     getPrivateHistory = true;
+          // }else if (type === 4 && !getMeetsHistory){
+          //     getMeetsHistory = true;
+          // }else{
+          //     this.insertChatSql(uid,data);
+          // }
+          if (type!==3&&type!==4){
               this.insertChatSql(uid,data);
           }
       });
