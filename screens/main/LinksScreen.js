@@ -4,7 +4,7 @@ import React, {
 import {
     StyleSheet,View,WebView,ScrollView, Text
 } from 'react-native'
-import { ListItem } from 'react-native-elements'
+import { ListItem, Header } from 'react-native-elements'
 import Expo, { SQLite } from 'expo';
 import * as firebase from "firebase";
 const db = SQLite.openDatabase('db.db');
@@ -256,7 +256,8 @@ export default class FriendChatListView extends Component {
                 />,
 
 
-            headerTitle: (<Text>Message</Text>),
+            // headerTitle: (<Text>Message</Text>),
+            header:null
         }
 
     };
@@ -399,6 +400,9 @@ export default class FriendChatListView extends Component {
         }
         return (
             <View style={{flex:1}}>
+                <Header
+                    centerComponent={{ text: 'Message', style: { color: '#fff' } }}
+                />
                 <ScrollView>
                     {friendList}
                 </ScrollView>
