@@ -3,7 +3,10 @@ import {View,Text, ScrollView} from 'react-native';
 import {Header, Input, ListItem, Button} from 'react-native-elements';
 import {getNewFriendsRequest} from "../../../modules/SqliteClient";
 import firebase from "firebase";
-import {Ionicons} from '@expo/vector-icons'
+import {Ionicons} from '@expo/vector-icons';
+import {acceptFriendRequest} from "../../../modules/SocketClient";
+import Socket from "../../../modules/SocketModule";
+import SocketIOClient from "socket.io-client";
 
 export default class NewFriendsScreen extends Component {
     static navigationOptions = ({
@@ -15,6 +18,7 @@ export default class NewFriendsScreen extends Component {
         //console.log(props);
         let user = firebase.auth().currentUser;
         let uid = user.uid;
+        //console.log(uid);
         this.state={
             userUid:uid,
             requestsData:[],
@@ -22,6 +26,7 @@ export default class NewFriendsScreen extends Component {
             searchText:'',
             searched:false,
         }
+        this.renderRightElement = this.renderRightElement.bind(this);
     }
 
     componentDidMount(){
@@ -69,6 +74,17 @@ export default class NewFriendsScreen extends Component {
                 return (
                     <Button
                         title='Accept'
+                        onPress={() => {
+                            console.log(request.requesterUid, this.state.userUid);
+                            //acceptFriendRequest(request.requesterUid, this.state.userUid)
+                            this.socket = SocketIOClient('http://47.89.187.42:4000/');
+                            Socket.emit("NewFriendRequest",JSON.stringify({
+                                requester:request.requesterUid,
+                                responser:this.state.userUid,
+                                type:1,
+                                msg:''
+                            }));
+                        }}
                     />
                 );
             case 1:

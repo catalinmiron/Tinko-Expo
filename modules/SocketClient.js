@@ -7,4 +7,14 @@ export const sendFriendRequest = (requester,responser,type,msg) => {
         type:type,
         msg:msg
     }));
+};
+
+export const acceptFriendRequest = (requester, responser) => {
+    console.log('acceptFriendRequest');
+    Socket.emit("NewFriendRequest",JSON.stringify({
+        requester:requester,
+        responser:responser,
+        type:1,
+        msg:''
+    }));
 }

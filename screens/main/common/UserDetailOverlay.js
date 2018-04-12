@@ -42,6 +42,7 @@ export default class UserDetailScreen extends Component{
             isVisible:props.isVisible,
             navigation:null,
             requestMessage:'',
+            loading:true,
         }
     }
 
@@ -66,7 +67,7 @@ export default class UserDetailScreen extends Component{
                 // We have data!!
                 //console.log(value);
                 let userData = JSON.parse(value);
-                this.setState({userData, isFriends:true});
+                this.setState({userData, isFriends:true, loading:false});
             }
         } catch (error) {
             // Error retrieving data
@@ -96,6 +97,7 @@ export default class UserDetailScreen extends Component{
                             userData:userData,
                             requestMessage:`I am ${data[0].username}`,
                             isFriends:true,
+                            loading:false,
                         });
                     }
                 });
@@ -118,7 +120,8 @@ export default class UserDetailScreen extends Component{
                 this.setState({
                     userData:user,
                     requestMessage:`I am ${user.username}`,
-                    isFriends:false
+                    isFriends:false,
+                    loading:false,
                 });
             } else {
                 console.log("No such document!");
@@ -130,71 +133,78 @@ export default class UserDetailScreen extends Component{
 
     render() {
         //console.log(this.props);
-        const { userData, userUid, isFriends, isVisible, requestMessage}  = this.state;
+        const { userData, userUid, isFriends, isVisible, requestMessage, loading}  = this.state;
         //console.log(userData);
         return (
             <Overlay
                 height={300}
                 borderRadius={25}
                 isVisible={isVisible}>
-                <View
-                    style={{width:'90%', marginLeft:'5%', marginTop:30, marginBottom:30, flexDirection:'row', justifyContent:'space-between'}}
-                >
-                    <View>
-                        <Text style={{fontFamily:'bold', fontSize:26}}>{userData.username}</Text>
-                        <Text style={{fontFamily:'regular', fontSize:20}}>{userData.location}</Text>
-
-                    </View>
-                    <Avatar
-                        large
-                        rounded
-                        source={{uri: userData.photoURL}}
-                        //onPress={() => console.log("Works!")}
-                        activeOpacity={0.7}
-                    />
-
-                    {/*<Image*/}
-                        {/*style={{height:75, width:75}}*/}
-                         {/*source={{uri:userData.photoURL}}*/}
-                        {/*//source={{uri:'https://s-media-cache-ak0.pinimg.com/736x/b1/21/df/b121df29b41b771d6610dba71834e512.jpg'}}*/}
-                    {/*/>*/}
-
-                </View>
-
-                {isFriends?
-                    <Button
-                        title='Message'
-                        onPress={() => {
-                            this.state.navigation.navigate('PrivateChatPage', {
-                                avatar: userData.photoURL,
-                                name:userData.username,
-                                personId:userData.uid,
-                                myId:userUid
-                            })
-                            this.setState({isVisible:false})
-                        }}
-                    />
+                {loading ?
+                    <View/>
                     :
                     <View>
-                        <Input
-                            placeholder={`I am ${userData.username}`}
-                            onChangeText={(requestMessage) => this.setState({requestMessage})}
-                            value={requestMessage}
-                        />
+                        <View
+                            style={{width:'90%', marginLeft:'5%', marginTop:30, marginBottom:30, flexDirection:'row', justifyContent:'space-between'}}
+                        >
+                            <View>
+                                <Text style={{fontFamily:'bold', fontSize:26}}>{userData.username}</Text>
+                                <Text style={{fontFamily:'regular', fontSize:20}}>{userData.location}</Text>
+
+                            </View>
+                            <Avatar
+                                large
+                                rounded
+                                source={{uri: userData.photoURL}}
+                                //onPress={() => console.log("Works!")}
+                                activeOpacity={0.7}
+                            />
+
+                            {/*<Image*/}
+                            {/*style={{height:75, width:75}}*/}
+                            {/*source={{uri:userData.photoURL}}*/}
+                            {/*//source={{uri:'https://s-media-cache-ak0.pinimg.com/736x/b1/21/df/b121df29b41b771d6610dba71834e512.jpg'}}*/}
+                            {/*/>*/}
+
+                        </View>
+
+                        {isFriends?
+                            <Button
+                                title='Message'
+                                onPress={() => {
+                                    this.state.navigation.navigate('PrivateChatPage', {
+                                        avatar: userData.photoURL,
+                                        name:userData.username,
+                                        personId:userData.uid,
+                                        myId:userUid
+                                    })
+                                    this.setState({isVisible:false})
+                                }}
+                            />
+                            :
+                            <View>
+                                <Input
+                                    placeholder={`I am ${userData.username}`}
+                                    onChangeText={(requestMessage) => this.setState({requestMessage})}
+                                    value={requestMessage}
+                                />
+                                <Button
+                                    containerStyle={{marginTop:10}}
+                                    title='Add Friend'
+                                    onPress={() => {
+                                        sendFriendRequest(userUid, userData.uid, 0, requestMessage);
+                                        this.setState({isVisible:false});
+                                    }}
+                                />
+                            </View>
+                        }
                         <Button
-                            containerStyle={{marginTop:10}}
-                            title='Add Friend'
-                            onPress={() => {
-                                sendFriendRequest(userUid, userData.uid, 0, requestMessage)
-                            }}
+                            containerStyle={{marginTop:15}}
+                            title='dismiss'
+                            onPress={()=> this.setState({isVisible:false})}
                         />
                     </View>
                 }
-                <Button
-                    containerStyle={{marginTop:15}}
-                    title='dismiss'
-                    onPress={()=> this.setState({isVisible:false})}
-                />
             </Overlay>
         )
     }

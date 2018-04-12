@@ -41,7 +41,7 @@ export const insertNewFriendsRequest = (uid, data, userData) => {
 
 export const getNewFriendsRequest = (uid) => {
     return new Task((reject, resolve) => {
-        console.log('getNewFriendsrequest');
+        //console.log('getNewFriendsrequest');
         db.transaction(
             tx => {
                 tx.executeSql(`SELECT * FROM new_friends_request${uid} ORDER BY timestamp DESC`, [], (_, { rows }) => {
