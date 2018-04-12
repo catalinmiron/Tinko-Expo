@@ -1,12 +1,13 @@
 import React, {Component} from "react";
-import {View,Text, ScrollView} from 'react-native';
+import {View, Text, ScrollView, Alert} from 'react-native';
 import {Header, Input, ListItem, Button} from 'react-native-elements';
-import {getNewFriendsRequest} from "../../../modules/SqliteClient";
+import {getNewFriendsRequest, updateNewFriendsRequestType} from "../../../modules/SqliteClient";
 import firebase from "firebase";
 import {Ionicons} from '@expo/vector-icons';
 import {acceptFriendRequest} from "../../../modules/SocketClient";
 import Socket from "../../../modules/SocketModule";
 import SocketIOClient from "socket.io-client";
+import {getPostRequest} from "../../../modules/CommonUtility";
 
 export default class NewFriendsScreen extends Component {
     static navigationOptions = ({
@@ -25,11 +26,16 @@ export default class NewFriendsScreen extends Component {
             searchList:[],
             searchText:'',
             searched:false,
+            buttonShowLoading:false,
         }
         this.renderRightElement = this.renderRightElement.bind(this);
     }
 
     componentDidMount(){
+        this.updateNewFriendsRequestList()
+    }
+
+    updateNewFriendsRequestList(){
         getNewFriendsRequest(this.state.userUid).fork(
             (error) => {
                 console.log(error);
@@ -68,23 +74,41 @@ export default class NewFriendsScreen extends Component {
         });
     }
 
+    acceptRequestButtonPressed(request){
+        console.log(request.requesterUid, this.state.userUid);
+        this.setState({buttonShowLoading:true});
+        let bodyData = {
+            requester:request.requesterUid,
+            responser:this.state.userUid
+        }
+        getPostRequest('initializeTwoWayFriendship', bodyData,
+            (response) => {
+                console.log(response);
+                this.setState({buttonShowLoading:false});
+                acceptFriendRequest(request.requesterUid, this.state.userUid);
+                updateNewFriendsRequestType(this.state.userUid, request.id).fork(
+                    (error) => {
+                        console.log(error);
+                    },
+                    () => {
+                        this.updateNewFriendsRequestList();
+                    }
+                );
+            }, (error) => {
+                Alert.alert("Error", error);
+                this.setState({buttonShowLoading:false})
+            });
+    }
+
     renderRightElement({request}){
         switch(request.type){
             case 0:
                 return (
                     <Button
                         title='Accept'
-                        onPress={() => {
-                            console.log(request.requesterUid, this.state.userUid);
-                            //acceptFriendRequest(request.requesterUid, this.state.userUid)
-                            this.socket = SocketIOClient('https://shuaiyixu.xyz');
-                            Socket.emit("NewFriendRequest",JSON.stringify({
-                                requester:request.requesterUid,
-                                responser:this.state.userUid,
-                                type:1,
-                                msg:''
-                            }));
-                        }}
+                        loading={this.state.buttonShowLoading}
+                        //loadingProps={{size: 'small', color: 'white'}}
+                        onPress={() => this.acceptRequestButtonPressed(request)}
                     />
                 );
             case 1:
