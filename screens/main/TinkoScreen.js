@@ -37,7 +37,11 @@ export default class TinkoScreen extends Component {
             lastVisible:null,
             orderByPostTime:true,
         };
-        getFromAsyncStorage('TinkoMeets', user.uid).then((meetsData) => this.setState({meetsData}))
+        getFromAsyncStorage('TinkoMeets', user.uid).then((meetsData) => {
+            if(meetsData){
+                this.setState({meetsData})
+            }
+        })
     }
 
     componentDidMount(){
@@ -186,8 +190,9 @@ export default class TinkoScreen extends Component {
                     }
                     headerHeight={Header.HEIGHT}
                     onEndReached={() => this.handleOnEndReached()}
-                    onEndReachedThreshold={10}
+                    onEndReachedThreshold={1000}
                     navigation={this.props.screenProps.navigation}
+                    //renderFooter={()=>(<text>123</text>)}
                 />
 
 

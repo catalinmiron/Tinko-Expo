@@ -1,8 +1,9 @@
 import React, {Component} from "react";
-import {View,Text} from 'react-native';
-import {Header} from 'react-native-elements';
+import {View,Text, ScrollView} from 'react-native';
+import {Header, Input, ListItem, Button} from 'react-native-elements';
 import {getNewFriendsRequest} from "../../../modules/SqliteClient";
-import * as firebase from "firebase/index";
+import firebase from "firebase";
+import {Ionicons} from '@expo/vector-icons'
 
 export default class NewFriendsScreen extends Component {
     static navigationOptions = ({
@@ -11,10 +12,15 @@ export default class NewFriendsScreen extends Component {
 
     constructor(props){
         super(props);
+        //console.log(props);
         let user = firebase.auth().currentUser;
         let uid = user.uid;
         this.state={
             userUid:uid,
+            requestsData:[],
+            searchList:[],
+            searchText:'',
+            searched:false,
         }
     }
 
@@ -24,18 +30,143 @@ export default class NewFriendsScreen extends Component {
                 console.log(error);
             },
             (requestsData) => {
-                console.log(requestsData);
+                this.setState({requestsData});
             }
         );
     }
 
+    searchAccountButtonPressed(){
+        this.setState({searchList:[],searched:true});
+        this.searchFromFirestore('username');
+        this.searchFromFirestore('email');
+        this.searchFromFirestore('phoneNumber');
+    }
+
+    searchFromFirestore(code){
+        const {searchText} = this.state;
+        let firestoreDb = firebase.firestore();
+        let usersRef = firestoreDb.collection('Users');
+        let query = usersRef.where(code, '==', searchText);
+        query.get().then((querySnapshot) => {
+            querySnapshot.forEach((userDoc) => {
+                // doc.data() is never undefined for query doc snapshots
+                //console.log(doc.id, " => ", doc.data());
+                let userData = userDoc.data();
+                this.setState((state) => {
+                    let searchList = state.searchList;
+                    searchList.push(userData);
+                    return {searchList};
+                })
+            });
+        }).catch((error) => {
+            console.log(error);
+        });
+    }
+
+    renderRightElement({request}){
+        switch(request.type){
+            case 0:
+                return (
+                    <Button
+                        title='Accept'
+                    />
+                );
+            case 1:
+                return (
+                    <Text style={{color:'#979A9A'}}>Accepted</Text>
+                );
+            case 2:
+                return (
+                    <Text style={{color:'#979A9A'}}>Facebook</Text>
+                );
+            default:
+                return null;
+        }
+    }
+
+    renderSearchList({searchList}){
+        //const {searchList} = this.state;
+        console.log(searchList);
+        if(searchList.length===0 || searchList===undefined){
+            return (
+                <ListItem
+                    style={{marginTop:5}}
+                    key={0}
+                    title='No Such Account'
+                />
+            );
+        } else {
+            return (
+                <View style={{marginTop:5}}>
+                    {searchList.map((userData) => (
+                        <ListItem
+                            key={userData.uid}
+                            title={userData.username}
+                            leftAvatar={{ rounded: true, source: { uri: userData.photoURL} }}
+                            onPress={() => this.props.screenProps.showThisUser(userData.uid, this.props.navigation)}
+                        />
+                    ))}
+                </View>
+            );
+        }
+    }
+
     render() {
+        const {requestsData, searchList,searchText, searched} = this.state;
         return (
             <View style={{flex:1}}>
                 <Header
                     centerComponent={{ text: 'New Friends', style: { color: '#fff' } }}
                 />
-                <Text>New Friends Request</Text>
+
+                <ScrollView>
+
+                    <Input
+                        placeholder='Tinko Name, Phone Number, or Email'
+                        leftIcon={
+                            <Ionicons
+                                name='ios-search'
+                                size={23}
+                                color='#979A9A'
+                            />
+                        }
+                        containerStyle={{marginTop:10, width:'100%', backgroundColor:'white'}}
+                        onChangeText ={searchText => this.setState({searchText})}
+                        value={searchText}
+                        returnKeyType={'search'}
+                        onSubmitEditing={() => this.searchAccountButtonPressed()}
+                    />
+
+                    {searched && <this.renderSearchList searchList={searchList}/>}
+                    {/*{searched &&*/}
+                    {/*<View style={{marginTop:5}}>*/}
+                        {/*{searchList.map((userData) => (*/}
+                            {/*<ListItem*/}
+                                {/*key={userData.uid}*/}
+                                {/*title={userData.username}*/}
+                                {/*leftAvatar={{ rounded: true, source: { uri: userData.photoURL} }}*/}
+                                {/*onPress={() => this.props.screenProps.showThisUser(userData.uid, this.props.navigation)}*/}
+                            {/*/>*/}
+                        {/*))}*/}
+                    {/*</View>*/}
+                    {/*}*/}
+
+
+                    <View style={{marginTop:10}}>
+                        {requestsData.map((request) => (
+                            <ListItem
+                                key={request.requesterUid}
+                                title={request.username}
+                                leftAvatar={{ rounded: true, source: { uri: request.photoURL} }}
+                                subtitle={request.msg}
+                                rightElement={
+                                    <this.renderRightElement request={request}/>
+                                }
+                                onPress={() => this.props.screenProps.showThisUser(request.requesterUid, this.props.navigation)}
+                            />
+                        ))}
+                    </View>
+                </ScrollView>
             </View>
 
         );

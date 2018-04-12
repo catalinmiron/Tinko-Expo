@@ -54,11 +54,17 @@ export function _getImageTag (image, gutter = 0) {
 
 
 	//console.log(image);
+    let tag;
+    if(image.data.tags){
+        tag = image.data.tags[0];
+    } else {
+        tag='';
+    }
     return (
         <Image
             key={image.uri}
             resizeMethod={'auto'}
-            source={getImageSource(image.data.tags[0])}
+            source={getImageSource(tag)}
             style={{ borderRadius:10, width: image.width, height: image.height, marginTop: gutter, ...image.imageContainerStyle }}
         />
     )

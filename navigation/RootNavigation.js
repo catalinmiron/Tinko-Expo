@@ -13,6 +13,7 @@ import SocketIOClient from 'socket.io-client';
 import 'firebase/firestore';
 import UserDetailOverlay from '../screens/main/common/UserDetailOverlay'
 import {initNewFriendsRequestTable, insertNewFriendsRequest} from "../modules/SqliteClient";
+import {getUserData} from "../modules/CommonUtility";
 
 let getPrivateHistory = false,
     getMeetsHistory = false;
@@ -44,9 +45,9 @@ export default class RootNavigator extends React.Component {
       this.setState({userUid:uid})
       // 测试时才用drop
       //this.dropChatTable(uid);
+      //this.initFriendsTable(uid);
       this.initChatTable(uid);
       //this.dropFriendsTable(uid);
-      this.initFriendsTable(uid);
       this.dropMeetingTable(uid);
       this.initMeetingTable(uid);
       initNewFriendsRequestTable(uid);
@@ -281,18 +282,25 @@ export default class RootNavigator extends React.Component {
     getFriendRequestInfo(data){
         //data.msg 代表想说的话
         console.log("===================getFriendRequest",data);
-        //console.log(this.meRef);
-        if (data.type === 0){
-            //data.requester 发送了好友请求
-            insertNewFriendsRequest(this.state.userUid, data);
-            this.meRef.showBadge();
-        }else if (data.type === -1){
-            //data.requester 拒绝了好友请求
-        }else if (data.type === 1){
-            //data.requester 接受了好友请求
-        }else if (data.type === 2){
-            //facebook自动确认了好友 好友id = data.requester
-        }
+        getUserData(data.requester).fork(
+            (error) => {
+                console.log(error);
+            },
+            (userData) => {
+                //console.log(this.meRef);
+                if (data.type === 0){
+                    //data.requester 发送了好友请求
+                    insertNewFriendsRequest(this.state.userUid, data, userData);
+                    this.meRef.showBadge();
+                }else if (data.type === -1){
+                    //data.requester 拒绝了好友请求
+                }else if (data.type === 1){
+                    //data.requester 接受了好友请求
+                }else if (data.type === 2){
+                    //facebook自动确认了好友 好友id = data.requester
+                }
+            }
+        );
     }
 
     friendsListIsReady(){

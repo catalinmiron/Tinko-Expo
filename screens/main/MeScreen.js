@@ -35,22 +35,12 @@ export default class Me extends React.Component {
             badgeHidden:true,
         };
         getFromAsyncStorage('ThisUser', user.uid).then((userData) => {
-            if(userData){
+            if(userData) {
                 this.setState({userData})
-            } else {
-                this.setState({
-                    userData:{
-                        photoURL:'',
-                        username:'',
-                    }})
             }
-
         });
         getFromAsyncStorage('NewFriendsBadgeHidden', user.uid).then((badgeHidden) => {
-            if(badgeHidden===undefined){
-                this.setState({badgeHidden:true});
-                this.props.navigation.setParams({badgeHidden:true});
-            }else {
+            if(badgeHidden){
                 this.setState({badgeHidden});
                 this.props.navigation.setParams({badgeHidden});
             }
@@ -146,7 +136,8 @@ export default class Me extends React.Component {
 
             }),Promise.resolve());
             //console.log(usersData);
-            this.insertFriendsSql(uid, usersData);
+            this.initFriendsTableAndInsertData(uid,usersData);
+            //this.insertFriendsSql(uid, usersData);
             this.seeTables(uid);
 
         }).catch((error) => {
@@ -154,6 +145,23 @@ export default class Me extends React.Component {
         });
     }
 
+    initFriendsTableAndInsertData(uid, userData){
+        db.transaction(
+            tx => {
+                tx.executeSql('create table if not exists friend_list'+ uid +' (' +
+                    'id integer primary key not null , ' +
+                    'userId text UNIQUE, avatarUrl text , ' +
+                    'username text, ' +
+                    'location text,' +
+                    'gender text);');
+            },
+            (error) => console.log("friendList :" + error),
+            () => {
+                console.log('friend_list complete');
+                this.insertFriendsSql(uid,userData);
+            }
+        );
+    }
 
     insertFriendsSql(uid, usersData){
         db.transaction(

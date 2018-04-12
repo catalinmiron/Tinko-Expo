@@ -338,7 +338,7 @@ export default class FriendChatListView extends Component {
 
         }
         return (
-            <View>
+            <View style={{flex:1}}>
                 <ScrollView>
                     {friendList}
                 </ScrollView>
