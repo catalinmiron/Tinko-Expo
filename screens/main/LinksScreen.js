@@ -128,6 +128,12 @@ export default class FriendChatListView extends Component {
             friendInfo:[]
         };
         this.socket.emit("userLogin",uid);
+        // this.socket.emit("NewFriendRequest",JSON.stringify({
+        //     requester:uid,
+        //     responser:uid,
+        //     type:1,
+        //     msg:"???"
+        // }));
         this.socket.on("connect" + uid,msg=>{
             let data = JSON.parse(msg),
                 type = data.type;
@@ -192,6 +198,7 @@ export default class FriendChatListView extends Component {
         });
         this.socket.on("mySendBox"+uid,msg=>{
             let data = JSON.parse(msg);
+            console.log("mySendBox:",data);
             let type = data.type;
             if (parseInt(type) === 0){
                 //系统
@@ -199,6 +206,9 @@ export default class FriendChatListView extends Component {
             }else if (parseInt(type)===1){
                 //私聊
                 chatInfo.appendData([type,data.from,data.message]);
+            }else if (parseInt(type) === 999){
+                chatInfo.appendData([1,data.requester,data.msg]);
+                this.upDateAvatar(data.requester);
             }else{
                 chatInfo.appendData([type,data.activityId,data.message]);
             }
@@ -301,7 +311,8 @@ export default class FriendChatListView extends Component {
             tx => {
                 tx.executeSql('select * from db'+uid, [], (_, { rows }) => {
                     let dataArr =  rows['_array'];
-                    for (let i = dataArr.length-1;i>=0;i--){
+                    console.log("???=====???",dataArr);
+                    for (let i = 0;i < dataArr.length ;i++){
                         let type = dataArr[i].type;
                         if (type === 1){
                             chatInfo.appendData([type,dataArr[i].fromId,dataArr[i]['msg']]);
@@ -313,21 +324,22 @@ export default class FriendChatListView extends Component {
                     for (element in chat){
                         let ele = chat[element];
                         if (ele.imageURL === "http://larissayuan.com/home/img/prisma.png"&&(ele.type === 1||ele.type ===3)){
-                            let docRef = firebase.firestore().collection("Users").doc(ele.id);
-                            let getDoc = docRef.get().then(
-                                doc =>{
-                                    if (!doc.exists){
-                                        console.log("no data");
-                                    }else{
-                                        chatInfo.updateUserInfo(doc.data());
-                                        this.setState({
-                                            messages:chatInfo.getData()
-                                        });
-                                    }
-                                }
-                            ).catch(err => {
-                                console.log("ERROR: ",err);
-                            })
+                            // let docRef = firebase.firestore().collection("Users").doc(ele.id);
+                            // let getDoc = docRef.get().then(
+                            //     doc =>{
+                            //         if (!doc.exists){
+                            //             console.log("no data");
+                            //         }else{
+                            //             chatInfo.updateUserInfo(doc.data());
+                            //             this.setState({
+                            //                 messages:chatInfo.getData()
+                            //             });
+                            //         }
+                            //     }
+                            // ).catch(err => {
+                            //     console.log("ERROR: ",err);
+                            // })
+                            this.upDateAvatar(ele.id);
                         }
                     }
                     this.setState({
@@ -340,6 +352,24 @@ export default class FriendChatListView extends Component {
                 console.log('聊天数据插入成功');
             }
         )
+    }
+
+    upDateAvatar(id){
+        let docRef = firebase.firestore().collection("Users").doc(id);
+        let getDoc = docRef.get().then(
+            doc =>{
+                if (!doc.exists){
+                    console.log("no data");
+                }else{
+                    chatInfo.updateUserInfo(doc.data());
+                    this.setState({
+                        messages:chatInfo.getData()
+                    });
+                }
+            }
+        ).catch(err => {
+            console.log("ERROR: ",err);
+        })
     }
 
 

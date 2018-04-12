@@ -52,11 +52,15 @@ export default class PrivateChatScreen extends Component {
                     let dataArr = rows['_array'];
                     for (let i = 0;i<dataArr.length;i++){
                         //收到的
-                        if (dataArr[i].status === 0){
-                            this.appendFriendMessage(name,avatar,dataArr[i].msg,"cache"+dataArr[i].id);
+                        if (dataArr[i].isSystem === 1){
+                            this.appendSystemMessage(dataArr[i].msg)
                         }else{
-                            //发出去的
-                            this.appendMessage(dataArr[i].msg);
+                            if (dataArr[i].status === 0){
+                                this.appendFriendMessage(name,avatar,dataArr[i].msg,"cache"+dataArr[i].id);
+                            }else{
+                                //发出去的
+                                this.appendMessage(dataArr[i].msg);
+                            }
                         }
                     }
                     // this.setState(() => {
@@ -81,6 +85,18 @@ export default class PrivateChatScreen extends Component {
                 _id: 1,
                 name: 'Developer',
             }
+        };
+        messagesArr.push(chatData);
+        this.setState(previousState => ({
+            messages: GiftedChat.append(previousState.messages, chatData),
+        }))
+    }
+    appendSystemMessage(msg){
+        let chatData = {
+            _id: Math.round(Math.random() * 10000),
+            text: msg,
+            createdAt: new Date(),
+            system:true
         };
         messagesArr.push(chatData);
         this.setState(previousState => ({

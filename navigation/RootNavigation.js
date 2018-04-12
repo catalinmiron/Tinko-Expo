@@ -70,7 +70,26 @@ export default class RootNavigator extends React.Component {
       });
       this.socket.on("mySendBox"+uid,msg=>{
           let data = JSON.parse(msg);
-          this.insertChatSql(uid,data,0);
+          if (data.type!==999){
+              this.insertChatSql(uid,data,0);
+          }else{
+              db.transaction(
+                  tx => {
+                      tx.executeSql("INSERT INTO db"+uid+" (" +
+                          "fromId," +
+                          "msg," +
+                          "status," +
+                          "type," +
+                          "meetingId," +
+                          "meetUserData," +
+                          "isSystem) VALUES (?,?,?,?,?,?,?)",[data.requester,data.msg,0,1,"","",1]);
+                  },
+                  (error) => console.log("system info insert :" + error),
+                  () => {
+                      console.log('system info insert complete');
+                  }
+              );
+          }
       });
       this.socket.on("systemListener"+uid,msg=>{
           this.getFriendRequestInfo(JSON.parse(msg))
@@ -224,6 +243,7 @@ export default class RootNavigator extends React.Component {
                     'type int,' +
                     'meetingId text, '+
                     'meetUserData text,'+
+                    'isSystem int DEFAULT 0,'+
                     'timeStamp DATETIME DEFAULT CURRENT_TIMESTAMP);');
             },
             (error) => console.log("db insert:" + error),
@@ -257,7 +277,7 @@ export default class RootNavigator extends React.Component {
         if (data["userData"]!==undefined){
             userData = JSON.stringify(data["userData"]);
         }
-        //console.log("INSERT INTO db"+uid+" (fromId,msg,status,type,meetingId,meetUserData) VALUES (?,?,?,?,?,?)",[from,message,status,type,meetingId,userData]);
+        console.log("INSERT INTO db"+uid+" (fromId,msg,status,type,meetingId,meetUserData) VALUES (?,?,?,?,?,?)",[from,message,status,type,meetingId,userData]);
         db.transaction(
             tx => {
                 tx.executeSql("INSERT INTO db"+uid+" (fromId,msg,status,type,meetingId,meetUserData) VALUES (?,?,?,?,?,?)",[from,message,status,type,meetingId,userData]);
@@ -272,7 +292,6 @@ export default class RootNavigator extends React.Component {
     //     1 = "普通的好友确认" 比如a给b发送了请求 b确认了 就发送这个
     //     -1 = "确认了这个请求" 比如a给b发送了请求 b拒绝了 就发送这个
     sendFriendRequest(requester,responser,type,msg){
-        console.log('+++++++++++++++++++++++++++++++++++++++++++++sendFriendRequest');
         this.socket.emit("NewFriendRequest",JSON.stringify({
             requester:requester,
             responser:responser,
