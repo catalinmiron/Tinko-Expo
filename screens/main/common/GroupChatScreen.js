@@ -26,7 +26,7 @@ export default class PrivateChatScreen extends Component {
         let dataStore = this.props.navigation.state.params;
         uid = dataStore.myId;
         MeetId = dataStore.personId;
-        this.socket = SocketIOClient('http://47.89.187.42:4000/');
+        this.socket = SocketIOClient('https://shuaiyixu.xyz');
         this.socket.on("connect" + uid,(msg)=>{
             let data = JSON.parse(msg);
             if (data.type === 2){

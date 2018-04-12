@@ -77,7 +77,7 @@ export default class NewFriendsScreen extends Component {
                         onPress={() => {
                             console.log(request.requesterUid, this.state.userUid);
                             //acceptFriendRequest(request.requesterUid, this.state.userUid)
-                            this.socket = SocketIOClient('http://47.89.187.42:4000/');
+                            this.socket = SocketIOClient('https://shuaiyixu.xyz');
                             Socket.emit("NewFriendRequest",JSON.stringify({
                                 requester:request.requesterUid,
                                 responser:this.state.userUid,

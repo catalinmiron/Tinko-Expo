@@ -261,7 +261,7 @@ export default class CreateScreen extends React.Component {
             .then((meetRef) => {
                 console.log("Document written with ID: ", meetRef.id);
                 //this.updateUserParticipatingMeets(meetRef.id, userUid);
-                this.socket = SocketIOClient('http://47.89.187.42:4000/');
+                this.socket = SocketIOClient('https://shuaiyixu.xyz');
                 this.socket.emit("createMeets",userUid,meetRef.id);
             })
             .catch((error) => {
