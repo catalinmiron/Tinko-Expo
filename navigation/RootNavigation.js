@@ -53,22 +53,6 @@ export default class RootNavigator extends React.Component {
       initNewFriendsRequestTable(uid);
 
       this.socket = SocketIOClient('http://47.89.187.42:4000/');
-      this.socket.emit("userLogin",uid);
-      this.socket.on("connect" + uid,msg=>{
-          let data = JSON.parse(msg),
-              type = data.type;
-          //3代表未读私聊
-          // if (type === 3 && !getPrivateHistory){
-          //     getPrivateHistory = true;
-          // }else if (type === 4 && !getMeetsHistory){
-          //     getMeetsHistory = true;
-          // }else{
-          //     this.insertChatSql(uid,data);
-          // }
-          if (type!==3&&type!==4){
-              this.insertChatSql(uid,data);
-          }
-      });
       this.socket.on("mySendBox"+uid,msg=>{
           let data = JSON.parse(msg);
           if (data.type!==999){

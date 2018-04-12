@@ -182,6 +182,7 @@ export default class FriendChatListView extends Component {
                 }
             }
             if (type !== 3 && type !== 4){
+                this.insertChatSql(uid,data);
                 if (parseInt(type) === 0){
                     //系统
                     chatInfo.appendData([type,data.activityId,data.message]);
@@ -256,6 +257,7 @@ export default class FriendChatListView extends Component {
         }
 
     };
+
 
 
     getAvatar(){
