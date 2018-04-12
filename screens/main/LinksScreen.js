@@ -152,6 +152,9 @@ export default class FriendChatListView extends Component {
                         if (dataArr!==""){
                             this.insertChatSql(uid,sqlObj);
                             chatInfo.appendData([type,dataArr.fromId,dataArr.msg]);
+                            if (!personalInfo[dataArr.fromId]){
+                                this.upDateAvatar(dataArr.fromId);
+                            }
                         }
                     }
 
@@ -182,6 +185,7 @@ export default class FriendChatListView extends Component {
                 }
             }
             if (type !== 3 && type !== 4){
+                this.insertChatSql(uid,data);
                 if (parseInt(type) === 0){
                     //系统
                     chatInfo.appendData([type,data.activityId,data.message]);
@@ -258,6 +262,7 @@ export default class FriendChatListView extends Component {
     };
 
 
+
     getAvatar(){
         db.transaction(
             tx => {
@@ -324,21 +329,6 @@ export default class FriendChatListView extends Component {
                     for (element in chat){
                         let ele = chat[element];
                         if (ele.imageURL === "http://larissayuan.com/home/img/prisma.png"&&(ele.type === 1||ele.type ===3)){
-                            // let docRef = firebase.firestore().collection("Users").doc(ele.id);
-                            // let getDoc = docRef.get().then(
-                            //     doc =>{
-                            //         if (!doc.exists){
-                            //             console.log("no data");
-                            //         }else{
-                            //             chatInfo.updateUserInfo(doc.data());
-                            //             this.setState({
-                            //                 messages:chatInfo.getData()
-                            //             });
-                            //         }
-                            //     }
-                            // ).catch(err => {
-                            //     console.log("ERROR: ",err);
-                            // })
                             this.upDateAvatar(ele.id);
                         }
                     }
