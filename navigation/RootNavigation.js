@@ -52,7 +52,7 @@ export default class RootNavigator extends React.Component {
       this.initMeetingTable(uid);
       initNewFriendsRequestTable(uid);
 
-      this.socket = SocketIOClient('http://47.89.187.42:4000/');
+      this.socket = SocketIOClient('https://shuaiyixu.xyz');
       this.socket.on("mySendBox"+uid,msg=>{
           let data = JSON.parse(msg);
           if (data.type!==999){

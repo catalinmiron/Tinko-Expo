@@ -256,7 +256,7 @@ export default class TinkoDetailScreen extends React.Component {
             (response) => {
                 console.log(response);
                 this.setState({buttonShowLoading:false})
-                this.socket = SocketIOClient('http://47.89.187.42:4000/');
+                this.socket = SocketIOClient('https://shuaiyixu.xyz');
                 this.socket.emit("createMeets",userUid,meetId);
             }, (error) => {
                 Alert.alert("Error", error);
