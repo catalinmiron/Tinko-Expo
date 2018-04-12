@@ -55,3 +55,16 @@ export const getNewFriendsRequest = (uid) => {
         )
     });
 };
+
+export const updateNewFriendsRequestType = (uid, id) => {
+    return new Task((reject, resolve) => {
+        //console.log('getNewFriendsrequest');
+        db.transaction(
+            tx => {
+                tx.executeSql(`UPDATE new_friends_request${uid} SET type = 1 WHERE id = ${id}`);
+            },
+            (error) => reject(error),
+            () => resolve()
+        )
+    });
+};

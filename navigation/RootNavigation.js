@@ -45,9 +45,9 @@ export default class RootNavigator extends React.Component {
       this.setState({userUid:uid})
       // 测试时才用drop
       //this.dropChatTable(uid);
+      //this.dropFriendsTable(uid);
       this.initFriendsTable(uid);
       this.initChatTable(uid);
-      //this.dropFriendsTable(uid);
       this.dropMeetingTable(uid);
       this.initMeetingTable(uid);
       initNewFriendsRequestTable(uid);
@@ -98,7 +98,7 @@ export default class RootNavigator extends React.Component {
                 <View style={{flex:1}}>
                     <MainTabNavigator
                         screenProps={{
-                            friendsListIsReady:this.friendsListIsReady.bind(this),
+                            //friendsListIsReady:this.friendsListIsReady.bind(this),
                             showThisUser:this.showThisUser.bind(this),
                             meRef:ref => this.meRef = ref,
                         }}/>
@@ -309,9 +309,9 @@ export default class RootNavigator extends React.Component {
         );
     }
 
-    friendsListIsReady(){
-        console.log('Root Navigator: friendsListIsReady');
-    }
+    // friendsListIsReady(){
+    //     console.log('Root Navigator: friendsListIsReady');
+    // }
 
   _registerForPushNotifications() {
     // Send our push token over to our backend so we can receive notifications

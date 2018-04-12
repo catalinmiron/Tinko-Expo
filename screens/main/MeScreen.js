@@ -115,37 +115,65 @@ export default class Me extends React.Component {
         //好友信息
         let firebaseDb = firebase.firestore();
         let docRef = firebaseDb.collection("Users").doc(uid).collection("Friends_List");
-        docRef.get().then(async (querySnapshot)=>{
+        docRef.onSnapshot(async (snapshot) => {
             let usersData = [];
-            await querySnapshot.docs.reduce((p,e,i) => p.then(async ()=> {
-                //console.log(p, e.data(), i);
-                let user = e.data();
-                let userUid = e.id;
-                let userRef = firebaseDb.collection("Users").doc(userUid);
-                await userRef.get().then((userDoc) => {
-                    if (userDoc.exists) {
-                        //console.log("Document data:", userDoc.data());
-                        let user = userDoc.data();
-                        usersData.push(user);
-                    } else {
-                        console.log("No such document!");
-                    }
-                }).catch((error) => {
-                    console.log("Error getting document:", error);
-                });
-
+            await snapshot.docChanges.reduce((p,change,i) => p.then(async () => {
+                if (change.type === "added") {
+                    //console.log("New city: ", change.doc.data());
+                    let userUid = change.doc.id;
+                    let userRef = firebaseDb.collection("Users").doc(userUid);
+                    await userRef.get().then((userDoc) => {
+                        if (userDoc.exists) {
+                            //console.log("Document data:", userDoc.data());
+                            let user = userDoc.data();
+                            usersData.push(user);
+                        } else {
+                            console.log("No such document!");
+                        }
+                    }).catch((error) => {
+                        console.log("Error getting document:", error);
+                    });
+                }
+                if (change.type === "modified") {
+                    //console.log("Modified city: ", change.doc.data());
+                }
+                if (change.type === "removed") {
+                    //console.log("Removed city: ", change.doc.data());
+                }
             }),Promise.resolve());
-            //console.log(usersData);
             this.initFriendsTableAndInsertData(uid,usersData);
-            //this.insertFriendsSql(uid, usersData);
-            this.seeTables(uid);
-
-        }).catch((error) => {
-            console.log("Error getting documents: ", error);
         });
+        // docRef.get().then(async (querySnapshot)=>{
+        //     let usersData = [];
+        //     await querySnapshot.docs.reduce((p,e,i) => p.then(async ()=> {
+        //         //console.log(p, e.data(), i);
+        //         let user = e.data();
+        //         let userUid = e.id;
+        //         let userRef = firebaseDb.collection("Users").doc(userUid);
+        //         await userRef.get().then((userDoc) => {
+        //             if (userDoc.exists) {
+        //                 //console.log("Document data:", userDoc.data());
+        //                 let user = userDoc.data();
+        //                 usersData.push(user);
+        //             } else {
+        //                 console.log("No such document!");
+        //             }
+        //         }).catch((error) => {
+        //             console.log("Error getting document:", error);
+        //         });
+        //
+        //     }),Promise.resolve());
+        //     //console.log(usersData);
+        //     this.initFriendsTableAndInsertData(uid,usersData);
+        //     //this.insertFriendsSql(uid, usersData);
+        //     this.seeTables(uid);
+        //
+        // }).catch((error) => {
+        //     console.log("Error getting documents: ", error);
+        // });
     }
 
-    initFriendsTableAndInsertData(uid, userData){
+    initFriendsTableAndInsertData(uid, usersData){
         db.transaction(
             tx => {
                 tx.executeSql('create table if not exists friend_list'+ uid +' (' +
@@ -158,7 +186,7 @@ export default class Me extends React.Component {
             (error) => console.log("friendList :" + error),
             () => {
                 console.log('friend_list complete');
-                this.insertFriendsSql(uid,userData);
+                this.insertFriendsSql(uid,usersData);
             }
         );
     }
@@ -178,7 +206,7 @@ export default class Me extends React.Component {
             (error) => console.log("这里报错" + error),
             () => {
                 console.log('insertCompleteFriendSql complete');
-                this.props.screenProps.friendsListIsReady();
+                //this.props.screenProps.friendsListIsReady();
                 this.friendsList.getSql();
             }
         );
