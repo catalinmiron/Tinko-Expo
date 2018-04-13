@@ -12,6 +12,7 @@ import { ifIphoneX } from 'react-native-iphone-x-helper';
 import { getPostRequest } from "../../../modules/CommonUtility";
 import { ActionSheetProvider, connectActionSheet } from '@expo/react-native-action-sheet';
 import SocketIOClient from "socket.io-client";
+import {createMeet} from "../../../modules/SocketClient";
 
 const SCREEN_WIDTH = Dimensions.get('window').width;
 
@@ -255,9 +256,8 @@ export default class TinkoDetailScreen extends React.Component {
         getPostRequest("participateMeet", bodyData,
             (response) => {
                 console.log(response);
-                this.setState({buttonShowLoading:false})
-                this.socket = SocketIOClient('https://shuaiyixu.xyz');
-                this.socket.emit("createMeets",userUid,meetId);
+                this.setState({buttonShowLoading:false});
+                createMeet(userUid, meetId);
             }, (error) => {
                 Alert.alert("Error", error);
                 this.setState({buttonShowLoading:false})
@@ -338,7 +338,10 @@ export default class TinkoDetailScreen extends React.Component {
             );
         }
 
-
+        let tagsString='';
+        for(let i=0; i<tagList.length; i++){
+            tagsString += ' ' + tagList[i];
+        }
 
         return (
             <View style={styles.container}>
@@ -411,7 +414,8 @@ export default class TinkoDetailScreen extends React.Component {
                             </View>
 
                         </View>
-                        <Text style={{marginTop:30, fontSize:17, fontFamily:'regular', color:'#566573'}}>{description}</Text>
+                        <Text style={{marginTop:30, fontFamily:'regular', fontSize:17, color:'#212F3C'}}>{tagsString}</Text>
+                        <Text style={{marginTop:15, fontSize:17, fontFamily:'regular', color:'#566573'}}>{description}</Text>
                         <View style={{marginTop:30}}>
                             {_.chunk(participatingUsersData, 3).map((chunk, chunkIndex) => (
                                 <View style={{ flexDirection: 'row', justifyContent: 'space-around', marginBottom: 10 }} key={chunkIndex}>

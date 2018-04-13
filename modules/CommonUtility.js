@@ -182,23 +182,23 @@ export const getDurationString = (duration) => {
 
 export const getImageSource = (tagName) => {
     switch(tagName){
-        case "Party":
+        case "#party":
             return require('../assets/images/tagsTheme/StaindGlass.jpg');
-        case "Sport":
+        case "#sports":
             return require('../assets/images/tagsTheme/lines.jpg');
-        case "Food":
+        case "#food":
             return require('../assets/images/tagsTheme/yumao.jpg');
-        case "Shop":
+        case "#shopping":
             return require('../assets/images/tagsTheme/city.png');
-        case "Movie":
+        case "#movie":
             return require('../assets/images/tagsTheme/city.png');
-        case "KTV":
+        case "#bar":
             return require('../assets/images/tagsTheme/leaves.jpg');
-        case "Travel":
+        case "#travel":
             return require('../assets/images/tagsTheme/humian.jpg');
-        case "Study":
+        case "#study":
             return require('../assets/images/tagsTheme/cloud.jpg');
-        case "ESports":
+        case "#esports":
             return require('../assets/images/tagsTheme/humian.jpg');
         default:
             return require('../assets/images/tagsTheme/StaindGlass.jpg');

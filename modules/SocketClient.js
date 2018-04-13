@@ -17,4 +17,9 @@ export const acceptFriendRequest = (requester, responser) => {
         type:1,
         msg:''
     }));
+};
+
+
+export const createMeet = (uid, meetId) => {
+    Socket.emit("createMeets",uid,meetId);
 }

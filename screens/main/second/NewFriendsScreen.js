@@ -162,6 +162,9 @@ export default class NewFriendsScreen extends Component {
                 <ScrollView>
 
                     <Input
+                        inputContainerStyle={{flex:1, borderBottomColor:'transparent', borderBottomWidth:0}}
+                        clearButtonMode={'always'}
+                        clearTextOnFocus={true}
                         placeholder='Tinko Name, Phone Number, or Email'
                         leftIcon={
                             <Ionicons

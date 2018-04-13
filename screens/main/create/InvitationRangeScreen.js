@@ -196,6 +196,7 @@ export default class InvitationRangeScreen extends React.Component{
                     (<View style={{marginTop:30}}>
                         {sqlRows.map((l, i) => (
                             <ListItem
+                                key={l.key}
                                 leftAvatar={{ rounded: true, source: { uri: l.avatar } }}
                                 title={l.title}
                                 rightIcon = {{name: l.selected ? 'done' : 'hideChevron'}}

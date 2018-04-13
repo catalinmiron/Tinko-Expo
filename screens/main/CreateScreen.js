@@ -1,6 +1,6 @@
 import _ from 'lodash';
 import React from 'react';
-import {
+import ReactNative, {
     Alert,
     Image,
     Platform,
@@ -32,12 +32,17 @@ import { SQLite, Constants, Location, Permissions } from 'expo';
 import firebase from 'firebase';
 import { EvilIcons } from '@expo/vector-icons';
 //import EvilIcons from '@expo/vector-icons/EvilIcons';
+import {createMeet} from "../../modules/SocketClient";
+import {KeyboardAwareScrollView} from 'react-native-keyboard-aware-scroll-view';
+import { ActionSheetProvider, connectActionSheet } from '@expo/react-native-action-sheet';
+import {getStartTimeString} from "../../modules/CommonUtility";
 
 const SCREEN_WIDTH = Dimensions.get('window').width;
 const db = SQLite.openDatabase('db.db');
 
 import SocketIOClient from 'socket.io-client';
 
+@connectActionSheet
 export default class CreateScreen extends React.Component {
     static navigationOptions = ({ navigation }) => {
         const params = navigation.state.params || {};
@@ -68,7 +73,8 @@ export default class CreateScreen extends React.Component {
 
         let user = firebase.auth().currentUser;
         let userUid = user.uid;
-        console.log('userUid',userUid);
+        //console.log('userUid',userUid);
+        this._scrollToInput = this._scrollToInput.bind(this);
 
         this.state={
             title:'',
@@ -81,14 +87,18 @@ export default class CreateScreen extends React.Component {
             description:'',
             inputHeight: 22,
             allFriends: true,
-            allowPeopleNearby: false,
-            allowParticipantsInvite: false,
+            allowPeopleNearby: true,
+            allowParticipantsInvite: true,
             selectedFriendsList: [],
-            duration: '1 Hour',
+            duration: 3,
+            durationUnit:'Hours',
             maxNo: 8,
             tagList:[],
             location: null,
             //fontLoaded:false,
+            descriptionHeight:35,
+            tagInputString:'#',
+            tagInputWidth:50,
         };
     }
 
@@ -174,7 +184,7 @@ export default class CreateScreen extends React.Component {
     };
 
     handleDateTimeParse(){
-        const {startTime} = this.state;
+        const {startTime, duration, durationUnit} = this.state;
 
         var dateTimeParts = startTime.split(' '),
             timeParts = dateTimeParts[1].split(':'),
@@ -184,7 +194,13 @@ export default class CreateScreen extends React.Component {
             durationTS;
 
         startTimeDate = new Date(dateParts[0], dateParts[1]-1 , dateParts[2], timeParts[0], timeParts[1]);
-        durationTS = 1 * 60 * 60 * 1000;
+        if(durationUnit==='Hours'){
+            durationTS=duration * 60 * 60 * 1000;
+        }else if(durationUnit==='Mins'){
+            durationTS=duration * 60 * 1000;
+        } else {
+            durationTS=duration * 24 * 60 * 60 * 1000;
+        }
         endTimeDate = new Date();
         endTimeDate.setTime(startTimeDate.getTime() + durationTS);
 
@@ -254,6 +270,7 @@ export default class CreateScreen extends React.Component {
             participatingUsersList: participatingUsersListObj,
             selectedFriendsList: selectedFriendsListObj,
             status: true,
+            tagsString:''
         }
         console.log(docData);
 
@@ -261,11 +278,10 @@ export default class CreateScreen extends React.Component {
             .then((meetRef) => {
                 console.log("Document written with ID: ", meetRef.id);
                 //this.updateUserParticipatingMeets(meetRef.id, userUid);
-                this.socket = SocketIOClient('https://shuaiyixu.xyz');
-                this.socket.emit("createMeets",userUid,meetRef.id);
+                createMeet(userUid, meetRef.id);
             })
             .catch((error) => {
-                console.error("Error adding document: ", error);
+                console.log("Error adding document: ", error);
             });
 
         this.props.navigation.dispatch(NavigationActions.back())
@@ -288,171 +304,288 @@ export default class CreateScreen extends React.Component {
     }
 
     onTagButtonPressed(title){
+        if(title==='#'){
+            return;
+        }
         const { tagList } = this.state;
         if(_.includes(tagList, title)){
             _.pull(tagList, title);
         } else {
             tagList.push(title);
         }
-        this.setState({tagList});
+        let tagsString='';
+        for(let i=0; i<tagList.length; i++){
+            tagsString += ' ' + tagList[i];
+        }
+        this.setState({tagList,tagsString});
+    }
+
+    _scrollToInput () {
+        // Add a 'scroll' ref to your ScrollView
+        console.log(this.scroll);
+        this.scroll.scrollToEnd(true);
+    }
+
+    openDurationUnitActionSheet(){
+        let options = ['Hours', 'Mins', 'Days', 'Cancel'];
+        let cancelButtonIndex = 3;
+        this.props.showActionSheetWithOptions(
+            {
+                options,
+                cancelButtonIndex,
+            },
+            buttonIndex => {
+                if(buttonIndex!==3){
+                    this.setState({durationUnit:options[buttonIndex]});
+                }
+            }
+        );
     }
 
     render() {
-        const {title, startTime, placeName, description, inputHeight, allFriends, allowParticipantsInvite, allowPeopleNearby, selectedFriendsList, maxNo} = this.state;
+        const {title, startTime, placeName, placeAddress, description, inputHeight, allFriends, allowParticipantsInvite, allowPeopleNearby,
+            selectedFriendsList, maxNo, descriptionHeight, tagsString, tagInputString, tagInputWidth, duration, durationUnit} = this.state;
+        let temp = placeAddress.split(',');
+        let area = temp[temp.length-1];
+        var dateTimeParts = startTime.split(' '),
+            timeParts = dateTimeParts[1].split(':'),
+            dateParts = dateTimeParts[0].split('-'),
+            startTimeDate;
+        startTimeDate = new Date(dateParts[0], dateParts[1]-1 , dateParts[2], timeParts[0], timeParts[1]);
+        let startTimeString = getStartTimeString(startTimeDate);
         return (
-            <ScrollView style={styles.container}>
-                <Card>
-                    <View style={{flex:1, justifyContent: 'center', alignItems: 'center',}}>
+            <KeyboardAwareScrollView
+                innerRef={ref => this.scroll = ref}
+                style={styles.container}>
+                <View style={{flex:1,justifyContent: 'center', alignItems: 'center'}}>
 
+                    <View style={{width:'90%'}}>
                         <Input
-                            width={230}
                             onChangeText={(title) => this.setState({title})}
                             value={title}
                             inputStyle={{
-                                textAlign:'center',
+                                //textAlign:'center',
                                 color: 'black',
                                 //fontWeight: 'bold',
                                 fontFamily:'bold',
+                                fontSize:30,
+                                //height:titleHeight,
                             }}
+                            inputContainerStyle={{borderBottomColor:'transparent', borderBottomWidth:0}}
+                            containerStyle={{ width:'100%'}}
+                            //multiline={true}
+                            maxLength={35}
                             keyboardAppearance="light"
-                            placeholder="A Tinko Title"
-                            autoFocus={false}
-                            //autoCapitalize
+                            placeholder="Let's Tinko Up!"
+                            autoFocus={true}
+                            autoCapitalize={'words'}
                             autoCorrect={true}
-                            returnKeyType="next"
-                            ref={ input => this.title = input }
-                            onSubmitEditing={() => {
-                                Keyboard.dismiss()
-                            }}
+                            returnKeyType="done"
+                            onSubmitEditing={() => {Keyboard.dismiss()}}
                             blurOnSubmit={false}
                             placeholderTextColor="black"
+
+                        />
+
+
+                        <Text style={{marginTop:20, fontFamily:'regular', fontSize:17, color:'#212F3C'}}>{tagsString}</Text>
+
+                    </View>
+
+                        <ScrollView
+                            horizontal={true}
+                            showsHorizontalScrollIndicator={false}
+                            style={{marginTop:20, marginLeft:SCREEN_WIDTH/20}}>
+                            <CustomButton style={{flex:1}} title="#party" onPress={this.onTagButtonPressed.bind(this)}/>
+                            <CustomButton style={{flex:1}} title="#sports" onPress={this.onTagButtonPressed.bind(this)}/>
+                            <CustomButton style={{flex:1}} title="#food" onPress={this.onTagButtonPressed.bind(this)}/>
+                            <CustomButton style={{flex:1}} title="#shopping" onPress={this.onTagButtonPressed.bind(this)}/>
+                            <CustomButton style={{flex:1}} title="#movie" onPress={this.onTagButtonPressed.bind(this)}/>
+                            <CustomButton style={{flex:1}} title="#bar" onPress={this.onTagButtonPressed.bind(this)}/>
+                            <CustomButton style={{flex:1}} title="#travel" onPress={this.onTagButtonPressed.bind(this)}/>
+                            <CustomButton style={{flex:1}} title="#study" onPress={this.onTagButtonPressed.bind(this)}/>
+                            <CustomButton style={{flex:1}} title="#esports" onPress={this.onTagButtonPressed.bind(this)}/>
+                        </ScrollView>
+
+                    <View style={{width:'90%'}}>
+                        <Input
+                            // ref={ref => this.tagInputRef = ref}
+                            onChangeText={(tagInputString) => this.setState({tagInputString})}
+                            value={tagInputString}
+                            placeholder="#..."
+                            inputStyle={{color: '#212F3C', fontFamily:'regular', fontSize:17}}
+                            returnKeyType={'next'}
+                            onSubmitEditing={() => {
+                                this.onTagButtonPressed(tagInputString);
+                                this.setState({tagInputString:'#'});
+                            }}
+                            containerStyle={{ width: tagInputWidth+45}}
+                            onContentSizeChange={(event) => {
+                                this.setState({ tagInputWidth: event.nativeEvent.contentSize.width })
+                            }}
+                        />
+
+                        {/*<View style={{flex: 1, flexDirection: 'column', height: 180, marginTop: 10}}>*/}
+                        {/*<View style={{flex: 1, flexDirection: 'row', justifyContent: 'space-between'}}>*/}
+                        {/**/}
+                        {/*</View>*/}
+                        {/*<View style={{flex: 1, flexDirection: 'row', justifyContent: 'space-between' }}>*/}
+                        {/**/}
+                        {/*</View>*/}
+                        {/*<View style={{ flex: 1, flexDirection: 'row', justifyContent: 'space-between' }}>*/}
+                        {/**/}
+                        {/*</View>*/}
+                        {/*</View>*/}
+
+                        <ListItem
+
+                            containerStyle={styles.listStyle}
+                            //contentContainerStyle={{justifyContent:'space-between'}}
+                            rightContentContainerStyle={{flex:2}}
+                            title='Starts:'
+                            titleStyle={styles.titleStyle}
+                            rightTitle={startTimeString}
+                            rightTitleStyle={{color:'#2471A3'}}
+                            onPress={() => this.myDatePicker && this.myDatePicker.onPressDate()}
+                        />
+                        <DatePicker
+                            key={'datepicker'}
+                            ref={(datepicker) => this.myDatePicker = datepicker}
+                            style={{width: 0, height: 0}}
+                            hideText={true}
+                            showIcon={false}
+
+                            date={startTime}
+                            mode="datetime"
+                            format="YYYY-MM-DD HH:mm"
+                            confirmBtnText="Confirm"
+                            cancelBtnText="Cancel"
+
+                            minuteInterval={10}
+                            onDateChange={(startTime) => {this.setState({startTime});}}
+                        />
+                        <ListItem
+                            containerStyle={styles.listStyle}
+                            rightContentContainerStyle={{flex:2}}
+                            title='Duration:'
+                            titleStyle={styles.titleStyle}
+                            rightElement={
+                                <View style={{flexDirection:'row', justifyContent: 'center', alignItems: 'center'}}>
+                                    <EvilIcons.Button
+                                        name="minus" size={24} color="black" backgroundColor="transparent"
+                                        onPress = {() => {
+                                            this.setState((state) => {
+                                                if(state.duration > 1){
+                                                    return {duration: state.duration -1};
+                                                }
+                                            });
+                                        }}
+                                    />
+                                    <Text style={{fontSize:17}}>{duration}</Text>
+                                    <EvilIcons.Button
+                                        name="plus" size={24} color="black" backgroundColor="transparent"
+                                        onPress = {() => {
+                                            console.log("plus pressed")
+                                            this.setState((state) => {
+                                                return {duration: state.duration +1};
+                                            });
+                                        }}
+                                    />
+                                    <Button
+                                        title={durationUnit}
+                                        onPress={() => this.openDurationUnitActionSheet()}
+                                    />
+                                </View>
+                            }
+                        />
+                        <ListItem
+                            containerStyle={styles.listStyle}
+                            title={placeName}
+                            titleStyle={styles.titleStyle}
+                            subtitle={area}
+                            onPress={() => this.props.navigation.navigate('GooglePlacesAutocomplete', {setPlaceDetail: this.setPlaceDetail})}
+                            chevron
+                            chevronColor={'black'}
+                        />
+                        <ListItem
+                            containerStyle={styles.listStyle}
+                            title='Invitation Range'
+                            titleStyle={styles.titleStyle}
+                            onPress={() => this.props.navigation.navigate('InvitationRange', {
+                                setInvitationRange: this.setInvitationRange,
+                                allFriends: allFriends,
+                                allowPeopleNearby: allowPeopleNearby,
+                                allowParticipantsInvite: allowParticipantsInvite,
+                                selectedFriendsList: selectedFriendsList,})}
+                            chevron
+                            chevronColor={'black'}
+                        />
+                        <ListItem
+                            containerStyle={styles.listStyle}
+                            title='Max Participants'
+                            titleStyle={styles.titleStyle}
+                            rightElement={
+                                <View style={{flexDirection:'row', justifyContent: 'center', alignItems: 'center'}}>
+                                    <EvilIcons.Button
+                                        name="minus" size={24} color="black" backgroundColor="transparent"
+                                        onPress = {() => {
+                                            this.setState((state) => {
+                                                if(state.maxNo > 1){
+                                                    return {maxNo: state.maxNo -1};
+                                                }
+                                            });
+                                        }}
+                                    />
+                                    <Text style={{fontSize:17}}>{maxNo===0?'No Limit' : maxNo}</Text>
+                                    <EvilIcons.Button
+                                        name="plus" size={24} color="black" backgroundColor="transparent"
+                                        onPress = {() => {
+                                            console.log("plus pressed")
+                                            this.setState((state) => {
+                                                return {maxNo: state.maxNo +1};
+                                            });
+                                        }}
+                                    />
+                                </View>
+                            }
+                        />
+
+
+                        <Input
+                            // onFocus={(event) => {
+                            //     // `bind` the function if you're using ES6 classes
+                            //     this._scrollToInput()
+                            // }}
+                            multiline = {true}
+                            onChangeText={(description) => this.setState({description})}
+                            value={description}
+                            keyboardAppearance="light"
+                            placeholder="Description..."
+                            autoFocus={false}
+                            autoCapitalize={'sentences'}
+                            //autoCorrect={true}
+                            returnKeyType="done"
+                            //ref={ input => this.description = input }
+                            inputStyle={{
+                                //textAlign:'center',
+                                color: 'black',
+                                //fontWeight: 'bold',
+                                fontFamily:'regular',
+                                fontSize:20,
+                                height:descriptionHeight,
+                            }}
+                            // onSubmitEditing={() => {
+                            //     Keyboard.dismiss()
+                            // }}
+                            blurOnSubmit={true}
+                            onContentSizeChange={(event) => {
+                                this.setState({ descriptionHeight: event.nativeEvent.contentSize.height })
+                            }}
                         />
 
                     </View>
-
-
-                    <View style={{flex: 1, flexDirection: 'column', height: 180, marginTop: 10}}>
-                        <View style={{flex: 1, flexDirection: 'row', justifyContent: 'space-between'}}>
-                            <CustomButton style={{flex:1}} title="Party" onPress={this.onTagButtonPressed.bind(this)}/>
-                            <CustomButton style={{flex:1}} title="Sport" onPress={this.onTagButtonPressed.bind(this)}/>
-                            <CustomButton style={{flex:1}} title="Food" onPress={this.onTagButtonPressed.bind(this)}/>
-                        </View>
-                        <View style={{flex: 1, flexDirection: 'row', justifyContent: 'space-between' }}>
-                            <CustomButton style={{flex:1}} title="Shop" onPress={this.onTagButtonPressed.bind(this)}/>
-                            <CustomButton style={{flex:1}} title="Movie" onPress={this.onTagButtonPressed.bind(this)}/>
-                            <CustomButton style={{flex:1}} title="KTV" onPress={this.onTagButtonPressed.bind(this)}/>
-                        </View>
-                        <View style={{ flex: 1, flexDirection: 'row', justifyContent: 'space-between' }}>
-                            <CustomButton style={{flex:1}} title="Travel" onPress={this.onTagButtonPressed.bind(this)}/>
-                            <CustomButton style={{flex:1}} title="Study" onPress={this.onTagButtonPressed.bind(this)}/>
-                            <CustomButton style={{flex:1}} title="ESports" onPress={this.onTagButtonPressed.bind(this)}/>
-                        </View>
-                    </View>
-
-                    <ListItem
-                        hideChevron
-                        containerStyle={styles.listStyle}
-                        title='Starts:'
-                        rightTitle={startTime}
-                        rightTitleStyle={{color:'blue'}}
-                        onPress={() => this.myDatePicker && this.myDatePicker.onPressDate()}
-                    />
-                    <DatePicker
-                        key={'datepicker'}
-                        ref={(datepicker) => this.myDatePicker = datepicker}
-                        style={{width: 0, height: 0}}
-                        hideText={true}
-                        showIcon={false}
-
-                        date={startTime}
-                        mode="datetime"
-                        format="YYYY-MM-DD HH:mm"
-                        confirmBtnText="Confirm"
-                        cancelBtnText="Cancel"
-
-                        minuteInterval={10}
-                        onDateChange={(startTime) => {this.setState({startTime});}}
-                    />
-                    <ListItem
-                        hideChevron
-                        containerStyle={styles.listStyle}
-                        title='Duration:'
-                        rightTitle='1 Hour'
-                        rightTitleStyle={{color:'blue'}}
-                    />
-                    <ListItem
-                        containerStyle={styles.listStyle}
-                        title='Place:'
-                        rightTitle={placeName}
-                        rightTitleStyle={{color:'black'}}
-                        onPress={() => this.props.navigation.navigate('GooglePlacesAutocomplete', {setPlaceDetail: this.setPlaceDetail})}
-                    />
-                    <ListItem
-                        containerStyle={styles.listStyle}
-                        title='Invitation Range'
-                        onPress={() => this.props.navigation.navigate('InvitationRange', {
-                            setInvitationRange: this.setInvitationRange,
-                            allFriends: allFriends,
-                            allowPeopleNearby: allowPeopleNearby,
-                            allowParticipantsInvite: allowParticipantsInvite,
-                            selectedFriendsList: selectedFriendsList,})}
-                    />
-                    <ListItem
-                        hideChevron
-                        containerStyle={styles.listStyle}
-                        title='Max Participants'
-                        // rightTitle={
-                        //     <View style={{flexDirection:'row', flex:1, height:30, width:50, marginRight:10}}>
-                        //         <EvilIcons.Button
-                        //             name="minus" size={20} color="black" backgroundColor="transparent"
-                        //             onPress = {() => {
-                        //                 this.setState((state) => {
-                        //                     return {maxNo: state.maxNo -1};
-                        //                 });
-                        //             }}
-                        //         />
-                        //         <Text>{maxNo}</Text>
-                        //         <EvilIcons.Button
-                        //             name="plus" size={20} color="black" backgroundColor="transparent"
-                        //             onPress = {() => {
-                        //                 console.log("plus pressed")
-                        //                 this.setState((state) => {
-                        //                     return {maxNo: state.maxNo +1};
-                        //                 });
-                        //             }}
-                        //         />
-                        //     </View>
-                        //
-                        // }
-                    />
-
-                    <ListItem
-                        hideChevron
-                        title={
-                            <TextInput
-                                multiline = {true}
-                                onContentSizeChange={(event) => this.handleSizeChange(event)}
-                                onChangeText={(description) => this.setState({description})}
-                                style={[ styles.inputStyling, {height: inputHeight} ]}
-                                value={description}
-                                keyboardAppearance="light"
-                                placeholder="Description..."
-                                autoFocus={false}
-                                //autoCapitalize
-                                autoCorrect={true}
-                                //returnKeyType="Done"
-                                //ref={ input => this.description = input }
-                                onSubmitEditing={() => {
-                                    Keyboard.dismiss()
-                                }}
-                                blurOnSubmit={false}
-                                placeholderTextColor="black"
-                            />
-                        }
-                    />
-
-                </Card>
-            </ScrollView>
+                </View>
+            </KeyboardAwareScrollView>
         );
     }
 }
@@ -460,12 +593,18 @@ export default class CreateScreen extends React.Component {
 const styles = StyleSheet.create({
     container: {
         flex: 1,
-        backgroundColor: '#F1948A',
+        backgroundColor: 'white',
     },
     listStyle:{
-        borderTopWidth: 0,
-        borderBottomWidth:0,
-        borderBottomColor:'transparent'
+        // borderTopWidth: 0,
+        // borderBottomWidth:0,
+        // borderBottomColor:'#F8F9F9',
+        paddingLeft:0,
+        paddingRight:0,
+    },
+    titleStyle:{
+        fontFamily:'regular',
+        fontSize:20,
     },
     inputStyling: {
         backgroundColor: 'white',
