@@ -112,7 +112,7 @@ export default class CreateScreen extends React.Component {
             tagList:[],
             tagsString:'',
             location: null,
-            titleHeight:36.64,
+            titleHeight:39,
             descriptionHeight:35,
             tagInputString:'#',
             tagInputWidth:50,
@@ -667,6 +667,7 @@ export default class CreateScreen extends React.Component {
                         {editingMode &&
                         <View>
                             <ListItem
+                                containerStyle={styles.listStyle}
                                 title='All Friends'
                                 rightIcon={
                                     <Switch
@@ -676,6 +677,7 @@ export default class CreateScreen extends React.Component {
                                 }
                             />
                             <ListItem
+                                containerStyle={styles.listStyle}
                                 title='Allow People Nearby'
                                 rightIcon={
                                     <Switch
@@ -685,6 +687,7 @@ export default class CreateScreen extends React.Component {
                                 }
                             />
                             <ListItem
+                                containerStyle={styles.listStyle}
                                 title='Allow Participants Invite Friends'
                                 rightIcon={
                                     <Switch

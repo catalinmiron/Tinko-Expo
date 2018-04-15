@@ -143,7 +143,7 @@ export default class TinkoScreen extends Component {
     }
 
     async handleOnEndReached(){
-        console.log('lastVisible');
+        //console.log('lastVisible');
         //console.log('lastVisible', this.state.lastVisible);
         const {orderByPostTime, lastVisible} = this.state;
         if(lastVisible){
@@ -158,7 +158,7 @@ export default class TinkoScreen extends Component {
             query.get().then(async (querySnapshot) => {
                 let addMeetsData = await this.processMeets(querySnapshot.docs);
                 let lastVisible = querySnapshot.docs[querySnapshot.docs.length-1];
-                console.log(addMeetsData);
+                //console.log(addMeetsData);
                 this.setState((state) => {
                     let meetsData = _.concat(state.meetsData, addMeetsData);
                     return {meetsData, lastVisible};
@@ -195,7 +195,7 @@ export default class TinkoScreen extends Component {
                     }
                     headerHeight={Header.HEIGHT}
                     onEndReached={() => {
-                        console.log('before handleonendreached');
+                        //console.log('before handleonendreached');
                         this.handleOnEndReached();
                     }}
                     onEndReachedThreshold={0}
