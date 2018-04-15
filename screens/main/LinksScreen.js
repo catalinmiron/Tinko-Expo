@@ -120,7 +120,8 @@ export default class FriendChatListView extends Component {
         super();
         let user = firebase.auth().currentUser;
         uid = user.uid;
-        this.socket = SocketIOClient('https://shuaiyixu.xyz');
+        // this.socket = SocketIOClient('https://shuaiyixu.xyz');
+        this.socket = SocketIOClient('http://47.89.187.42:4000/');
         this.getAvatar();
         this.getDBData();
         this.state = {
