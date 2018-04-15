@@ -14,17 +14,27 @@ export default class CustomButton extends Component {
     constructor(props) {
         super(props);
 
+        //console.log(props.title);
+        props.onRef(this);
+
         this.state = {
-            selected: false
+            selected: false,
+            title:props.title
         };
     }
 
     componentDidMount() {
-        const { selected } = this.props;
+        const { selected, title } = this.props;
 
-        this.setState({
-            selected
-        });
+        this.setState({selected, title});
+    }
+
+    setSelectedFalse(){
+        this.setState({selected:false});
+    }
+
+    returnTitle(){
+        return this.state.title;
     }
 
     render() {

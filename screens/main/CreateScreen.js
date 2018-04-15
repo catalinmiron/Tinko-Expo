@@ -11,7 +11,8 @@ import ReactNative, {
     Keyboard,
     TextInput,
     Dimensions,
-    KeyboardAvoidingView
+    Switch,
+    SafeAreaView
 } from 'react-native';
 import {
     Input,
@@ -30,26 +31,29 @@ import  DatePicker from 'react-native-datepicker';
 import { NavigationActions } from 'react-navigation';
 import { SQLite, Constants, Location, Permissions } from 'expo';
 import firebase from 'firebase';
-import { EvilIcons } from '@expo/vector-icons';
+import { EvilIcons, Ionicons } from '@expo/vector-icons';
 //import EvilIcons from '@expo/vector-icons/EvilIcons';
 import {createMeet} from "../../modules/SocketClient";
 import {KeyboardAwareScrollView} from 'react-native-keyboard-aware-scroll-view';
 import { ActionSheetProvider, connectActionSheet } from '@expo/react-native-action-sheet';
-import {getStartTimeString} from "../../modules/CommonUtility";
+import {getStartTimeString, getDurationString, getPostRequest} from "../../modules/CommonUtility";
 
 const SCREEN_WIDTH = Dimensions.get('window').width;
 const db = SQLite.openDatabase('db.db');
+const allTagsList = ['#party', '#sports', '#food', '#shopping', '#movie', '#bar', '#travel', '#study', 'esports'];
 
 import SocketIOClient from 'socket.io-client';
 
 @connectActionSheet
 export default class CreateScreen extends React.Component {
+
+
     static navigationOptions = ({ navigation }) => {
         const params = navigation.state.params || {};
 
         return {
             // Correct Header Button modifyzationn: https://reactnavigation.org/docs/header-buttons.html
-            headerRight:(<Button title="POST"
+            headerRight:(<Button title={params.editingMode?'UPDATE': 'POST'}
                                  clear
                                  onPress={params.post}/>),
             headerLeft:(<Button title="Cancel"
@@ -66,6 +70,14 @@ export default class CreateScreen extends React.Component {
     constructor(props){
         super(props);
         console.log(props);
+        let meet = props.navigation.state.params.meet;
+        let editingMode;
+        if(meet){
+            editingMode=true;
+        } else {
+            editingMode=false;
+        }
+        console.log(editingMode);
         var startTime = new Date();
         let tenMins = 10 * 60 * 1000;
         startTime.setTime(startTime.getTime() + tenMins)
@@ -76,7 +88,11 @@ export default class CreateScreen extends React.Component {
         //console.log('userUid',userUid);
         this._scrollToInput = this._scrollToInput.bind(this);
 
+        this.tagsButtonRefs = [];
+
         this.state={
+            meetId:'',
+            editingMode:editingMode,
             title:'',
             userUid: userUid,
             startTime: dateTime,
@@ -94,8 +110,9 @@ export default class CreateScreen extends React.Component {
             durationUnit:'Hours',
             maxNo: 8,
             tagList:[],
+            tagsString:'',
             location: null,
-            //fontLoaded:false,
+            titleHeight:36.64,
             descriptionHeight:35,
             tagInputString:'#',
             tagInputWidth:50,
@@ -103,26 +120,76 @@ export default class CreateScreen extends React.Component {
     }
 
     async componentDidMount() {
-        this.props.navigation.setParams({post:this.onPostButtonPressed.bind(this), cancel:this.onCancelButtonPressed.bind(this)});
-        if (Platform.OS === 'android' && !Constants.isDevice) {
+        if(this.state.editingMode){
+            let meet = this.props.navigation.state.params.meet;
+            let startTime = meet.startTime;
+            let dateTime =  startTime.getFullYear() + '-' + (startTime.getMonth()+1) + '-' + startTime.getDate() + ' ' + startTime.getHours() + ':' + startTime.getMinutes();
+            let durationString = getDurationString(meet.duration);
+            let temp = durationString.split(' ');
+            let duration = Number(temp[0]);
+            let durationUnitString = temp[1];
+            let durationUnit;
+            switch(durationUnitString.charAt(0)){
+                case 'h':
+                    durationUnit = 'Hours';
+                    break;
+                case 'd':
+                    durationUnit = 'Days';
+                    break;
+                case 'm':
+                    durationUnit = 'Mins';
+                    break;
+                default:
+                    durationUnit = 'Hours';
+                    break;
+            }
+            let tagList = Object.keys(meet.tagList);
+            let tagsString='';
+            for(let i=0; i<tagList.length; i++){
+                tagsString += tagList[i] + ' ';
+            }
             this.setState({
-                errorMessage: 'Oops, this will not work on Sketch in an Android emulator. Try it on your device!',
+                meetId:meet.meetId,
+                title:meet.title,
+                startTime:dateTime,
+                placeName:meet.place.name,
+                placeCoordinate:meet.place.coordinate,
+                placeAddress:meet.place.address,
+                placeId:meet.place.placeId,
+                description:meet.description,
+                allFriends:meet.allFriends,
+                allowPeopleNearby:meet.allowPeopleNearby,
+                allowParticipantsInvite:meet.allowParticipantsInvite,
+                selectedFriendsList:Object.keys(meet.selectedFriendsList),
+                duration:duration,
+                durationUnit:durationUnit,
+                maxNo:meet.maxNo,
+                tagList:tagList,
+                tagsString:tagsString
             });
-        } else {
-            this.getLocationAsync();
+            this.tagsButtonRefs.forEach((tag) => {
+                //console.log('tags',tag.state.title);
+                let title = tag.state.title;
+                let tagged = _.includes(tagList,title);
+                tag.setState({selected:tagged});
+            });
         }
 
-        this.getSql();
+        if(!this.state.editingMode){
 
-        // await Font.loadAsync({
-        //     'georgia': require('../../assets/fonts/Georgia.ttf'),
-        //     'regular': require('../../assets/fonts/Montserrat-Regular.ttf'),
-        //     'light': require('../../assets/fonts/Montserrat-Light.ttf'),
-        //     'bold': require('../../assets/fonts/Montserrat-Bold.ttf'),
-        // });
-        //
-        //
-        // this.setState({ fontLoaded: true });
+            if (Platform.OS === 'android' && !Constants.isDevice) {
+                this.setState({
+                    errorMessage: 'Oops, this will not work on Sketch in an Android emulator. Try it on your device!',
+                });
+            } else {
+                this.getLocationAsync();
+            }
+
+            this.getSql();
+        }
+
+
+        this.props.navigation.setParams({post:this.onPostButtonPressed.bind(this), cancel:this.onCancelButtonPressed.bind(this), editingMode:this.state.editingMode});
     }
 
     getLocationAsync = async () => {
@@ -215,7 +282,7 @@ export default class CreateScreen extends React.Component {
     onPostButtonPressed(){
         const { title, userUid, startTime, placeName, placeAddress, placeCoordinate, placeId,
             description, allFriends, allowPeopleNearby, allowParticipantsInvite,
-            selectedFriendsList, duration, maxNo, tagList, userPicked } = this.state;
+            selectedFriendsList, duration, maxNo, tagList, userPicked, editingMode, meetId } = this.state;
 
         var tagListObj = {};
         tagList.map((l,i) => {
@@ -267,25 +334,46 @@ export default class CreateScreen extends React.Component {
             maxNo: maxNo,
             description: description,
             place: placeObj,
-            participatingUsersList: participatingUsersListObj,
-            selectedFriendsList: selectedFriendsListObj,
-            status: true,
-            tagsString:''
-        }
-        console.log(docData);
+            //participatingUsersList: participatingUsersListObj,
+            //selectedFriendsList: selectedFriendsListObj,
+            //status: true,
+        };
+        //console.log(docData);
 
-        firebase.firestore().collection("Meets").add(docData)
-            .then((meetRef) => {
-                console.log("Document written with ID: ", meetRef.id);
-                //this.updateUserParticipatingMeets(meetRef.id, userUid);
-                createMeet(userUid, meetRef.id);
-            })
-            .catch((error) => {
-                console.log("Error adding document: ", error);
+
+
+        if(editingMode){
+            let bodyData = {meetId:meetId};
+            let docRef = firebase.firestore().collection("Meets").doc(meetId);
+            docRef.update(docData).then(() => {
+                getPostRequest('checkMeetStatus', bodyData,
+                    () => {
+
+                    },
+                    (error) => {
+                        console.log(error);
+                    })
+
             });
+        } else {
 
-        this.props.navigation.dispatch(NavigationActions.back())
-        this.props.navigation.state.params.tinkoGetMeets();
+            docData.participatingUsersList=participatingUsersListObj;
+            docData.selectedFriendsList=selectedFriendsListObj;
+            docData.status = true;
+
+            firebase.firestore().collection("Meets").add(docData)
+                .then((meetRef) => {
+                    console.log("Document written with ID: ", meetRef.id);
+                    //this.updateUserParticipatingMeets(meetRef.id, userUid);
+                    createMeet(userUid, meetRef.id);
+                })
+                .catch((error) => {
+                    console.log("Error adding document: ", error);
+                });
+
+            this.props.navigation.state.params.tinkoGetMeets();
+        }
+        this.props.navigation.dispatch(NavigationActions.back());
     }
 
     // updateUserParticipatingMeets(meetId, userUid){
@@ -344,7 +432,8 @@ export default class CreateScreen extends React.Component {
 
     render() {
         const {title, startTime, placeName, placeAddress, description, inputHeight, allFriends, allowParticipantsInvite, allowPeopleNearby,
-            selectedFriendsList, maxNo, descriptionHeight, tagsString, tagInputString, tagInputWidth, duration, durationUnit} = this.state;
+            selectedFriendsList, maxNo, descriptionHeight, tagsString, tagInputString, tagInputWidth, duration, durationUnit,titleHeight,
+            tagList, editingMode} = this.state;
         let temp = placeAddress.split(',');
         let area = temp[temp.length-1];
         var dateTimeParts = startTime.split(' '),
@@ -369,42 +458,73 @@ export default class CreateScreen extends React.Component {
                                 //fontWeight: 'bold',
                                 fontFamily:'bold',
                                 fontSize:30,
-                                //height:titleHeight,
+                                height:titleHeight,
+                                marginTop:10,
                             }}
                             inputContainerStyle={{borderBottomColor:'transparent', borderBottomWidth:0}}
                             containerStyle={{ width:'100%'}}
-                            //multiline={true}
-                            maxLength={35}
+                            multiline={true}
+                            maxLength={50}
                             keyboardAppearance="light"
                             placeholder="Let's Tinko Up!"
-                            autoFocus={true}
+                            autoFocus={!editingMode}
                             autoCapitalize={'words'}
                             autoCorrect={true}
                             returnKeyType="done"
                             onSubmitEditing={() => {Keyboard.dismiss()}}
-                            blurOnSubmit={false}
+                            blurOnSubmit={true}
                             placeholderTextColor="black"
+                            onContentSizeChange={(event) => {
+                                //console.log(event.nativeEvent.contentSize.height);
+                                if(event.nativeEvent.contentSize.height<400){
+                                    this.setState({ titleHeight: event.nativeEvent.contentSize.height })
+                                }
+
+                            }}
 
                         />
 
 
-                        <Text style={{marginTop:20, fontFamily:'regular', fontSize:17, color:'#212F3C'}}>{tagsString}</Text>
+                        <View style={{flexDirection:'row', justifyContent:'space-between', alignItems:'center'}}>
+                            <Text style={{marginTop:20, fontFamily:'regular', fontSize:17, color:'#212F3C'}}>{tagsString}</Text>
+                            {tagList.length!==0 &&
+                            <Ionicons.Button
+                                name="ios-close-circle-outline" size={24} color="#BDC3C7" backgroundColor="transparent"
+                                onPress = {() => {
+                                    this.setState({tagList:[],tagsString:''});
+                                    //console.log(this.tagsButtonRefs);
+                                    this.tagsButtonRefs.forEach((tag) => {
+                                        tag.setSelectedFalse();
+                                    });
+                                }}
+                            />
+                            }
+                        </View>
 
                     </View>
 
                         <ScrollView
                             horizontal={true}
                             showsHorizontalScrollIndicator={false}
-                            style={{marginTop:20, marginLeft:SCREEN_WIDTH/20}}>
-                            <CustomButton style={{flex:1}} title="#party" onPress={this.onTagButtonPressed.bind(this)}/>
-                            <CustomButton style={{flex:1}} title="#sports" onPress={this.onTagButtonPressed.bind(this)}/>
-                            <CustomButton style={{flex:1}} title="#food" onPress={this.onTagButtonPressed.bind(this)}/>
-                            <CustomButton style={{flex:1}} title="#shopping" onPress={this.onTagButtonPressed.bind(this)}/>
-                            <CustomButton style={{flex:1}} title="#movie" onPress={this.onTagButtonPressed.bind(this)}/>
-                            <CustomButton style={{flex:1}} title="#bar" onPress={this.onTagButtonPressed.bind(this)}/>
-                            <CustomButton style={{flex:1}} title="#travel" onPress={this.onTagButtonPressed.bind(this)}/>
-                            <CustomButton style={{flex:1}} title="#study" onPress={this.onTagButtonPressed.bind(this)}/>
-                            <CustomButton style={{flex:1}} title="#esports" onPress={this.onTagButtonPressed.bind(this)}/>
+                            style={{marginTop:20}}>
+                            <View style={{width:SCREEN_WIDTH/20}}/>
+                            {allTagsList.map((tagTitle) => (
+                                <CustomButton
+                                    onRef={ref => this.tagsButtonRefs.push(ref)}
+                                    key={tagTitle}
+                                    style={{flex:1}}
+                                    title={tagTitle}
+                                    onPress={this.onTagButtonPressed.bind(this)}/>
+                            ))}
+                            {/*<CustomButton style={{flex:1}} title="#party" onPress={this.onTagButtonPressed.bind(this)}/>*/}
+                            {/*<CustomButton style={{flex:1}} title="#sports" onPress={this.onTagButtonPressed.bind(this)}/>*/}
+                            {/*<CustomButton style={{flex:1}} title="#food" onPress={this.onTagButtonPressed.bind(this)}/>*/}
+                            {/*<CustomButton style={{flex:1}} title="#shopping" onPress={this.onTagButtonPressed.bind(this)}/>*/}
+                            {/*<CustomButton style={{flex:1}} title="#movie" onPress={this.onTagButtonPressed.bind(this)}/>*/}
+                            {/*<CustomButton style={{flex:1}} title="#bar" onPress={this.onTagButtonPressed.bind(this)}/>*/}
+                            {/*<CustomButton style={{flex:1}} title="#travel" onPress={this.onTagButtonPressed.bind(this)}/>*/}
+                            {/*<CustomButton style={{flex:1}} title="#study" onPress={this.onTagButtonPressed.bind(this)}/>*/}
+                            {/*<CustomButton style={{flex:1}} title="#esports" onPress={this.onTagButtonPressed.bind(this)}/>*/}
                         </ScrollView>
 
                     <View style={{width:'90%'}}>
@@ -425,21 +545,10 @@ export default class CreateScreen extends React.Component {
                             }}
                         />
 
-                        {/*<View style={{flex: 1, flexDirection: 'column', height: 180, marginTop: 10}}>*/}
-                        {/*<View style={{flex: 1, flexDirection: 'row', justifyContent: 'space-between'}}>*/}
-                        {/**/}
-                        {/*</View>*/}
-                        {/*<View style={{flex: 1, flexDirection: 'row', justifyContent: 'space-between' }}>*/}
-                        {/**/}
-                        {/*</View>*/}
-                        {/*<View style={{ flex: 1, flexDirection: 'row', justifyContent: 'space-between' }}>*/}
-                        {/**/}
-                        {/*</View>*/}
-                        {/*</View>*/}
+
 
                         <ListItem
-
-                            containerStyle={styles.listStyle}
+                            containerStyle={[styles.listStyle, {marginTop:30}]}
                             //contentContainerStyle={{justifyContent:'space-between'}}
                             rightContentContainerStyle={{flex:2}}
                             title='Starts:'
@@ -470,7 +579,11 @@ export default class CreateScreen extends React.Component {
                             title='Duration:'
                             titleStyle={styles.titleStyle}
                             rightElement={
-                                <View style={{flexDirection:'row', justifyContent: 'center', alignItems: 'center'}}>
+                                <View style={{flexDirection:'row', justifyContent: 'flex-end', alignItems: 'center'}}>
+                                    <Button
+                                        title={durationUnit}
+                                        onPress={() => this.openDurationUnitActionSheet()}
+                                    />
                                     <EvilIcons.Button
                                         name="minus" size={24} color="black" backgroundColor="transparent"
                                         onPress = {() => {
@@ -491,41 +604,15 @@ export default class CreateScreen extends React.Component {
                                             });
                                         }}
                                     />
-                                    <Button
-                                        title={durationUnit}
-                                        onPress={() => this.openDurationUnitActionSheet()}
-                                    />
                                 </View>
                             }
                         />
                         <ListItem
                             containerStyle={styles.listStyle}
-                            title={placeName}
-                            titleStyle={styles.titleStyle}
-                            subtitle={area}
-                            onPress={() => this.props.navigation.navigate('GooglePlacesAutocomplete', {setPlaceDetail: this.setPlaceDetail})}
-                            chevron
-                            chevronColor={'black'}
-                        />
-                        <ListItem
-                            containerStyle={styles.listStyle}
-                            title='Invitation Range'
-                            titleStyle={styles.titleStyle}
-                            onPress={() => this.props.navigation.navigate('InvitationRange', {
-                                setInvitationRange: this.setInvitationRange,
-                                allFriends: allFriends,
-                                allowPeopleNearby: allowPeopleNearby,
-                                allowParticipantsInvite: allowParticipantsInvite,
-                                selectedFriendsList: selectedFriendsList,})}
-                            chevron
-                            chevronColor={'black'}
-                        />
-                        <ListItem
-                            containerStyle={styles.listStyle}
-                            title='Max Participants'
+                            title='Max Participants:'
                             titleStyle={styles.titleStyle}
                             rightElement={
-                                <View style={{flexDirection:'row', justifyContent: 'center', alignItems: 'center'}}>
+                                <View style={{flexDirection:'row', justifyContent: 'flex-end', alignItems: 'center'}}>
                                     <EvilIcons.Button
                                         name="minus" size={24} color="black" backgroundColor="transparent"
                                         onPress = {() => {
@@ -536,7 +623,7 @@ export default class CreateScreen extends React.Component {
                                             });
                                         }}
                                     />
-                                    <Text style={{fontSize:17}}>{maxNo===0?'No Limit' : maxNo}</Text>
+                                    <Text style={{fontSize:17}}>{maxNo===1?'No Limit' : maxNo}</Text>
                                     <EvilIcons.Button
                                         name="plus" size={24} color="black" backgroundColor="transparent"
                                         onPress = {() => {
@@ -551,6 +638,66 @@ export default class CreateScreen extends React.Component {
                         />
 
 
+                        <ListItem
+                            containerStyle={[styles.listStyle, {marginTop:30}]}
+                            title={placeName}
+                            titleStyle={styles.titleStyle}
+                            subtitle={area}
+                            onPress={() => this.props.navigation.navigate('GooglePlacesAutocomplete', {setPlaceDetail: this.setPlaceDetail})}
+                            chevron
+                            chevronColor={'black'}
+                        />
+
+                        {!editingMode &&
+                        <ListItem
+                            containerStyle={styles.listStyle}
+                            title='Invitation Range:'
+                            titleStyle={styles.titleStyle}
+                            onPress={() => this.props.navigation.navigate('InvitationRange', {
+                                setInvitationRange: this.setInvitationRange,
+                                allFriends: allFriends,
+                                allowPeopleNearby: allowPeopleNearby,
+                                allowParticipantsInvite: allowParticipantsInvite,
+                                selectedFriendsList: selectedFriendsList,})}
+                            chevron
+                            chevronColor={'black'}
+                        />
+                        }
+
+                        {editingMode &&
+                        <View>
+                            <ListItem
+                                title='All Friends'
+                                rightIcon={
+                                    <Switch
+                                        value={allFriends}
+                                        onValueChange={(allFriends) => this.setState({allFriends})}
+                                    />
+                                }
+                            />
+                            <ListItem
+                                title='Allow People Nearby'
+                                rightIcon={
+                                    <Switch
+                                        value={allowPeopleNearby}
+                                        onValueChange={(allowPeopleNearby) => this.setState({allowPeopleNearby})}
+                                    />
+                                }
+                            />
+                            <ListItem
+                                title='Allow Participants Invite Friends'
+                                rightIcon={
+                                    <Switch
+                                        value={allowParticipantsInvite}
+                                        onValueChange={(allowParticipantsInvite) => this.setState({allowParticipantsInvite})}
+                                    />
+                                }
+                            />
+                        </View>
+                        }
+
+
+
                         <Input
                             // onFocus={(event) => {
                             //     // `bind` the function if you're using ES6 classes
@@ -563,7 +710,7 @@ export default class CreateScreen extends React.Component {
                             placeholder="Description..."
                             autoFocus={false}
                             autoCapitalize={'sentences'}
-                            //autoCorrect={true}
+                            autoCorrect={true}
                             returnKeyType="done"
                             //ref={ input => this.description = input }
                             inputStyle={{
@@ -573,6 +720,7 @@ export default class CreateScreen extends React.Component {
                                 fontFamily:'regular',
                                 fontSize:20,
                                 height:descriptionHeight,
+                                marginTop:30,
                             }}
                             // onSubmitEditing={() => {
                             //     Keyboard.dismiss()
@@ -582,6 +730,9 @@ export default class CreateScreen extends React.Component {
                                 this.setState({ descriptionHeight: event.nativeEvent.contentSize.height })
                             }}
                         />
+
+                        <View style={{height:20}}/>
+
 
                     </View>
                 </View>

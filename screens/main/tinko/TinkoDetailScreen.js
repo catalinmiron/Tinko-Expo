@@ -58,6 +58,7 @@ export default class TinkoDetailScreen extends React.Component {
         this.onJoinButtonPressed = this.onJoinButtonPressed.bind(this);
         this.renderActivityBar = this.renderActivityBar.bind(this);
         this.state={
+            meet:{},
             userUid:user.uid,
             meetId: this.props.navigation.state.params.meetId,
             allFriends: false,
@@ -125,6 +126,8 @@ export default class TinkoDetailScreen extends React.Component {
             if (meetDoc.exists) {
                 //console.log("Document data:", meetDoc.data());
                 let meet = meetDoc.data();
+                meet['meetId'] = meetId;
+                //console.log(meet);
 
                 let allFriends = meet.allFriends,
                     allowParticipantsInvite = meet.allowParticipantsInvite,
@@ -167,7 +170,9 @@ export default class TinkoDetailScreen extends React.Component {
                 this.getPlacePhotos(placeId);
                 this.updateParticipatingUsersData(participatingUsersList);
 
-                this.setState({allFriends,
+                this.setState({
+                    meet,
+                    allFriends,
                     allowParticipantsInvite,
                     allowPeopleNearby,
                     creatorUid,
@@ -193,6 +198,7 @@ export default class TinkoDetailScreen extends React.Component {
                 //this.marker.showCallout()
             } else {
                 console.log("No such document!");
+                Aler.alert('Sorry','This Tinko is not available anymore')
             }
         });
         this.setState({unsubscribe});
@@ -315,13 +321,15 @@ export default class TinkoDetailScreen extends React.Component {
             },
             buttonIndex => {
                 console.log(buttonIndex);
-                if((identity===2 || identity===3) && buttonIndex===1){
+                if(options[buttonIndex] === 'Quit'){
                     //this.onQuitMeetButtonPressed();
                     Alert.alert("Alert", "Are you sure to Quit?",
                         [
                             {text: 'Cancel', onPress: () => console.log('Cancel Pressed'), style: 'cancel'},
                             {text: 'Yes', onPress: () => this.onQuitMeetButtonPressed(), style:"destructive"},
                         ]);
+                } else if(options[buttonIndex] === 'Edit') {
+                    this.props.navigation.navigate('Create',{meet:this.state.meet});
                 }
             }
         );
@@ -406,7 +414,7 @@ export default class TinkoDetailScreen extends React.Component {
                         <View style={{flexDirection:'row', justifyContent:"space-between", marginTop:10}}>
                             <View style={{flex:1, flexDirection:'row'}}>
                                 <Ionicons name="ios-heart" size={26} color="#1C2833" />
-                                <Text style={{marginLeft: 5, fontSize:20, fontFamily:'regular', color:'#2C3E50'}}>{`Status: ${participatingUsersList.length} / ${maxNo}`}</Text>
+                                <Text style={{marginLeft: 5, fontSize:20, fontFamily:'regular', color:'#2C3E50'}}>{`Status: ${participatingUsersList.length} / ${maxNo===1 ? '∞' : maxNo}`}</Text>
                             </View>
                             <View style={{flex:1, flexDirection:'row'}}>
                                 <MaterialIcons name="group" size={26} color="#1C2833" />

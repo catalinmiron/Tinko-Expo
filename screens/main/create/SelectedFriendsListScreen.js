@@ -30,7 +30,7 @@ const db = SQLite.openDatabase('db.db');
 
 import * as firebase from "firebase";
 
-export default class InvitationRangeScreen extends React.Component{
+export default class SelectedFriendsListScreen extends React.Component{
 
     static navigationOptions = ({ navigation }) => {
         const params = navigation.state.params || {};
@@ -41,7 +41,8 @@ export default class InvitationRangeScreen extends React.Component{
                                 clear
                                 onPress={params.back}
             />),
-            headerStyle:{backgroundColor:'#EC7063'}
+            headerStyle:{backgroundColor:'#EC7063'},
+            headerTitle:"People who can see"
             //headerStyle:{ position: 'absolute', backgroundColor: 'transparent', zIndex: 100, top: 0, left: 0, right: 0, headerLeft:null, boarderBottomWidth: 0}
         };
     };

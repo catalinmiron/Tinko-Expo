@@ -62,7 +62,7 @@ export function _getImageTag (image, gutter = 0) {
     }
     return (
         <Image
-            key={image.uri}
+            key={image.data.meetId}
             resizeMethod={'auto'}
             source={getImageSource(tag)}
             style={{ borderRadius:10, width: image.width, height: image.height, marginTop: gutter, ...image.imageContainerStyle }}

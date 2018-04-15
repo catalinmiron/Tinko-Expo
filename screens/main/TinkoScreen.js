@@ -143,25 +143,30 @@ export default class TinkoScreen extends Component {
     }
 
     async handleOnEndReached(){
-        console.log(this.state.lastVisible);
+        console.log('lastVisible');
+        //console.log('lastVisible', this.state.lastVisible);
         const {orderByPostTime, lastVisible} = this.state;
-        const firestoreDb = firebase.firestore();
-        var query;
-        if(orderByPostTime){
-            query = firestoreDb.collection("Meets").orderBy(`selectedFriendsList.${this.state.userUid}.postTime`,'desc').startAfter(lastVisible).limit(10);
-        } else {
-            query = firestoreDb.collection("Meets").orderBy(`selectedFriendsList.${this.state.userUid}.startTime`).startAfter(lastVisible).limit(10);
+        if(lastVisible){
+            const firestoreDb = firebase.firestore();
+            let query;
+            if(orderByPostTime){
+                query = firestoreDb.collection("Meets").orderBy(`selectedFriendsList.${this.state.userUid}.postTime`,'desc').startAfter(lastVisible).limit(10);
+            } else {
+                query = firestoreDb.collection("Meets").orderBy(`selectedFriendsList.${this.state.userUid}.startTime`).startAfter(lastVisible).limit(10);
+            }
+
+            query.get().then(async (querySnapshot) => {
+                let addMeetsData = await this.processMeets(querySnapshot.docs);
+                let lastVisible = querySnapshot.docs[querySnapshot.docs.length-1];
+                console.log(addMeetsData);
+                this.setState((state) => {
+                    let meetsData = _.concat(state.meetsData, addMeetsData);
+                    return {meetsData, lastVisible};
+                })
+            }).catch((error)=>{
+                console.log(error);
+            });
         }
-        query.get().then(async (querySnapshot) => {
-            var addMeetsData = await this.processMeets(querySnapshot.docs);
-            var lastVisible = querySnapshot.docs[querySnapshot.docs.length-1];
-            this.setState((state) => {
-                let meetsData = _.concat(state.meetsData, addMeetsData);
-                return {meetsData, lastVisible};
-            })
-        }).catch((error) => {
-            console.log(error);
-        });
     }
 
 
@@ -189,8 +194,11 @@ export default class TinkoScreen extends Component {
                         />
                     }
                     headerHeight={Header.HEIGHT}
-                    onEndReached={() => this.handleOnEndReached()}
-                    onEndReachedThreshold={1000}
+                    onEndReached={() => {
+                        console.log('before handleonendreached');
+                        this.handleOnEndReached();
+                    }}
+                    onEndReachedThreshold={0}
                     navigation={this.props.screenProps.navigation}
                     //renderFooter={()=>(<text>123</text>)}
                 />
