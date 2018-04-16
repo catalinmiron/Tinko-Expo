@@ -20,6 +20,7 @@ import IconBadge from '../modules/react-native-icon-badge';
 import Setting from '../screens/main/second/SettingsScreen';
 import TinkoWebView from '../screens/main/common/TinkoWebView';
 import NewFriendsScreen from '../screens/main/second/NewFriendsScreen';
+import TinkoDetailTabNavigator from './TinkoDetailTabNavigator'
 
 const MainTabNavigator = TabNavigator(
   {
@@ -105,7 +106,7 @@ const MainTabNavigatorWithDetailScreens = StackNavigator(
             screen: MainTabNavigator,
         },
         TinkoDetail:{
-            screen: TinkoDetailScreen,
+            screen: TinkoDetailTabNavigator,
         },
         PrivateChatPage: {
             screen: PrivateChatScreen,

@@ -490,7 +490,7 @@ export default class TinkoDetailScreen extends React.Component {
             <Header
                 outerContainerStyles = {{backgroundColor: '#FFFCF6', borderBottomColor:'transparent', borderBottomWidth:0, paddingHorizontal:26, ...ifIphoneX({paddingTop:20}, {paddingTop:10})}}
                 innerContainerStyles = {{ alignItems: 'flex-start'}}
-                //leftComponent={<Text>123</Text>}
+                leftComponent={<Button title='Chat' onPress={() => this.props.navigation.navigate('TinkoDetailChat')}/>}
                 rightComponent={
                     <Button
                         onPress={() => this.onJoinButtonPressed()}
