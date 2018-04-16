@@ -1,4 +1,4 @@
-import { Notifications, SQLite } from 'expo';
+import { Notifications, SQLite, Permissions } from 'expo';
 const db = SQLite.openDatabase('db.db');
 
 import React from 'react';
@@ -18,6 +18,35 @@ import {getUserData} from "../modules/CommonUtility";
 let getPrivateHistory = false,
     getMeetsHistory = false;
 
+async function getToken() {
+    if (!Expo.Constants.isDevice) {
+        return;
+    }
+    let { status } = await Expo.Permissions.askAsync(
+        Expo.Permissions.NOTIFICATIONS,
+    );
+    if (status !== 'granted') {
+        return;
+    }
+    let value = await Expo.Notifications.getExpoPushTokenAsync();
+    //这个是我们的token需要传给服务器
+    console.log("==========",value);
+    fetch('http://47.89.187.42:4000/login', {
+        method: 'POST',
+        headers: {
+            Accept: 'application/json',
+            'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+            uid: uid,
+            token: value,
+        }),
+    });
+
+    console.log('Our token', value);
+}
+
+let uid = "";
 
 export default class RootNavigator extends React.Component {
     constructor(props){
@@ -29,20 +58,23 @@ export default class RootNavigator extends React.Component {
     }
 
     componentDidMount() {
-    this._notificationSubscription = this._registerForPushNotifications();
+        getToken();
+        // this.listener = Expo.Notifications.addListener(this.handleNotification);
+        // this._notificationSubscription = this._registerForPushNotifications();
         if(this.props.loggedIn){
             this.loggedInSetup();
         }
-  }
+    }
 
-  componentWillUnmount() {
-    this._notificationSubscription && this._notificationSubscription.remove();
-  }
+    componentWillUnmount() {
+        // this.listener && this.listener.remove();
+        this._notificationSubscription && this._notificationSubscription.remove();
+    }
 
   loggedInSetup(){
       let user = firebase.auth().currentUser;
-      let uid = user.uid;
-      this.setState({userUid:uid})
+      uid = user.uid;
+      this.setState({userUid:uid});
       // 测试时才用drop
       //this.dropChatTable(uid);
       //this.dropFriendsTable(uid);
@@ -51,6 +83,7 @@ export default class RootNavigator extends React.Component {
       this.dropMeetingTable(uid);
       this.initMeetingTable(uid);
       initNewFriendsRequestTable(uid);
+
 
       // this.socket = SocketIOClient('https://shuaiyixu.xyz');
       this.socket = SocketIOClient('http://47.89.187.42:4000/');
@@ -80,8 +113,6 @@ export default class RootNavigator extends React.Component {
       this.socket.on("systemListener"+uid,msg=>{
           this.getFriendRequestInfo(JSON.parse(msg))
       });
-
-
 
       let meetRef = firebase.firestore().collection("Meets").where(`participatingUsersList.${uid}.status`, "==", true);
       meetRef.get().then((querySnapshot)=>{
@@ -313,6 +344,7 @@ export default class RootNavigator extends React.Component {
     // friendsListIsReady(){
     //     console.log('Root Navigator: friendsListIsReady');
     // }
+
 
   _registerForPushNotifications() {
     // Send our push token over to our backend so we can receive notifications
