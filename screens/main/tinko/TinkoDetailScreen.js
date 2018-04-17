@@ -6,13 +6,14 @@ import 'firebase/firestore';
 import Swiper from 'react-native-swiper';
 import { getStartTimeString,  getDurationString, getUserData, getImageSource } from "../../../modules/CommonUtility";
 import { MapView } from 'expo';
-import { Ionicons, MaterialIcons, Entypo,  } from '@expo/vector-icons';
+import { Ionicons, MaterialIcons, Entypo, MaterialCommunityIcons  } from '@expo/vector-icons';
 import { Avatar, Button, Header} from 'react-native-elements';
 import { ifIphoneX } from 'react-native-iphone-x-helper';
 import { getPostRequest } from "../../../modules/CommonUtility";
 import { ActionSheetProvider, connectActionSheet } from '@expo/react-native-action-sheet';
 import SocketIOClient from "socket.io-client";
 import {createMeet} from "../../../modules/SocketClient";
+
 
 const SCREEN_WIDTH = Dimensions.get('window').width;
 
@@ -30,17 +31,17 @@ export default class TinkoDetailScreen extends React.Component {
             headerRight:(
                 <View style={{flexDirection:'row'}}>
 
-                    {(allowParticipantsInvite || identity===1) &&
-                    <Entypo.Button
-                        name="share-alternative" size={20} color="white" backgroundColor="transparent"
-                        onPress = {() => console.log('share')}/>
-                    }
+                    {/*{(allowParticipantsInvite || identity===1) &&*/}
+                    {/*<Entypo.Button*/}
+                        {/*name="share-alternative" size={20} color="white" backgroundColor="transparent"*/}
+                        {/*onPress = {() => console.log('share')}/>*/}
+                    {/*}*/}
 
-                    {identity===3 &&
-                    <Entypo.Button
-                        name="add-user" size={20} color="white" backgroundColor="transparent"
-                        onPress = {() => console.log('invite')}/>
-                    }
+                    {/*{identity===3 &&*/}
+                    {/*<Entypo.Button*/}
+                        {/*name="add-user" size={20} color="white" backgroundColor="transparent"*/}
+                        {/*onPress = {() => console.log('invite')}/>*/}
+                    {/*}*/}
 
                     <Entypo.Button
                         name="dots-three-vertical" size={20} color="white" style={{marginRight:26}} backgroundColor="transparent"
@@ -476,7 +477,8 @@ export default class TinkoDetailScreen extends React.Component {
 
 
                 </ScrollView>
-                {identity === 0 && <this.renderActivityBar />}
+                <this.renderActivityBar />
+
 
             </View>
 
@@ -484,24 +486,51 @@ export default class TinkoDetailScreen extends React.Component {
     }
 
     renderActivityBar(){
-        const {buttonShowLoading} = this.state;
+        const {buttonShowLoading, identity, allowParticipantsInvite} = this.state;
 
-        return( <SafeAreaView style = {{backgroundColor: '#FFFCF6'}}>
+        return(
             <Header
-                outerContainerStyles = {{backgroundColor: '#FFFCF6', borderBottomColor:'transparent', borderBottomWidth:0, paddingHorizontal:26, ...ifIphoneX({paddingTop:20}, {paddingTop:10})}}
-                innerContainerStyles = {{ alignItems: 'flex-start'}}
-                leftComponent={<Button title='Chat' onPress={() => this.props.navigation.navigate('TinkoDetailChat')}/>}
-                rightComponent={
+            outerContainerStyles = {{backgroundColor: '#FFFCF6', borderBottomColor:'transparent', borderBottomWidth:0, paddingTop:0, ...ifIphoneX({height:78}, {height:50})}}
+            innerContainerStyles = {{ alignItems: 'flex-start'}}
+            leftComponent={
+                <TouchableWithoutFeedback
+                    onPress={()=>this.props.navigation.navigate('TinkoDetailChat')}
+                    style={{flex:1}}>
+                    <View style={{flexDirection:'row', height:50, alignItems:'center', }}>
+                        <MaterialCommunityIcons name='pencil' size={20} color={'black'} backgroundColor={'transparent'}/>
+                        <Text style={{marginLeft:10}}>Discuss..</Text>
+                    </View>
+
+
+                </TouchableWithoutFeedback>
+            }
+            rightComponent={
+                <View style={{flexDirection:'row', height:50, alignItems:'center'}}>
+                    {(allowParticipantsInvite || identity===1) &&
+                    <Entypo.Button
+                        name="share-alternative" size={20} color="black" backgroundColor="transparent"
+                        onPress = {() => console.log('share')}/>
+                    }
+
+                    {identity===3 &&
+                    <Entypo.Button
+                        name="add-user" size={20} color="black" backgroundColor="transparent"
+                        onPress = {() => console.log('invite')}/>
+                    }
+                    {identity === 0 &&
                     <Button
                         onPress={() => this.onJoinButtonPressed()}
                         loading={buttonShowLoading}
                         loadingProps={{size: 'small', color: 'white'}}
                         title={"Join"}
-                        containerViewStyle={{ flex:1, }}
-                        buttonStyle={{borderRadius:10, height:50, width:SCREEN_WIDTH*2/5}}/>
-                }
-            />
-        </SafeAreaView>);
+                        containerViewStyle={{ flex:1, marginRight:0}}
+                        buttonStyle={{borderRadius:0, height:50, width:SCREEN_WIDTH*2/5}}/>
+                    }
+
+                </View>
+
+            }
+        />);
     }
 
 

@@ -1,13 +1,16 @@
 import React from "react";
-import { View, Platform, SafeAreaView } from 'react-native';
+import { View, Platform, SafeAreaView, Keyboard } from 'react-native';
 import { GiftedChat } from 'react-native-gifted-chat'
 import SlackMessage from '../../../components/SlackMessage'
 import emojiUtils from 'emoji-utils';
 import {getFromAsyncStorage, getUserData, writeInAsyncStorage} from "../../../modules/CommonUtility";
 import firebase from "firebase/index";
 import {Header} from "react-native-elements";
+import { ifIphoneX } from 'react-native-iphone-x-helper'
 
 export default class TinkoDetailChatScreen extends React.Component {
+
+    static navigationOptions = {header:null};
 
     constructor(props){
         super(props);
@@ -22,6 +25,8 @@ export default class TinkoDetailChatScreen extends React.Component {
             loadEarlier: true,
             isLoadingEarlier:false,
             lastMeetId:-1,
+            limit:16,
+            SafeAreaInsets:34,
         };
         getFromAsyncStorage('ThisUser', user.uid).then((userData) => {
             if(userData) {
@@ -52,15 +57,39 @@ export default class TinkoDetailChatScreen extends React.Component {
     }
 
     componentDidMount(){
-        //this.getGroupChatContents();
+        this.getGroupChatContents();
+        // this.keyboardDidShowListener = Keyboard.addListener('keyboardWillShow', this._keyboardDidShow());
+        // this.keyboardDidHideListener = Keyboard.addListener('keyboardWillHide', this._keyboardDidHide());
     }
 
-    static navigationOptions = {header:null};
+
+    componentWillUnmount () {
+        //this.keyboardDidShowListener.remove();
+        //this.keyboardDidHideListener.remove();
+    }
+    //
+    // _keyboardDidShow () {
+    //     alert('Keyboard Shown');
+    //     //this.setState({SafeAreaInsets:0})
+    // }
+    //
+    // _keyboardDidHide () {
+    //     alert('Keyboard Hidden');
+    //     //this.setState({SafeAreaInsets:34})
+    // }
 
 
     getGroupChatContents() {
         this.setState({isLoadingEarlier:true});
-        console.log(this.state.lastMeedId);
+        //console.log(this.state.lastMeedId);
+        const {lastMeetId, limit} = this.state;
+        let bodyData={
+            meetId: "1iuLxFd8aMZVuYHR97do",
+            //meetId:this.state.meetId,
+            lastId: lastMeetId,
+            limit:limit
+        };
+        console.log(bodyData);
         try {
             fetch('http://47.89.187.42:4000/getChatHistory', {
                 method: 'POST',
@@ -68,12 +97,7 @@ export default class TinkoDetailChatScreen extends React.Component {
                     Accept: 'application/json',
                     'Content-Type': 'application/json',
                 },
-                body: JSON.stringify({
-                    meetId: "1iuLxFd8aMZVuYHR97do",
-                    //meetId:this.state.meetId,
-                    lastId: this.state.lastMeetId,
-                    limit:16
-                }),
+                body: JSON.stringify(bodyData),
             }).then((response) => response.json())
                 .then((responseJson) => {
                     console.log("在这里是数据:", responseJson);
@@ -98,16 +122,19 @@ export default class TinkoDetailChatScreen extends React.Component {
                         messages.push(message);
                     });
 
-                    if(data.length<15){
+                    if(data.length<limit){
                         this.setState({loadEarlier:false, });
                     }
                     let lastId;
-                    if(data.length===0){
-                        lastId=-1
-                    } else{
+                    if(data.length!==0){
                         lastId=data[data.length-1].id;
                     }
-                    this.setState({messages, isLoadingEarlier:false, lastMeedId:lastId});
+                    console.log('lastId', lastId);
+                    this.setState((state) => {
+                        let a = state.messages.concat(messages);
+                        return {messages:a};
+                    });
+                    this.setState({isLoadingEarlier:false, lastMeetId:lastId});
                 })
                 .catch((error) => {
                     console.error(error);
@@ -119,7 +146,7 @@ export default class TinkoDetailChatScreen extends React.Component {
     }
 
     componentWillMount() {
-        this.getGroupChatContents();
+        //this.getGroupChatContents();
         // this.setState({
         //     messages: [
         //         {
@@ -174,11 +201,12 @@ export default class TinkoDetailChatScreen extends React.Component {
     }
 
     render() {
-        const {thisUser, messages, loadEarlier, isLoadingEarlier} = this.state;
+        const {thisUser, messages, loadEarlier, isLoadingEarlier, SafeAreaInsets} = this.state;
         return (
             <View style={{flex:1}}>
                 <Header
-                    centerComponent={{ text: 'Chat', style: { color: '#fff' } }}
+                    centerComponent={{ text: 'Chat', style: { fontSize:18, fontFamily:'bold', color: '#fff' } }}
+                    outerContainerStyles={ifIphoneX({height:78})}
                 />
                 <GiftedChat
 
@@ -196,7 +224,12 @@ export default class TinkoDetailChatScreen extends React.Component {
                     loadEarlier={loadEarlier}
                     onLoadEarlier={() => this.getGroupChatContents()}
                     isLoadingEarlier={isLoadingEarlier}
+                    bottomOffset={ifIphoneX(SafeAreaInsets)}
+                    //textInputProps={{height:54}}
                 />
+
+
+                <View style={{...ifIphoneX({height:SafeAreaInsets, backgroundColor:'white'}, {})}}/>
             </View>
 
         )
