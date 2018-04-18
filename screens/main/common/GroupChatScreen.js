@@ -77,9 +77,9 @@ export default class PrivateChatScreen extends Component {
                             this.appendMessageFromCache(dataArr[i].timeStamp,dataArr[i].msg,userData.uid,userData.username,userData.photoURL);
                         }else{
                             if (dataArr[i].type !== 0 ){
-                                this.appendMessage(dataArr[i].msg,0);
+                                this.appendMessage(dataArr[i].timeStamp,dataArr[i].msg,0);
                             }else{
-                                this.appendMessage(dataArr[i].msg);
+                                this.appendMessage(dataArr[i].timeStamp,dataArr[i].msg);
                             }
                         }
                     }
@@ -100,13 +100,13 @@ export default class PrivateChatScreen extends Component {
         }
     }
 
-    appendMessage(msg,type){
+    appendMessage(time,msg,type){
         let chatData = {};
         if (type === 0){
             chatData = {
                 _id: Math.round(Math.random() * 10000),
                 text: msg,
-                createdAt: new Date(),
+                createdAt: this.utcTime(time),
                 user: {
                     _id: 1,
                     name: 'Developer',
