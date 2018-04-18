@@ -21,6 +21,7 @@ export default TinkoDetailTabNavigator = TabNavigator(
         swipeEnabled: true,
         headerMode: 'none',
         headerVisible: false,
-        lazy:false
+        lazy:false,
+        backBehavior:'none'
     }
 );

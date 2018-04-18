@@ -132,6 +132,11 @@ export default class DiscoverScreen extends Component {
                             //console.log("Document data:", userDoc.data());
                             let creator = userDoc.data();
 
+                            let tagsList=[];
+                            if(meet.tagsList){
+                                tagsList=meet.tagsList;
+                            }
+
                             let meetDic = {
                                 LatLng: {
                                     latitude: location[0],
@@ -145,7 +150,7 @@ export default class DiscoverScreen extends Component {
                                     name: creator.username,
                                     photoURL: creator.photoURL,
                                 },
-                                tags:Object.keys(meet.tagList),
+                                tags:tagsList,
                                 key: meetDoc.id,
                             };
                             this.setState((state) => {

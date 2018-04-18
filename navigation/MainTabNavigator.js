@@ -21,6 +21,7 @@ import Setting from '../screens/main/second/SettingsScreen';
 import TinkoWebView from '../screens/main/common/TinkoWebView';
 import NewFriendsScreen from '../screens/main/second/NewFriendsScreen';
 import TinkoDetailTabNavigator from './TinkoDetailTabNavigator'
+import ParticipantsInviteScreen from "../screens/main/create/ParticipantsInviteScreen";
 
 const MainTabNavigator = TabNavigator(
   {
@@ -137,6 +138,9 @@ export default StackNavigator(
         },
         GooglePlacesAutocomplete: {
             screen: GooglePlacesInputScreen,
+        },
+        ParticipantsInvite:{
+            screen: ParticipantsInviteScreen,
         }
     },
     {

@@ -136,7 +136,7 @@ export default class TinkoScreen extends Component {
                     username: user.username,
                     photoURL: user.photoURL,
                 },
-                tags: Object.keys(meet.tagList),
+                tags: meet.tagsList,
             },
             uri: meetId,
         };

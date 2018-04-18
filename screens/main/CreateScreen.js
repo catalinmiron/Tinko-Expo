@@ -80,7 +80,7 @@ export default class CreateScreen extends React.Component {
         console.log(editingMode);
         var startTime = new Date();
         let tenMins = 10 * 60 * 1000;
-        startTime.setTime(startTime.getTime() + tenMins)
+        startTime.setTime(startTime.getTime() + tenMins);
         let dateTime = startTime.getFullYear() + '-' + (startTime.getMonth()+1) + '-' + startTime.getDate() + ' ' + startTime.getHours() + ':' + startTime.getMinutes();
 
         let user = firebase.auth().currentUser;
@@ -89,7 +89,6 @@ export default class CreateScreen extends React.Component {
         this._scrollToInput = this._scrollToInput.bind(this);
 
         this.tagsButtonRefs = [];
-
         this.state={
             meetId:'',
             editingMode:editingMode,
@@ -109,13 +108,14 @@ export default class CreateScreen extends React.Component {
             duration: 3,
             durationUnit:'Hours',
             maxNo: 8,
-            tagList:[],
+            tagsList:[],
             tagsString:'',
             location: null,
             titleHeight:39,
             descriptionHeight:35,
             tagInputString:'#',
             tagInputWidth:50,
+            postTime:null,
         };
     }
 
@@ -143,11 +143,17 @@ export default class CreateScreen extends React.Component {
                     durationUnit = 'Hours';
                     break;
             }
-            let tagList = Object.keys(meet.tagList);
-            let tagsString='';
-            for(let i=0; i<tagList.length; i++){
-                tagsString += tagList[i] + ' ';
+            let tagsList;
+            if(meet.tagsList){
+                tagsList=meet.tagsList;
+            }else{
+                tagsList=[];
             }
+            let tagsString='';
+            for(let i=0; i < tagsList.length; i++){
+                tagsString += tagsList[i] + ' ';
+            }
+
             this.setState({
                 meetId:meet.meetId,
                 title:meet.title,
@@ -164,15 +170,17 @@ export default class CreateScreen extends React.Component {
                 duration:duration,
                 durationUnit:durationUnit,
                 maxNo:meet.maxNo,
-                tagList:tagList,
-                tagsString:tagsString
+                tagsList:tagsList,
+                tagsString:tagsString,
+                postTime:meet.postTime,
             });
             this.tagsButtonRefs.forEach((tag) => {
                 //console.log('tags',tag.state.title);
                 let title = tag.state.title;
-                let tagged = _.includes(tagList,title);
+                let tagged = _.includes(tagsList,title);
                 tag.setState({selected:tagged});
             });
+            console.log('1');
         }
 
         if(!this.state.editingMode){
@@ -281,19 +289,24 @@ export default class CreateScreen extends React.Component {
 
     onPostButtonPressed(){
         const { title, userUid, startTime, placeName, placeAddress, placeCoordinate, placeId,
-            description, allFriends, allowPeopleNearby, allowParticipantsInvite,
-            selectedFriendsList, duration, maxNo, tagList, userPicked, editingMode, meetId } = this.state;
+            description, allFriends, allowPeopleNearby, allowParticipantsInvite, postTime,
+            selectedFriendsList, duration, maxNo, tagsList, userPicked, editingMode, meetId } = this.state;
 
-        var tagListObj = {};
-        tagList.map((l,i) => {
-            tagListObj[l] = true;
+        var tagsListObj = {};
+        tagsList.map((l,i) => {
+            tagsListObj[l] = true;
         });
 
         let timeCodes = this.handleDateTimeParse();
         let startTimeDate = timeCodes.startTimeDate;
         let endTimeDate = timeCodes.endTimeDate;
         let durationTS = timeCodes.durationTS;
-        let postTimeDate = new Date();
+        let postTimeDate;
+        if(postTime){
+            postTimeDate=postTime;
+        }else{
+            postTimeDate= new Date();
+        }
 
         let placeObj = {
             name: placeName,
@@ -323,7 +336,8 @@ export default class CreateScreen extends React.Component {
         var docData = {
             title: title==='' ? 'Let\'s Tinko up' : title,
             creator: userUid,
-            tagList: tagListObj,
+            tagsList:tagsList,
+            tagsCategory: tagsListObj,
             startTime: startTimeDate,
             postTime:postTimeDate,
             endTime: endTimeDate,
@@ -392,20 +406,36 @@ export default class CreateScreen extends React.Component {
     }
 
     onTagButtonPressed(title){
-        if(title==='#'){
-            return;
-        }
-        const { tagList } = this.state;
-        if(_.includes(tagList, title)){
-            _.pull(tagList, title);
+        const { tagsList } = this.state;
+        if(_.includes(tagsList, title)){
+            _.pull(tagsList, title);
         } else {
-            tagList.push(title);
+            tagsList.push(title);
         }
         let tagsString='';
-        for(let i=0; i<tagList.length; i++){
-            tagsString += ' ' + tagList[i];
+        for(let i=0; i<tagsList.length; i++){
+            tagsString += ' ' + tagsList[i];
         }
-        this.setState({tagList,tagsString});
+        this.setState({tagsList,tagsString});
+    }
+
+    onTagStringSubmitted(title){
+
+        let titleSegments = title.split(' ');
+        let titleString = titleSegments[0];
+        if(titleString.charAt(0) !== '#'){
+            titleString = '#' + titleString;
+        }
+        if(titleString==='#'){
+            return;
+        }
+        const { tagsList } = this.state;
+        tagsList.push(titleString);
+        let tagsString='';
+        for(let i=0; i<tagsList.length; i++){
+            tagsString += ' ' + tagsList[i];
+        }
+        this.setState({tagsList,tagsString});
     }
 
     _scrollToInput () {
@@ -433,7 +463,7 @@ export default class CreateScreen extends React.Component {
     render() {
         const {title, startTime, placeName, placeAddress, description, inputHeight, allFriends, allowParticipantsInvite, allowPeopleNearby,
             selectedFriendsList, maxNo, descriptionHeight, tagsString, tagInputString, tagInputWidth, duration, durationUnit,titleHeight,
-            tagList, editingMode} = this.state;
+            tagsList, editingMode} = this.state;
         let temp = placeAddress.split(',');
         let area = temp[temp.length-1];
         var dateTimeParts = startTime.split(' '),
@@ -487,11 +517,11 @@ export default class CreateScreen extends React.Component {
 
                         <View style={{flexDirection:'row', justifyContent:'space-between', alignItems:'center'}}>
                             <Text style={{marginTop:20, fontFamily:'regular', fontSize:17, color:'#212F3C'}}>{tagsString}</Text>
-                            {tagList.length!==0 &&
+                            {tagsList.length!==0 &&
                             <Ionicons.Button
                                 name="ios-close-circle-outline" size={24} color="#BDC3C7" backgroundColor="transparent"
                                 onPress = {() => {
-                                    this.setState({tagList:[],tagsString:''});
+                                    this.setState({tagsList:[],tagsString:''});
                                     //console.log(this.tagsButtonRefs);
                                     this.tagsButtonRefs.forEach((tag) => {
                                         tag.setSelectedFalse();
@@ -536,7 +566,7 @@ export default class CreateScreen extends React.Component {
                             inputStyle={{color: '#212F3C', fontFamily:'regular', fontSize:17}}
                             returnKeyType={'next'}
                             onSubmitEditing={() => {
-                                this.onTagButtonPressed(tagInputString);
+                                this.onTagStringSubmitted(tagInputString);
                                 this.setState({tagInputString:'#'});
                             }}
                             containerStyle={{ width: tagInputWidth+45}}

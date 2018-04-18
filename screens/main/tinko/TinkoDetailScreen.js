@@ -6,7 +6,7 @@ import 'firebase/firestore';
 import Swiper from 'react-native-swiper';
 import { getStartTimeString,  getDurationString, getUserData, getImageSource } from "../../../modules/CommonUtility";
 import { MapView } from 'expo';
-import { Ionicons, MaterialIcons, Entypo, MaterialCommunityIcons  } from '@expo/vector-icons';
+import { Ionicons, MaterialIcons, Entypo, MaterialCommunityIcons, Feather  } from '@expo/vector-icons';
 import { Avatar, Button, Header} from 'react-native-elements';
 import { ifIphoneX } from 'react-native-iphone-x-helper';
 import { getPostRequest } from "../../../modules/CommonUtility";
@@ -27,7 +27,7 @@ export default class TinkoDetailScreen extends React.Component {
         return {
             headerLeft:(<Ionicons.Button
                 name="ios-arrow-back" size={20} color="white" style={{marginLeft:26}} backgroundColor="transparent"
-                onPress={() => navigation.goBack()}/>),
+                onPress={() => navigation.goBack(null)}/>),
             headerRight:(
                 <View style={{flexDirection:'row'}}>
 
@@ -82,7 +82,7 @@ export default class TinkoDetailScreen extends React.Component {
             selectedFriendsList:[],
             startTime:new Date(),
             status:false,
-            tagList:[],
+            tagsList:[],
             title:'',
             creatorUsername:'',
             creatorPhotoURL:'',
@@ -147,8 +147,13 @@ export default class TinkoDetailScreen extends React.Component {
                     selectedFriendsList = Object.keys(meet.selectedFriendsList),
                     startTime = meet.startTime,
                     status = meet.status,
-                    tagList = Object.keys(meet.tagList),
                     title = meet.title;
+                let tagsList;
+                if(meet.tagsList){
+                    tagsList=meet.tagsList;
+                }else{
+                    tagsList=[];
+                }
 
                 var identity;
                 if(userUid === creatorUid){
@@ -190,7 +195,7 @@ export default class TinkoDetailScreen extends React.Component {
                     selectedFriendsList,
                     startTime,
                     status,
-                    tagList,
+                    tagsList,
                     title,
                     identity,
                     });
@@ -272,7 +277,7 @@ export default class TinkoDetailScreen extends React.Component {
     }
 
     onQuitMeetButtonPressed(){
-        this.props.navigation.goBack();
+
         const { userUid, meetId } = this.state;
         let bodyData = {
             userUid: userUid,
@@ -281,6 +286,7 @@ export default class TinkoDetailScreen extends React.Component {
         getPostRequest("leaveMeet", bodyData,
             (response) => {
                 console.log(response);
+                this.props.navigation.goBack(null);
             }, (error) => {
                 Alert.alert("Error", error);
             });
@@ -339,7 +345,7 @@ export default class TinkoDetailScreen extends React.Component {
     render() {
         const { creatorLoadingDone, placePhotosLoadingDone, userUid, creatorUid, identity,
             creatorPhotoURL, creatorUsername, title, placePhotos, startTime, allowPeopleNearby, participatingUsersList,
-            maxNo, description, duration, participatingUsersData, placeName, placeCoordinate, placeAddress, placeId, tagList } = this.state;
+            maxNo, description, duration, participatingUsersData, placeName, placeCoordinate, placeAddress, placeId, tagsList } = this.state;
 
         if(!(creatorLoadingDone && placePhotosLoadingDone)){
             return(
@@ -348,8 +354,8 @@ export default class TinkoDetailScreen extends React.Component {
         }
 
         let tagsString='';
-        for(let i=0; i<tagList.length; i++){
-            tagsString += ' ' + tagList[i];
+        for(let i=0; i<tagsList.length; i++){
+            tagsString += ' ' + tagsList[i];
         }
 
         return (
@@ -375,7 +381,7 @@ export default class TinkoDetailScreen extends React.Component {
                                     resizeMethod={'auto'}
                                     style={{width:SCREEN_WIDTH, height:SCREEN_WIDTH/2}}
                                     key = {'placePhoto'}
-                                    source={getImageSource(tagList[0])}/>
+                                    source={getImageSource(tagsList[0])}/>
                             }
                         </Swiper>
                     </View>
@@ -513,9 +519,9 @@ export default class TinkoDetailScreen extends React.Component {
                     }
 
                     {identity===3 &&
-                    <Entypo.Button
-                        name="add-user" size={20} color="black" backgroundColor="transparent"
-                        onPress = {() => console.log('invite')}/>
+                    <Feather.Button
+                        name="user-plus" size={24} color="black" backgroundColor="transparent"
+                        onPress = {() => this.props.navigation.navigate('ParticipantsInvite')}/>
                     }
                     {identity === 0 &&
                     <Button
