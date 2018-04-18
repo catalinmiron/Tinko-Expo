@@ -9,7 +9,7 @@ import {
     View,
     Keyboard,
     TextInput, Dimensions,
-    Switch,
+    Switch, Alert,
 } from 'react-native';
 import {
     Input,
@@ -25,6 +25,7 @@ import {
 } from 'react-native-elements';
 import Expo, { SQLite } from 'expo';
 import { NavigationActions } from 'react-navigation';
+import {getPostRequest} from "../../../modules/CommonUtility";
 
 
 const db = SQLite.openDatabase('db.db');
@@ -39,9 +40,13 @@ export default class InvitationRangeScreen extends React.Component{
         return {
             // Correct Header Button modifyzationn: https://reactnavigation.org/docs/header-buttons.html
             headerTitle:'Invite',
-            headerLeft:(<Button title="Back"
+            headerLeft:(<Button title="Cancel"
                                 clear
                                 onPress={params.back}
+            />),
+            headerRight:(<Button title="Done"
+                                clear
+                                onPress={params.done}
             />),
             headerStyle:{backgroundColor:'#EC7063'}
             //headerStyle:{ position: 'absolute', backgroundColor: 'transparent', zIndex: 100, top: 0, left: 0, right: 0, headerLeft:null, boarderBottomWidth: 0}
@@ -50,17 +55,21 @@ export default class InvitationRangeScreen extends React.Component{
 
     constructor(props){
         super(props);
+        console.log(props);
         let user = firebase.auth().currentUser;
         let uid = user.uid;
         this.state = {
+            meetId:props.navigation.state.params.meetId,
             userUid:uid,
             sqlRows: [],
-            selectedFriendsList: [],
         };
     }
 
     componentDidMount(){
-        this.props.navigation.setParams({back:this.onBackButtonPressed.bind(this)});
+        this.props.navigation.setParams({
+            back:this.onBackButtonPressed.bind(this),
+            done:this.onDoneButtonPressed.bind(this),
+        });
         this.getSql();
     }
 
@@ -70,6 +79,30 @@ export default class InvitationRangeScreen extends React.Component{
         this.props.navigation.dispatch(NavigationActions.back())
     }
 
+    onDoneButtonPressed(){
+        const {userUid, sqlRows, meetId} = this.state;
+        let inviteList=[];
+        sqlRows.map((user) => {
+            if(user.selected){
+                inviteList.push(user.key);
+            }
+        });
+        let bodyData = {
+            inviter:userUid,
+            inviteList:inviteList,
+            meetId:meetId,
+        };
+        console.log(bodyData);
+        getPostRequest('handleParticipantsInvite', bodyData,
+            () => {
+
+            },
+            (error) => {
+                console.log(error);
+                Alert.alert('error', error);
+            });
+        this.props.navigation.dispatch(NavigationActions.back())
+    }
 
     getSql(){
         const{ userUid } = this.state;

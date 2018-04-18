@@ -80,8 +80,8 @@ export default class RootNavigator extends React.Component {
       //this.dropFriendsTable(uid);
       this.initFriendsTable(uid);
       this.initChatTable(uid);
-      this.dropMeetingTable(uid);
-      this.initMeetingTable(uid);
+      // this.dropMeetingTable(uid);
+      // this.initMeetingTable(uid);
       initNewFriendsRequestTable(uid);
 
 
@@ -114,14 +114,14 @@ export default class RootNavigator extends React.Component {
           this.getFriendRequestInfo(JSON.parse(msg))
       });
 
-      let meetRef = firebase.firestore().collection("Meets").where(`participatingUsersList.${uid}.status`, "==", true);
-      meetRef.get().then((querySnapshot)=>{
-          for (let i = 0;i<querySnapshot.docs.length;i++){
-              this.insertMeetingId(uid,querySnapshot.docs[i]);
-          }
-      }).catch((error) => {
-          console.log("Error getting documents: ", error);
-      });
+      // let meetRef = firebase.firestore().collection("Meets").where(`participatingUsersList.${uid}.status`, "==", true);
+      // meetRef.get().then((querySnapshot)=>{
+      //     for (let i = 0;i<querySnapshot.docs.length;i++){
+      //         this.insertMeetingId(uid,querySnapshot.docs[i]);
+      //     }
+      // }).catch((error) => {
+      //     console.log("Error getting documents: ", error);
+      // });
   }
 
   render() {
