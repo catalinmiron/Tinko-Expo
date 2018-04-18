@@ -226,16 +226,22 @@ export default class TinkoDetailScreen extends React.Component {
     }
 
     getPlacePhotos(placeId){
-        fetch(`https://maps.googleapis.com/maps/api/place/details/json?placeid=${placeId}&key=AIzaSyCw_VwOF6hmY5yri8OpqOr9sCzTTT7JKiU`)
-            .then((response) => response.json())
-            .then((responseJson) => {
-                //console.log(responseJson);
-                let photos = responseJson.result.photos;
-                this.setState({placePhotos:photos, placePhotosLoadingDone:true});
+        try {
+            fetch(`https://maps.googleapis.com/maps/api/place/details/json?placeid=${placeId}&key=AIzaSyCw_VwOF6hmY5yri8OpqOr9sCzTTT7JKiU`)
+                .then((response) => response.json())
+                .then((responseJson) => {
+                    //console.log(responseJson);
+                    let photos = responseJson.result.photos;
+                    this.setState({placePhotos: photos, placePhotosLoadingDone: true});
 
-            }).catch((error) => {
+                }).catch((error) => {
+                console.error(error);
+            });
+        } catch (error) {
             console.error(error);
-        });
+
+        }
+
     }
 
     updateParticipatingUsersData(participatingUsersList){
@@ -262,7 +268,7 @@ export default class TinkoDetailScreen extends React.Component {
         this.setState({buttonShowLoading:true});
         const { userUid, meetId } = this.state;
         let bodyData = {
-            userUid: userUid,
+            userid: userUid,
             meetId: meetId,
         };
         getPostRequest("participateMeet", bodyData,
