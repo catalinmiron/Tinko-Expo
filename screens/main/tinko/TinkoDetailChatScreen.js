@@ -6,7 +6,11 @@ import emojiUtils from 'emoji-utils';
 import {getFromAsyncStorage, getUserData, writeInAsyncStorage} from "../../../modules/CommonUtility";
 import firebase from "firebase/index";
 import {Header} from "react-native-elements";
-import { ifIphoneX } from 'react-native-iphone-x-helper'
+import { ifIphoneX } from 'react-native-iphone-x-helper';
+import SocketIOClient from 'socket.io-client';
+
+let MeetId = "",
+    uid = "";
 
 export default class TinkoDetailChatScreen extends React.Component {
 
@@ -14,9 +18,29 @@ export default class TinkoDetailChatScreen extends React.Component {
 
     constructor(props){
         super(props);
-        console.log(props);
+        console.log("this detail :",props);
         let user = firebase.auth().currentUser;
         let userUid = user.uid;
+        uid = user.uid;
+        this.socket = SocketIOClient('http://47.89.187.42:4000/');
+        MeetId = this.props.navigation.state.params.meetId;
+        this.socket.on("activity" + MeetId,(msg)=>{
+            let data = JSON.parse(msg);
+            let user = data.userData;
+            this.setState(previousState => ({
+                messages: GiftedChat.append(previousState.messages,{
+                    _id: Math.floor(Math.random()*10000),
+                    text: data.msg,
+                    user: {
+                        _id: user.uid,
+                        name: user.username,
+                        avatar: user.photoURL,
+                    },
+                    sent: true,
+                    received: true,
+                }),
+            }))
+        });
         this.state = {
             meetId: this.props.navigation.state.params.meetId,
             messages: [],
@@ -84,12 +108,11 @@ export default class TinkoDetailChatScreen extends React.Component {
         //console.log(this.state.lastMeedId);
         const {lastMeetId, limit} = this.state;
         let bodyData={
-            meetId: "1iuLxFd8aMZVuYHR97do",
-            //meetId:this.state.meetId,
+            // meetId: "1iuLxFd8aMZVuYHR97do",
+            meetId:this.state.meetId,
             lastId: lastMeetId,
             limit:limit
         };
-        console.log(bodyData);
         try {
             fetch('http://47.89.187.42:4000/getChatHistory', {
                 method: 'POST',
@@ -195,9 +218,11 @@ export default class TinkoDetailChatScreen extends React.Component {
 
 
     onSend(messages = []) {
-        this.setState(previousState => ({
-            messages: GiftedChat.append(previousState.messages, messages),
-        }))
+        let text = messages[0].text;
+        this.socket.emit("byStander",uid,MeetId,text);
+        // this.setState(previousState => ({
+        //     messages: GiftedChat.append(previousState.messages, messages),
+        // }))
     }
 
     render() {
