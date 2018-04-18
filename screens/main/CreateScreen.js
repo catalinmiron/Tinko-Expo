@@ -103,6 +103,7 @@ export default class CreateScreen extends React.Component {
             inputHeight: 22,
             allFriends: true,
             allowPeopleNearby: true,
+            oldAllowPeopleNearby:null,
             allowParticipantsInvite: true,
             selectedFriendsList: [],
             duration: 3,
@@ -165,6 +166,7 @@ export default class CreateScreen extends React.Component {
                 description:meet.description,
                 allFriends:meet.allFriends,
                 allowPeopleNearby:meet.allowPeopleNearby,
+                oldAllowPeopleNearby:meet.allowPeopleNearby,
                 allowParticipantsInvite:meet.allowParticipantsInvite,
                 selectedFriendsList:Object.keys(meet.selectedFriendsList),
                 duration:duration,
@@ -289,7 +291,7 @@ export default class CreateScreen extends React.Component {
 
     onPostButtonPressed(){
         const { title, userUid, startTime, placeName, placeAddress, placeCoordinate, placeId,
-            description, allFriends, allowPeopleNearby, allowParticipantsInvite, postTime,
+            description, allFriends, allowPeopleNearby, oldAllowPeopleNearby, allowParticipantsInvite, postTime,
             selectedFriendsList, duration, maxNo, tagsList, userPicked, editingMode, meetId } = this.state;
 
         var tagsListObj = {};
@@ -357,7 +359,16 @@ export default class CreateScreen extends React.Component {
 
 
         if(editingMode){
-            let bodyData = {meetId:meetId};
+            let isPrivacyStateChanged;
+            if(oldAllowPeopleNearby === allowPeopleNearby){
+                isPrivacyStateChanged=false;
+            }else{
+                isPrivacyStateChanged=true;
+            }
+            let bodyData = {
+                meetId:meetId,
+                isPrivacyStateChanged:isPrivacyStateChanged,
+            };
             let docRef = firebase.firestore().collection("Meets").doc(meetId);
             docRef.update(docData).then(() => {
                 getPostRequest('checkMeetStatus', bodyData,
@@ -366,6 +377,7 @@ export default class CreateScreen extends React.Component {
                     },
                     (error) => {
                         console.log(error);
+                        Alert.alert('error', error);
                     })
 
             });

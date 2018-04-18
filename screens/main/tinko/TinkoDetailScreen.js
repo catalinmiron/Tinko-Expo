@@ -498,7 +498,7 @@ export default class TinkoDetailScreen extends React.Component {
     }
 
     renderActivityBar(){
-        const {buttonShowLoading, identity, allowParticipantsInvite} = this.state;
+        const {buttonShowLoading, identity, allowParticipantsInvite, meetId} = this.state;
 
         return(
             <Header
@@ -527,7 +527,7 @@ export default class TinkoDetailScreen extends React.Component {
                     {identity===3 &&
                     <Feather.Button
                         name="user-plus" size={24} color="black" backgroundColor="transparent"
-                        onPress = {() => this.props.navigation.navigate('ParticipantsInvite')}/>
+                        onPress = {() => this.props.navigation.navigate('ParticipantsInvite',{meetId:meetId})}/>
                     }
                     {identity === 0 &&
                     <Button
