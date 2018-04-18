@@ -129,12 +129,6 @@ export default class FriendChatListView extends Component {
             friendInfo:[]
         };
         this.socket.emit("userLogin",uid);
-        // this.socket.emit("NewFriendRequest",JSON.stringify({
-        //     requester:uid,
-        //     responser:uid,
-        //     type:1,
-        //     msg:"???"
-        // }));
         this.socket.on("connect" + uid,msg=>{
             let data = JSON.parse(msg),
                 type = data.type;
@@ -264,6 +258,17 @@ export default class FriendChatListView extends Component {
     };
 
 
+    //处理时间
+    unixTime(timeStamp) {
+        let date = new Date(timeStamp);
+        Y = date.getFullYear() + '-';
+        M = (date.getMonth()+1 < 10 ? '0'+(date.getMonth()+1) : date.getMonth()+1) + '-';
+        D = date.getDate() + ' ';
+        h = date.getHours() + ':';
+        m = date.getMinutes() + ':';
+        s = date.getSeconds();
+        return (Y+M+D+h+m+s);
+    };
 
     getAvatar(){
         db.transaction(
@@ -289,7 +294,11 @@ export default class FriendChatListView extends Component {
             from = data["from"],
             meetingId = "",
             userData = "",
+            time = "",
             status = (isSend === undefined)?0:1;
+        if (data["time"]){
+            time = this.unixTime(data["time"]);
+        }
         if (status === 1){
             console.log("这里是发送啦");
         }
@@ -304,11 +313,20 @@ export default class FriendChatListView extends Component {
         if (data["userData"]!==undefined){
             userData = JSON.stringify(data["userData"]);
         }
+        let sqlStr = "",
+            sqlParams = [];
+        if (time === ""){
+            sqlStr = "INSERT INTO db"+uid+" (fromId,msg,status,type,meetingId,meetUserData) VALUES (?,?,?,?,?,?)";
+            sqlParams =[from,message,status,type,meetingId,userData];
+        }else{
+            sqlStr = "INSERT INTO db"+uid+" (fromId,msg,status,type,meetingId,meetUserData,timeStamp) VALUES (?,?,?,?,?,?,?)";
+            sqlParams =[from,message,status,type,meetingId,userData,time];
+        }
         db.transaction(
             tx => {
-                tx.executeSql("INSERT INTO db"+uid+" (fromId,msg,status,type,meetingId,meetUserData) VALUES (?,?,?,?,?,?)",[from,message,status,type,meetingId,userData]);
+                tx.executeSql(sqlStr,sqlParams);
             },
-            null,
+            (error) => console.log("db insert chat error :" + error),
             null
         );
     }

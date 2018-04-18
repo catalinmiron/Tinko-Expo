@@ -74,7 +74,7 @@ export default class PrivateChatScreen extends Component {
                     for (let i = 0;i<dataArr.length;i++){
                         if (dataArr[i].status === 0){
                             let userData =  JSON.parse(dataArr[i].meetUserData);
-                            this.appendMessageFromCache(dataArr[i].msg,userData.uid,userData.username,userData.photoURL);
+                            this.appendMessageFromCache(dataArr[i].timeStamp,dataArr[i].msg,userData.uid,userData.username,userData.photoURL);
                         }else{
                             if (dataArr[i].type !== 0 ){
                                 this.appendMessage(dataArr[i].msg,0);
@@ -88,6 +88,16 @@ export default class PrivateChatScreen extends Component {
             null,
             null,
         );
+    }
+
+    utcTime(time){
+        //2018-04-17 2:19:51
+        if (time !== undefined) {
+            let timeArr = time.split(" "),
+                year = timeArr[0].split("-"),
+                hour = timeArr[1].split(":");
+            return new Date(Date.UTC(parseInt(year[0]), parseInt(year[1])-1, parseInt(year[2]), hour[0], hour[1], hour[2]))
+        }
     }
 
     appendMessage(msg,type){
@@ -106,7 +116,7 @@ export default class PrivateChatScreen extends Component {
             chatData = {
                 _id: Math.round(Math.random() * 10000),
                 text: msg,
-                createdAt: new Date(),
+                createdAt: this.utcTime(time),
                 system:true
             };
         }
@@ -123,7 +133,7 @@ export default class PrivateChatScreen extends Component {
         }))
     }
 
-    appendMessageFromCache(msg,userId,userName,userAvatar){
+    appendMessageFromCache(time,msg,userId,userName,userAvatar){
         let chatData = {
             _id: Math.floor(Math.random()*10000),
             text: msg,
@@ -132,6 +142,7 @@ export default class PrivateChatScreen extends Component {
                 name: userName,
                 avatar: userAvatar,
             },
+            createdAt: this.utcTime(time),
             sent: true,
             received: true,
         };

@@ -32,25 +32,30 @@ export const getFromAsyncStorage = async (code, userUid) => {
 }
 
 export const getPostRequest = (code, bodyData, onComplete, onError) => {
-    fetch(`https://us-central1-tinko-64673.cloudfunctions.net/${code}`, {
-        method:'POST',
-        headers: {
-            Accept: 'application/json',
-            'Content-Type': 'application/json',
-        },
-        body: JSON.stringify(bodyData),
-    }).then ((response) => {
-        //console.log(response);
-        if(response.status === 200){
-            onComplete(response);
-        } else {
-            onError("request Failed");
-        }
-    }).catch((error) => {
-        //console.log(error);
-        //Alert.alert('Error ' + error);
-        onError(error);
-    });
+    try {
+        fetch(`https://us-central1-tinko-64673.cloudfunctions.net/${code}`, {
+            method:'POST',
+            headers: {
+                Accept: 'application/json',
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify(bodyData),
+        }).then ((response) => {
+            //console.log(response);
+            if(response.status === 200){
+                onComplete(response);
+            } else {
+                onError("request Failed");
+            }
+        }).catch((error) => {
+            //console.log(error);
+            //Alert.alert('Error ' + error);
+            onError(error);
+        });
+
+    }catch (e) {
+        console.log(e)
+    }
 };
 
 export const getUserData = (userUid) => {

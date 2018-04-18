@@ -52,21 +52,16 @@ export default class PrivateChatScreen extends Component {
                     for (let i = 0;i<dataArr.length;i++){
                         //收到的
                         if (dataArr[i].isSystem === 1){
-                            this.appendSystemMessage(dataArr[i].msg)
+                            this.appendSystemMessage(dataArr[i].msg,dataArr[i].timeStamp)
                         }else{
                             if (dataArr[i].status === 0){
-                                this.appendFriendMessage(name,avatar,dataArr[i].msg,"cache"+dataArr[i].id);
+                                this.appendFriendMessage(name,avatar,dataArr[i].msg,"cache"+dataArr[i].id,dataArr[i].timeStamp);
                             }else{
                                 //发出去的
-                                this.appendMessage(dataArr[i].msg);
+                                this.appendMessage(dataArr[i].msg,dataArr[i].timeStamp);
                             }
                         }
                     }
-                    // this.setState(() => {
-                    //     return {
-                    //         messages: messagesArr,
-                    //     };
-                    // })
                 })
             },
             null,
@@ -75,11 +70,11 @@ export default class PrivateChatScreen extends Component {
     }
 
 
-    appendMessage(msg){
+    appendMessage(msg,time){
         let chatData = {
             _id: Math.round(Math.random() * 10000),
             text: msg,
-            createdAt: new Date(),
+            createdAt: this.utcTime(time),
             user: {
                 _id: 1,
                 name: 'Developer',
@@ -90,11 +85,11 @@ export default class PrivateChatScreen extends Component {
             messages: GiftedChat.append(previousState.messages, chatData),
         }))
     }
-    appendSystemMessage(msg){
+    appendSystemMessage(msg,time){
         let chatData = {
             _id: Math.round(Math.random() * 10000),
             text: msg,
-            createdAt: new Date(),
+            createdAt: this.utcTime(time),
             system:true
         };
         messagesArr.push(chatData);
@@ -102,11 +97,11 @@ export default class PrivateChatScreen extends Component {
             messages: GiftedChat.append(previousState.messages, chatData),
         }))
     }
-    appendFriendMessage(name,avatar,msg,key){
+    appendFriendMessage(name,avatar,msg,key,time){
         let chatData = {
             _id: key,
             text: msg,
-            createdAt: new Date(),
+            createdAt: this.utcTime(time),
             user: {
                 _id: Math.random()*100000,
                 name: name,
@@ -117,6 +112,16 @@ export default class PrivateChatScreen extends Component {
         this.setState(previousState => ({
             messages: GiftedChat.append(previousState.messages, chatData),
         }))
+    }
+
+    utcTime(time){
+        //2018-04-17 2:19:51
+        if (time !== undefined) {
+            let timeArr = time.split(" "),
+                year = timeArr[0].split("-"),
+                hour = timeArr[1].split(":");
+            return new Date(Date.UTC(year[0], parseInt(year[1])-1, year[2], hour[0], hour[1], hour[2]))
+        }
     }
 
     onSend(messages = []) {
