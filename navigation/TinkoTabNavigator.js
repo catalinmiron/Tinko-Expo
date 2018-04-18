@@ -31,7 +31,7 @@ const TinkoTabNavigator = TabNavigator(
         swipeEnabled: true,
         headerMode: 'none',
         headerVisible: false,
-        lazy:false
+        lazy:true
     }
 );
 
