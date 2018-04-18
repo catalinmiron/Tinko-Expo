@@ -268,9 +268,10 @@ export default class TinkoDetailScreen extends React.Component {
         this.setState({buttonShowLoading:true});
         const { userUid, meetId } = this.state;
         let bodyData = {
-            userid: userUid,
+            userUid: userUid,
             meetId: meetId,
         };
+        console.log(bodyData);
         getPostRequest("participateMeet", bodyData,
             (response) => {
                 console.log(response);
