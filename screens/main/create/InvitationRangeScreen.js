@@ -24,6 +24,7 @@ import {
     Avatar, ListItem,
 } from 'react-native-elements';
 import Expo, { SQLite } from 'expo';
+import {getUserData} from "../../../modules/CommonUtility";
 
 
 const db = SQLite.openDatabase('db.db');
@@ -50,7 +51,7 @@ export default class InvitationRangeScreen extends React.Component{
         super(props);
         let user = firebase.auth().currentUser;
         let uid = user.uid;
-        const {allFriends, allowPeopleNearby, allowParticipantsInvite, selectedFriendsList} = props.navigation.state.params;
+        const {allFriends, allowPeopleNearby, allowParticipantsInvite, selectedFriendsList, editingMode} = props.navigation.state.params;
         this.state = {
             userUid:uid,
             sqlRows: [],
@@ -58,6 +59,9 @@ export default class InvitationRangeScreen extends React.Component{
             allowPeopleNearby: allowPeopleNearby,
             allowParticipantsInvite: allowParticipantsInvite,
             selectedFriendsList: selectedFriendsList,
+            notFriendsList:selectedFriendsList,
+            notFriendsListData:[],
+            editingMode:editingMode,
         };
     }
 
@@ -67,7 +71,7 @@ export default class InvitationRangeScreen extends React.Component{
     }
 
     componentWillUnmount(){
-        const {allFriends, allowPeopleNearby, allowParticipantsInvite, sqlRows} = this.state;
+        const {allFriends, allowPeopleNearby, allowParticipantsInvite, sqlRows, editingMode, notFriendsListData, userUid} = this.state;
         console.log('componentWillUnmount:', allFriends, allowPeopleNearby, allowParticipantsInvite);
         var selectedFriendsList = [];
         sqlRows.map((l,i) => {
@@ -75,6 +79,14 @@ export default class InvitationRangeScreen extends React.Component{
                 selectedFriendsList.push(l.key);
             }
         });
+        if(editingMode){
+            notFriendsListData.map((userData)=>{
+                if(userData.selected){
+                    selectedFriendsList.push(userData.uid);
+                }
+            });
+            selectedFriendsList.push(userUid);
+        }
         this.props.navigation.state.params.setInvitationRange({
             allFriends:allFriends,
             allowPeopleNearby:allowPeopleNearby,
@@ -90,7 +102,7 @@ export default class InvitationRangeScreen extends React.Component{
 
 
     getSql(){
-        const{ userUid, selectedFriendsList } = this.state;
+        const{ userUid, selectedFriendsList, editingMode, notFriendsList} = this.state;
         db.transaction(
             tx => {
                 tx.executeSql('select * from friend_list'+userUid, [], (_, { rows }) => {
@@ -98,6 +110,14 @@ export default class InvitationRangeScreen extends React.Component{
                         rtnArr = [];
                     for (let i = 0; i <dataArr.length;i++){
                         let selected = selectedFriendsList.indexOf(dataArr[i].userId) !== -1;
+
+                        if(editingMode && selected){
+                            let index = notFriendsList.indexOf(dataArr[i].userId);
+                            if (index > -1) {
+                                notFriendsList.splice(index, 1);
+                            }
+                        }
+
                         rtnArr.push({
                             avatar:dataArr[i].avatarUrl,
                             key:dataArr[i].userId,
@@ -106,12 +126,39 @@ export default class InvitationRangeScreen extends React.Component{
                         });
                     }
                     this.setState({ sqlRows: rtnArr });
+
+                    if(editingMode){
+                        let index = notFriendsList.indexOf(userUid);
+                        if (index > -1) {
+                            notFriendsList.splice(index, 1);
+                        }
+                        this.setState({notFriendsList:notFriendsList});
+                        this.getNotFriendsListData(notFriendsList)
+                    }
                 });
             },
             null,
             this.update
         )
 
+    }
+
+    getNotFriendsListData(notFriendsList){
+        notFriendsList.map((uid)=>{
+            getUserData(uid).fork(
+                (error) => {
+                    console.log(error);
+                },
+                (userData) => {
+                    this.setState((state)=>{
+                        let listData=state.notFriendsListData;
+                        userData.selected = true;
+                        listData.push(userData);
+                        return {notFriendsListData:listData};
+                    })
+                }
+            );
+        })
     }
 
     onAllFriendsToggled(allFriends){
@@ -127,40 +174,8 @@ export default class InvitationRangeScreen extends React.Component{
 
 
     render(){
-        const { sqlRows, allFriends, allowPeopleNearby, allowParticipantsInvite } = this.state;
+        const { sqlRows, allFriends, allowPeopleNearby, allowParticipantsInvite,editingMode,notFriendsListData } = this.state;
         console.log(sqlRows);
-        // if(sqlRows===null || sqlRows.length ===0){
-        //     return (<List>
-        //         <ListItem
-        //             title='All Friends'
-        //             rightIcon={
-        //                 <Switch
-        //                     value={allFriends}
-        //                     onValueChange={this.onAllFriendsToggled.bind(this)}
-        //                 />
-        //             }
-        //         />
-        //         <ListItem
-        //             title='Allow People Nearby'
-        //             rightIcon={
-        //                 <Switch
-        //                     value={allowPeopleNearby}
-        //                     onValueChange={(allowPeopleNearby) => this.setState({allowPeopleNearby})}
-        //                 />
-        //             }
-        //         />
-        //         <ListItem
-        //             title='Allow Participants Invite Friends'
-        //             rightIcon={
-        //                 <Switch
-        //                     value={allowParticipantsInvite}
-        //                     onValueChange={(allowParticipantsInvite) => this.setState({allowParticipantsInvite})}
-        //                 />
-        //             }
-        //         />
-        //     </List>);
-        // }
-
         return(
             <ScrollView style={styles.container}>
                 <ListItem
@@ -190,10 +205,31 @@ export default class InvitationRangeScreen extends React.Component{
                         />
                     }
                 />
+
+                {editingMode && notFriendsListData.length !==0 &&
+                <View style={{marginTop:30}}>
+                    <Text>Not Friends</Text>
+                    {notFriendsListData.map((userData, i) => (
+                        <ListItem
+                            key={userData.uid}
+                            leftAvatar={{ rounded: true, source: { uri: userData.photoURL } }}
+                            title={userData.username}
+                            rightIcon = {userData.selected ? {name:'done'} : null}
+                            onPress={() => {
+                                //console.log(l, i);
+                                userData.selected = !userData.selected;
+                                notFriendsListData[i] = userData;
+                                this.setState({notFriendsListData});
+                            }}
+                        />
+                    ))}
+                </View>
+                }
                 {(sqlRows===null || sqlRows.length ===0) ?
                     null
                     :
                     (<View style={{marginTop:30}}>
+                        <Text>Friends List</Text>
                         {sqlRows.map((l, i) => (
                             <ListItem
                                 key={l.key}

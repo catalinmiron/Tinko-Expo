@@ -210,6 +210,10 @@ export default class TinkoDetailScreen extends React.Component {
         this.setState({unsubscribe});
     }
 
+    getParticipatingUsersList(){
+        return this.state.participatingUsersList;
+    }
+
     getCreatorData(creatorUid){
         getUserData(creatorUid).fork(
             (error) => {
@@ -266,37 +270,42 @@ export default class TinkoDetailScreen extends React.Component {
 
     onJoinButtonPressed(){
         this.setState({buttonShowLoading:true});
-        const { userUid, meetId } = this.state;
-        let bodyData = {
-            userUid: userUid,
-            meetId: meetId,
-        };
-        console.log(bodyData);
-        getPostRequest("participateMeet", bodyData,
-            (response) => {
-                console.log(response);
-                this.setState({buttonShowLoading:false});
-                createMeet(userUid, meetId);
-            }, (error) => {
-                Alert.alert("Error", error);
-                this.setState({buttonShowLoading:false})
-            });
+        const { userUid, meetId, meet } = this.state;
+        let timeStatusDic = meet.participatingUsersList[meet.creator];
+        let meetRef = firebase.firestore().collection("Meets").doc(meetId);
+        meetRef.update({[`participatingUsersList.${userUid}`]:timeStatusDic}).then(()=>{
+            this.setState({buttonShowLoading:false});
+            createMeet(userUid,meetId);
+            let bodyData ={meetId:meetId};
+            getPostRequest('checkMeetStatus', bodyData,
+                () => {
+                },
+                (error) => {
+                    console.log(error);
+                    Alert.alert('error', error);
+                });
+        }).catch((error)=>{
+            this.setState({buttonShowLoading:false});
+            Alert.alert('Error', error);
+        });
     }
 
     onQuitMeetButtonPressed(){
-
         const { userUid, meetId } = this.state;
-        let bodyData = {
-            userUid: userUid,
-            meetId: meetId,
-        };
-        getPostRequest("leaveMeet", bodyData,
-            (response) => {
-                console.log(response);
-                this.props.navigation.goBack(null);
-            }, (error) => {
-                Alert.alert("Error", error);
-            });
+        let meetRef = firebase.firestore().collection("Meets").doc(meetId);
+        meetRef.update({[`participatingUsersList.${userUid}`]:firebase.firestore.FieldValue.delete()}).then(()=>{
+            this.props.navigation.goBack(null);
+            let bodyData ={meetId:meetId};
+            getPostRequest('checkMeetStatus', bodyData,
+                () => {
+                },
+                (error) => {
+                    console.log(error);
+                    Alert.alert('error', error);
+                });
+        }).catch((error)=>{
+            Alert.alert('Error', error);
+        });
     }
 
     onOpenThreeDotsActionSheet = () => {
@@ -343,7 +352,7 @@ export default class TinkoDetailScreen extends React.Component {
                             {text: 'Yes', onPress: () => this.onQuitMeetButtonPressed(), style:"destructive"},
                         ]);
                 } else if(options[buttonIndex] === 'Edit') {
-                    this.props.navigation.navigate('Create',{meet:this.state.meet});
+                    this.props.navigation.navigate('Create',{meet:this.state.meet, getParticipatingUsersList:this.getParticipatingUsersList.bind(this)});
                 }
             }
         );

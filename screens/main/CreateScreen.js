@@ -90,6 +90,7 @@ export default class CreateScreen extends React.Component {
 
         this.tagsButtonRefs = [];
         this.state={
+            meet:props.navigation.state.params.meet,
             meetId:'',
             editingMode:editingMode,
             title:'',
@@ -155,6 +156,15 @@ export default class CreateScreen extends React.Component {
                 tagsString += tagsList[i] + ' ';
             }
 
+            let selectedList;
+            if(meet.status){
+                selectedList = Object.keys(meet.selectedFriendsList);
+            } else {
+                selectedList = Object.keys(meet.selectedFriendsList);
+            }
+
+
+
             this.setState({
                 meetId:meet.meetId,
                 title:meet.title,
@@ -168,7 +178,7 @@ export default class CreateScreen extends React.Component {
                 allowPeopleNearby:meet.allowPeopleNearby,
                 oldAllowPeopleNearby:meet.allowPeopleNearby,
                 allowParticipantsInvite:meet.allowParticipantsInvite,
-                selectedFriendsList:Object.keys(meet.selectedFriendsList),
+                selectedFriendsList:selectedList,
                 duration:duration,
                 durationUnit:durationUnit,
                 maxNo:meet.maxNo,
@@ -182,7 +192,7 @@ export default class CreateScreen extends React.Component {
                 let tagged = _.includes(tagsList,title);
                 tag.setState({selected:tagged});
             });
-            console.log('1');
+
         }
 
         if(!this.state.editingMode){
@@ -244,20 +254,14 @@ export default class CreateScreen extends React.Component {
 
     setPlaceDetail = data => {
         this.setState(data);
-    }
+    };
 
     setInvitationRange = data => {
         console.log(data);
-        this.setState(data);
-        console.log('setInvitationRange: ', this.state.allFriends, this.state.allowPeopleNearby, this.state.allowParticipantsInvite, this.state.selectedFriendsList);
-    }
-
-    handleSizeChange = event => {
-        console.log('_handleSizeChange ---->', event.nativeEvent.contentSize.height);
-
-        this.setState({
-            inputHeight: event.nativeEvent.contentSize.height
-        });
+        this.setState(data,
+            ()=>{
+                console.log('setInvitationRange: ', this.state.allFriends, this.state.allowPeopleNearby, this.state.allowParticipantsInvite, this.state.selectedFriendsList);
+                });
     };
 
     handleDateTimeParse(){
@@ -365,10 +369,30 @@ export default class CreateScreen extends React.Component {
             }else{
                 isPrivacyStateChanged=true;
             }
+
+
+            let meet = this.state.meet;
+            let oldSelectedFriendsList;
+            if(meet.status){
+                oldSelectedFriendsList = Object.keys(meet.selectedFriendsList);
+            } else {
+                oldSelectedFriendsList = Object.keys(meet.selectedFriendsList);
+            }
+
+            let deletedList = _.difference(oldSelectedFriendsList, selectedFriendsList);
+            let newAddedList = _.difference(selectedFriendsList, oldSelectedFriendsList);
+
+            // console.log('2old', oldSelectedFriendsList);
+            // console.log('2new', selectedFriendsList);
+            //
+            // console.log('deleted', deletedList, 'newAdded', newAddedList);
             let bodyData = {
                 meetId:meetId,
                 isPrivacyStateChanged:isPrivacyStateChanged,
+                deletedList:deletedList,
+                newAddedList:newAddedList,
             };
+
             let docRef = firebase.firestore().collection("Meets").doc(meetId);
             docRef.update(docData).then(() => {
                 getPostRequest('checkMeetStatus', bodyData,
@@ -475,7 +499,7 @@ export default class CreateScreen extends React.Component {
     render() {
         const {title, startTime, placeName, placeAddress, description, inputHeight, allFriends, allowParticipantsInvite, allowPeopleNearby,
             selectedFriendsList, maxNo, descriptionHeight, tagsString, tagInputString, tagInputWidth, duration, durationUnit,titleHeight,
-            tagsList, editingMode} = this.state;
+            tagsList, editingMode, meetId} = this.state;
         let temp = placeAddress.split(',');
         let area = temp[temp.length-1];
         var dateTimeParts = startTime.split(' '),
@@ -669,7 +693,7 @@ export default class CreateScreen extends React.Component {
                                     <EvilIcons.Button
                                         name="plus" size={24} color="black" backgroundColor="transparent"
                                         onPress = {() => {
-                                            console.log("plus pressed")
+                                            console.log("plus pressed");
                                             this.setState((state) => {
                                                 return {maxNo: state.maxNo +1};
                                             });
@@ -690,55 +714,34 @@ export default class CreateScreen extends React.Component {
                             chevronColor={'black'}
                         />
 
-                        {!editingMode &&
+
                         <ListItem
                             containerStyle={styles.listStyle}
                             title='Invitation Range:'
                             titleStyle={styles.titleStyle}
-                            onPress={() => this.props.navigation.navigate('InvitationRange', {
-                                setInvitationRange: this.setInvitationRange,
-                                allFriends: allFriends,
-                                allowPeopleNearby: allowPeopleNearby,
-                                allowParticipantsInvite: allowParticipantsInvite,
-                                selectedFriendsList: selectedFriendsList,})}
+                            onPress={() => {
+                                this.props.navigation.navigate('InvitationRange', {
+                                    editingMode:editingMode,
+                                    setInvitationRange: this.setInvitationRange,
+                                    allFriends: allFriends,
+                                    allowPeopleNearby: allowPeopleNearby,
+                                    allowParticipantsInvite: allowParticipantsInvite,
+                                    selectedFriendsList: selectedFriendsList,})
+                            }}
                             chevron
                             chevronColor={'black'}
                         />
-                        }
 
                         {editingMode &&
-                        <View>
-                            <ListItem
-                                containerStyle={styles.listStyle}
-                                title='All Friends'
-                                rightIcon={
-                                    <Switch
-                                        value={allFriends}
-                                        onValueChange={(allFriends) => this.setState({allFriends})}
-                                    />
-                                }
-                            />
-                            <ListItem
-                                containerStyle={styles.listStyle}
-                                title='Allow People Nearby'
-                                rightIcon={
-                                    <Switch
-                                        value={allowPeopleNearby}
-                                        onValueChange={(allowPeopleNearby) => this.setState({allowPeopleNearby})}
-                                    />
-                                }
-                            />
-                            <ListItem
-                                containerStyle={styles.listStyle}
-                                title='Allow Participants Invite Friends'
-                                rightIcon={
-                                    <Switch
-                                        value={allowParticipantsInvite}
-                                        onValueChange={(allowParticipantsInvite) => this.setState({allowParticipantsInvite})}
-                                    />
-                                }
-                            />
-                        </View>
+                        <ListItem
+                            containerStyle={styles.listStyle}
+                            titleStyle={styles.titleStyle}
+                            title='Manage Participants'
+                            chevron
+                            onPress={()=>this.props.navigation.navigate('ParticipantsManagement',{
+                                meetId:meetId,
+                                participatingUsersList:this.props.navigation.state.params.getParticipatingUsersList()})}
+                        />
                         }
 
 

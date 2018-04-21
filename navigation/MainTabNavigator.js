@@ -22,6 +22,7 @@ import TinkoWebView from '../screens/main/common/TinkoWebView';
 import NewFriendsScreen from '../screens/main/second/NewFriendsScreen';
 import TinkoDetailTabNavigator from './TinkoDetailTabNavigator'
 import ParticipantsInviteScreen from "../screens/main/create/ParticipantsInviteScreen";
+import ParticipantsManagementScreen from "../screens/main/create/ParticipantsManagementScreen";
 
 const MainTabNavigator = TabNavigator(
   {
