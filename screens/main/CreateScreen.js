@@ -738,6 +738,7 @@ export default class CreateScreen extends React.Component {
                             titleStyle={styles.titleStyle}
                             title='Manage Participants'
                             chevron
+                            chevronColor={'black'}
                             onPress={()=>this.props.navigation.navigate('ParticipantsManagement',{
                                 meetId:meetId,
                                 participatingUsersList:this.props.navigation.state.params.getParticipatingUsersList()})}
