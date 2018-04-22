@@ -82,10 +82,6 @@ export default class Me extends React.Component {
     }
 
 
-    componentWillUnmount(){
-        //writeInAsyncStorage('NewFriendsBadgeHidden', {123:234}, this.state.userUid);
-    }
-
 
 
     showBadge(){
@@ -96,15 +92,22 @@ export default class Me extends React.Component {
 
     getThisUserData(){
         const {userUid} = this.state;
-        getUserData(userUid).fork(
-            (error) => {
-                console.log(error);
-            },
-            (userObj) => {
-                this.setState({userData:userObj});
-                writeInAsyncStorage('ThisUser', userObj, userUid);
+        let firestoreDb = firebase.firestore();
+        var userRef = firestoreDb.collection("Users").doc(userUid);
+        userRef.get().then((userDoc) => {
+            if (userDoc.exists) {
+                //console.log("Document data:", userDoc.data());
+                let userData = userDoc.data();
+                this.setState({userData});
+                writeInAsyncStorage('ThisUser', userData, userUid);
+            } else {
+                console.log("No such document!");
+                Alert.alert('Error', 'No Such Document');
             }
-        );
+        }).catch((error) => {
+            console.log("Error getting document:", error);
+            Alert.alert('Error', error);
+        });
     }
 
 
@@ -143,34 +146,6 @@ export default class Me extends React.Component {
             }),Promise.resolve());
             this.initFriendsTableAndInsertData(uid,usersData);
         });
-        // docRef.get().then(async (querySnapshot)=>{
-        //     let usersData = [];
-        //     await querySnapshot.docs.reduce((p,e,i) => p.then(async ()=> {
-        //         //console.log(p, e.data(), i);
-        //         let user = e.data();
-        //         let userUid = e.id;
-        //         let userRef = firebaseDb.collection("Users").doc(userUid);
-        //         await userRef.get().then((userDoc) => {
-        //             if (userDoc.exists) {
-        //                 //console.log("Document data:", userDoc.data());
-        //                 let user = userDoc.data();
-        //                 usersData.push(user);
-        //             } else {
-        //                 console.log("No such document!");
-        //             }
-        //         }).catch((error) => {
-        //             console.log("Error getting document:", error);
-        //         });
-        //
-        //     }),Promise.resolve());
-        //     //console.log(usersData);
-        //     this.initFriendsTableAndInsertData(uid,usersData);
-        //     //this.insertFriendsSql(uid, usersData);
-        //     this.seeTables(uid);
-        //
-        // }).catch((error) => {
-        //     console.log("Error getting documents: ", error);
-        // });
     }
 
     initFriendsTableAndInsertData(uid, usersData){
@@ -237,7 +212,7 @@ export default class Me extends React.Component {
             <SafeAreaView style={{backgroundColor:'white'}}>
                 <ScrollView style={{backgroundColor: "white", height: "100%" ,width: "100%"}}>
                     <Ionicons
-                        onPress={() => this.props.navigation.navigate('Setting')}
+                        onPress={() => this.props.navigation.navigate('Setting',{getThisUserData:this.getThisUserData.bind(this)})}
                         style={{position:'absolute',zIndex:100,top:20, right:SCREEN_WIDTH*0.05}}
                         name={'ios-settings'}
                         size={30}
