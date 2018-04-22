@@ -91,6 +91,15 @@ function Stack() {
         }
         console.log("update");
     };
+    this.updateMeets = function (data) {
+        let meetId = data.id;
+        for (element in this.dataStore){
+            let ele = this.dataStore[element];
+            if (ele.id === meetId){
+                ele.personName = data.name
+            }
+        }
+    };
     this.getData = function () {
         return this.dataStore;
     }
@@ -336,7 +345,6 @@ export default class FriendChatListView extends Component {
             tx => {
                 tx.executeSql('select * from db'+uid, [], (_, { rows }) => {
                     let dataArr =  rows['_array'];
-                    console.log("???=====???",dataArr);
                     for (let i = 0;i < dataArr.length ;i++){
                         let type = dataArr[i].type;
                         if (type === 1){
@@ -350,6 +358,8 @@ export default class FriendChatListView extends Component {
                         let ele = chat[element];
                         if (ele.imageURL === "http://larissayuan.com/home/img/prisma.png"&&(ele.type === 1||ele.type ===3)){
                             this.upDateAvatar(ele.id);
+                        }else if (ele.imageURL === "http://larissayuan.com/home/img/prisma.png"&&(ele.type === 2||ele.type ===4)){
+                            this.getMeetsName(ele.id);
                         }
                     }
                     this.setState({
@@ -372,6 +382,27 @@ export default class FriendChatListView extends Component {
                     console.log("no data");
                 }else{
                     chatInfo.updateUserInfo(doc.data());
+                    this.setState({
+                        messages:chatInfo.getData()
+                    });
+                }
+            }
+        ).catch(err => {
+            console.log("ERROR: ",err);
+        })
+    }
+
+    getMeetsName(id){
+        let docRef = firebase.firestore().collection("Meets").doc(id);
+        let getDoc = docRef.get().then(
+            doc =>{
+                if (!doc.exists){
+                    console.log("no data");
+                }else{
+                    chatInfo.updateMeets({
+                        name:doc.data().title,
+                        id:id
+                    });
                     this.setState({
                         messages:chatInfo.getData()
                     });
