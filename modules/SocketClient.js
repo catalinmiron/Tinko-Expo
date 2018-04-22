@@ -34,7 +34,12 @@ export const createMeet = (uid,meetId) => {
     Socket.emit("Meets",uid,meetId,1);
 };
 
+//删除自己
 export const quitMeet = (uid,meetId) => {
-    console.log("quit now....");
     Socket.emit("Meets",uid,meetId,-1);
+};
+
+//删除某人
+export const RemoveFromMeet = (uid,meetId) => {
+    Socket.emit("Meets",uid,meetId,-2);
 };
