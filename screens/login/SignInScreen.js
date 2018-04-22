@@ -71,10 +71,10 @@ export default class SignInScreen extends Component {
 
     initializeNewUser = async (token, uid) => {
         const response = await fetch(
-            `https://graph.facebook.com/me?access_token=${token}&fields=id,name,email,friends,location,gender`
+            `https://graph.facebook.com/me?access_token=${token}&fields=id,name,email,friends,location,gender,picture`
         );
         //const responseJSON = JSON.stringify(await response.json());
-        //console.log(await response.json());
+        console.log(await response.json());
         var dict = await response.json();
         dict.uid = uid;
         console.log(dict);
@@ -104,13 +104,13 @@ export default class SignInScreen extends Component {
             console.log("Login: ", user);
             const { a, b } = user.metadata;
             console.log(a, b); //a = creationTime, b = lastSignInTime
-            //this.initializeNewUser(token, user.uid);
-            if(a===b){ //first time login
-                this.initializeNewUser(token, user.uid);
-            } else {
-                console.log('goingToMain');
-                this.props.screenProps.handleUserLoggedIn();
-            }
+            this.initializeNewUser(token, user.uid);
+            // if(a===b){ //first time login
+            //     this.initializeNewUser(token, user.uid);
+            // } else {
+            //     console.log('goingToMain');
+            //     this.props.screenProps.handleUserLoggedIn();
+            // }
         }).catch((error) => {
             console.log(error);
         })

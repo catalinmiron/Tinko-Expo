@@ -18,7 +18,16 @@
       "backgroundColor": "#ffffff"
     },
     "ios": {
-      "supportsTablet": true
+      "supportsTablet": false
+    },
+    "android": {
+      "package": "com.kevinscience.tinko_expo",
+      "icon": "./assets/images/icon.png",
+      "config": {
+        "googleMaps": {
+          "apiKey": "My Key Here"
+        }
+      }
     }
   }
 }

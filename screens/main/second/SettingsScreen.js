@@ -1,7 +1,7 @@
 import React from 'react';
 import {Alert, View, Button} from "react-native";
 import firebase from "firebase";
-import {Header} from 'react-native-elements';
+import {Header, ListItem} from 'react-native-elements';
 
 export default class SettingsScreen extends React.Component {
     static navigationOptions = ({
@@ -26,6 +26,9 @@ export default class SettingsScreen extends React.Component {
                 <Header
                     centerComponent={{ text: 'Settings', style: { color: '#fff' } }}
                 />
+                {/*<ListItem*/}
+                    {/*leftAvatar={{ rounded: true, source: { uri: this.state.sqlRows[i].avatar } }}   */}
+                {/*/>*/}
                 <Button
                     onPress={() => this.onLogoutButtonPressed()}
                     title="Logout"
