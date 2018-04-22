@@ -10,7 +10,6 @@ export const sendFriendRequest = (requester,responser,type,msg) => {
 };
 
 export const acceptFriendRequest = (requester, responser) => {
-    console.log('acceptFriendRequest');
     Socket.emit("NewFriendRequest",JSON.stringify({
         requester:requester,
         responser:responser,
@@ -20,6 +19,22 @@ export const acceptFriendRequest = (requester, responser) => {
 };
 
 
-export const createMeet = (uid, meetId) => {
-    Socket.emit("createMeets",uid,meetId);
-}
+//    //type = 1 为创建
+//     //type = 2 为加入
+//     //type = -1 为退出
+//     socket.on("Meets",function (uid,MeetId,type) {
+//
+//     });
+
+// export const createMeet = (uid, meetId) => {
+//     Socket.emit("createMeets",uid,meetId);
+// };
+
+export const createMeet = (uid,meetId) => {
+    Socket.emit("Meets",uid,meetId,1);
+};
+
+export const quitMeet = (uid,meetId) => {
+    console.log("quit now....");
+    Socket.emit("Meets",uid,meetId,-1);
+};
