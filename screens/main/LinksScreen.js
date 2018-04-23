@@ -276,8 +276,8 @@ export default class FriendChatListView extends Component {
 
     };
 
-    totalUreadMessageNumChanged(){
-        this.props.navigation.setParams({totalUnReadMessageNum:totalUnReadMessageNum});
+    totalUnreadMessageNumChanged(num){
+        this.props.navigation.setParams({totalUnReadMessageNum:num});
     }
 
 
@@ -337,7 +337,7 @@ export default class FriendChatListView extends Component {
         }
         if (readStatus === 1){
             totalUnReadMessageNum ++;
-            console.log("totalUnReadMessageNum:" + totalUnReadMessageNum)
+            this.totalUnreadMessageNumChanged(totalUnReadMessageNum);
         }
         let sqlStr = "",
             sqlParams = [];
@@ -366,7 +366,6 @@ export default class FriendChatListView extends Component {
                         let type = dataArr[i].type;
                         if (dataArr[i].hasRead === 1){
                             totalUnReadMessageNum ++;
-                            console.log("totalUnReadMessageNum:" + totalUnReadMessageNum);
                         }
                         if (type === 1){
                             chatInfo.appendData([type,dataArr[i].fromId,dataArr[i]['msg']]);
@@ -374,6 +373,7 @@ export default class FriendChatListView extends Component {
                             chatInfo.appendData([type,dataArr[i].meetingId,dataArr[i]['msg']]);
                         }
                     }
+                    this.totalUnreadMessageNumChanged(totalUnReadMessageNum);
                     let chat = chatInfo.getData();
                     for (element in chat){
                         let ele = chat[element];
@@ -404,12 +404,14 @@ export default class FriendChatListView extends Component {
         }else{
             updateSql = "update db"+uid+" set hasRead = 0 where hasRead = 1 and meetingId = '" + targetId + "'"
         }
+        console.log(updateSql);
         db.transaction(
             tx => {
                 tx.executeSql(updateSql,[], (_, { rowsAffected }) => {
                         //被修改了的数量
                         totalUnReadMessageNum = (totalUnReadMessageNum - parseInt(rowsAffected));
-                        console.log("totalUnReadMessageNum:" + totalUnReadMessageNum);
+                        console.log(totalUnReadMessageNum);
+                        this.totalUnreadMessageNumChanged(totalUnReadMessageNum);
                     }
                 );
             },
