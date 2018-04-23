@@ -41,6 +41,22 @@ export default class SettingsScreen extends React.Component {
 
     }
 
+    setPhotoURL(photoURL){
+        this.setState((state) => {
+            let userData = state.userData;
+            userData.photoURL = photoURL;
+            return {userData};
+        })
+    }
+
+    setUsername(username){
+        this.setState((state) => {
+            let userData = state.userData;
+            userData.username = username;
+            return {userData};
+        })
+    }
+
     //onPress={() => this.onLogoutButtonPressed()}
 
     render() {
@@ -65,17 +81,22 @@ export default class SettingsScreen extends React.Component {
                     }
                     onPress={()=> this.props.navigation.navigate('AvatarUpload',{
                         getThisUserData:this.props.navigation.state.params.getThisUserData,
-                        getThisUserDataForSetting:this.getThisUserDataForSetting.bind(this)
+                        setPhotoURL:this.setPhotoURL.bind(this)
                     })}
                 />
                 <ListItem
-                    title='User Name'
+                    title='Username'
                     titleStyle={styles.titleStyle}
                     chevron
                     chevronColor={'black'}
                     rightElement={
                         <Text>{userData.username}</Text>
                     }
+                    onPress={()=>this.props.navigation.navigate('UpdateUsername',{
+                        getThisUserData:this.props.navigation.state.params.getThisUserData,
+                        setUsername:this.setUsername.bind(this),
+                        username:userData.username
+                    })}
                 />
                 <ListItem
                     title='Location'
