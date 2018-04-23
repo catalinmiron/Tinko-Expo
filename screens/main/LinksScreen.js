@@ -238,7 +238,7 @@ export default class FriendChatListView extends Component {
     static navigationOptions = ({ navigation }) => {
         const params = navigation.state.params || {};
 
-        const {totalUnReadMessageNum} = this.params;
+        const {totalUnReadMessageNum} = params;
 
         return {
 
