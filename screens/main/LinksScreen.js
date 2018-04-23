@@ -238,6 +238,8 @@ export default class FriendChatListView extends Component {
     static navigationOptions = ({ navigation }) => {
         const params = navigation.state.params || {};
 
+        const {totalUnReadMessageNum} = this.params;
+
         return {
 
             title: 'Message',
@@ -246,7 +248,7 @@ export default class FriendChatListView extends Component {
                 <IconBadge
                     MainElement={
                         <View style={{
-                            height: 30, width: 30, alignItems: 'center',
+                            height: 36, width: 36, alignItems: 'center',
                             justifyContent: 'center',
                         }}>
                             <Ionicons
@@ -259,12 +261,12 @@ export default class FriendChatListView extends Component {
 
                     }
                     BadgeElement={
-                        <Text style={{color: '#FFFFFF'}}>{''}</Text>
+                        <Text style={{color: '#FFFFFF'}}>{totalUnReadMessageNum}</Text>
                     }
                     IconBadgeStyle={
-                        {width: 10, height: 10, backgroundColor: 'red'}
+                        {width: 20, height: 20, backgroundColor: 'red'}
                     }
-                    Hidden={true}
+                    Hidden={!totalUnReadMessageNum>0}
                 />,
 
 
@@ -273,6 +275,10 @@ export default class FriendChatListView extends Component {
         }
 
     };
+
+    totalUreadMessageNumChanged(){
+        this.props.navigation.setParams({totalUnReadMessageNum:totalUnReadMessageNum});
+    }
 
 
     //处理时间
