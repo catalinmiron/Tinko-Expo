@@ -48,9 +48,6 @@ export default class AvatarUploadScreen extends React.Component {
         });
     }
 
-    componentWillUnmount(){
-        this.props.navigation.state.params.getThisUserDataForSetting();
-    }
 
 
 
@@ -172,6 +169,7 @@ export default class AvatarUploadScreen extends React.Component {
                 userRef.update({photoURL:uploadUrl}).then(()=>{
                     this.setState({ image: uploadUrl });
                     this.props.navigation.state.params.getThisUserData();
+                    this.props.navigation.state.params.setPhotoURL(uploadUrl);
                 }).catch((error)=>{
                     Alert.alert('Error', error);
                 })

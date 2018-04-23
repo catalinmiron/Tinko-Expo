@@ -23,7 +23,8 @@ import NewFriendsScreen from '../screens/main/second/NewFriendsScreen';
 import TinkoDetailTabNavigator from './TinkoDetailTabNavigator'
 import ParticipantsInviteScreen from "../screens/main/create/ParticipantsInviteScreen";
 import ParticipantsManagementScreen from "../screens/main/create/ParticipantsManagementScreen";
-import AvatarUploadScreen from "../screens/main/second/AvatarUploadScreen";
+import AvatarUploadScreen from "../screens/main/settings/AvatarUploadScreen";
+import UpdateUsernameScreen from "../screens/main/settings/UpdateUsernameScreen";
 
 const MainTabNavigator = TabNavigator(
   {
@@ -129,6 +130,9 @@ const MainTabNavigatorWithDetailScreens = StackNavigator(
         ,
         AvatarUpload:{
             screen:AvatarUploadScreen
+        },
+        UpdateUsername:{
+            screen:UpdateUsernameScreen
         }
     },
     { headerMode: 'none' }
