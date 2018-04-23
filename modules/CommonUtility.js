@@ -168,6 +168,19 @@ export const getPostTimeString = (postTime) => {
     }
 };
 
+export const logoutFromNotification = (uid) => {
+    fetch('http://47.89.187.42:4000/logout', {
+        method: 'POST',
+        headers: {
+            Accept: 'application/json',
+            'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+            uid: uid
+        }),
+    });
+};
+
 export const getDurationString = (duration) => {
     if(duration>2*24*60*60*1000){
         return `${Math.round(duration/(24*60*60*1000))} days`;

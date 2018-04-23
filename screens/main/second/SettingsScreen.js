@@ -4,6 +4,7 @@ import firebase from "firebase";
 import {Avatar, Header, ListItem} from 'react-native-elements';
 import {getFromAsyncStorage} from "../../../modules/CommonUtility";
 import {ifIphoneX} from "react-native-iphone-x-helper";
+import {logoutFromNotification} from '../../../modules/CommonUtility';
 
 export default class SettingsScreen extends React.Component {
     static navigationOptions = ({
@@ -30,6 +31,7 @@ export default class SettingsScreen extends React.Component {
     }
 
     onLogoutButtonPressed(){
+        logoutFromNotification(this.state.userUid);
         firebase.auth().signOut()
             .then(console.log('after signout'))
             .catch((error) => {
