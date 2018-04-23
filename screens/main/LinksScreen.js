@@ -239,7 +239,7 @@ export default class FriendChatListView extends Component {
         const params = navigation.state.params || {};
 
         const {totalUnReadMessageNum} = params;
-
+        console.log('navigationOptions', totalUnReadMessageNum);
         return {
 
             title: 'Message',
