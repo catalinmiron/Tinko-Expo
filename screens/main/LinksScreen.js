@@ -21,16 +21,22 @@ import GroupChatScreen from './common/GroupChatScreen';
 import Colors from "../../constants/Colors";
 import TinkoScreen from "./TinkoScreen";
 
+
+import {quitMeet} from "../../modules/SocketClient";
+
 let friendList = [];
 let uid = "";
 let lastUpdateArr = [],
     personalInfo = {},
     alreadyInList = [];
 
-let chatInfo = new Stack();
+let chatInfo = new Stack(),
+    currentOnSelectId,
+    totalUnReadMessageNum = 0;
 
 let getPrivateHistory = false,
     getMeetsHistory = false;
+
 
 
 function Stack() {
@@ -89,10 +95,11 @@ function Stack() {
                 ele.personName = data.username
             }
         }
-        console.log("update");
     };
     this.updateMeets = function (data) {
         let meetId = data.id;
+        console.log("quitMeet");
+        quitMeet(uid,meetId);
         for (element in this.dataStore){
             let ele = this.dataStore[element];
             if (ele.id === meetId){
@@ -187,6 +194,8 @@ export default class FriendChatListView extends Component {
                         messages:chatInfo.getData()
                     });
                 }
+            }else{
+                console.log(data.message);
             }
             if (type !== 3 && type !== 4){
                 this.insertChatSql(uid,data);
@@ -206,7 +215,6 @@ export default class FriendChatListView extends Component {
         });
         this.socket.on("mySendBox"+uid,msg=>{
             let data = JSON.parse(msg);
-            console.log("mySendBox:",data);
             let type = data.type;
             if (parseInt(type) === 0){
                 //系统
@@ -297,22 +305,21 @@ export default class FriendChatListView extends Component {
         );
     }
 
-    insertChatSql(uid,data,isSend){
+    insertChatSql(uid,data){
         let type = data["type"],
             message = data["message"],
             from = data["from"],
             meetingId = "",
             userData = "",
             time = "",
-            status = (isSend === undefined)?0:1;
+            status = 0,
+            readStatus = (currentOnSelectId === from)?0:1;
         if (data["time"]){
             time = this.unixTime(data["time"]);
         }
-        if (status === 1){
-            console.log("这里是发送啦");
-        }
         if (data["meetId"]!==undefined){
             meetingId = data["meetId"];
+            readStatus = (currentOnSelectId === meetingId)?0:1;
         }else if (data["activityId"]!==undefined){
             meetingId = data["activityId"];
         }
@@ -322,14 +329,18 @@ export default class FriendChatListView extends Component {
         if (data["userData"]!==undefined){
             userData = JSON.stringify(data["userData"]);
         }
+        if (readStatus === 1){
+            totalUnReadMessageNum ++;
+            console.log("totalUnReadMessageNum:" + totalUnReadMessageNum)
+        }
         let sqlStr = "",
             sqlParams = [];
         if (time === ""){
-            sqlStr = "INSERT INTO db"+uid+" (fromId,msg,status,type,meetingId,meetUserData) VALUES (?,?,?,?,?,?)";
-            sqlParams =[from,message,status,type,meetingId,userData];
+            sqlStr = "INSERT INTO db"+uid+" (fromId,msg,status,type,meetingId,meetUserData,hasRead) VALUES (?,?,?,?,?,?,?)";
+            sqlParams =[from,message,status,type,meetingId,userData,readStatus];
         }else{
-            sqlStr = "INSERT INTO db"+uid+" (fromId,msg,status,type,meetingId,meetUserData,timeStamp) VALUES (?,?,?,?,?,?,?)";
-            sqlParams =[from,message,status,type,meetingId,userData,time];
+            sqlStr = "INSERT INTO db"+uid+" (fromId,msg,status,type,meetingId,meetUserData,timeStamp,hasRead) VALUES (?,?,?,?,?,?,?,?)";
+            sqlParams =[from,message,status,type,meetingId,userData,time,readStatus];
         }
         db.transaction(
             tx => {
@@ -347,6 +358,10 @@ export default class FriendChatListView extends Component {
                     let dataArr =  rows['_array'];
                     for (let i = 0;i < dataArr.length ;i++){
                         let type = dataArr[i].type;
+                        if (dataArr[i].hasRead === 1){
+                            totalUnReadMessageNum ++;
+                            console.log("totalUnReadMessageNum:" + totalUnReadMessageNum);
+                        }
                         if (type === 1){
                             chatInfo.appendData([type,dataArr[i].fromId,dataArr[i]['msg']]);
                         }else{
@@ -367,11 +382,36 @@ export default class FriendChatListView extends Component {
                     });
                 });
             },
-            null,
+            (error) => console.log("聊天获取 :" + error),
             () => {
-                console.log('聊天数据插入成功');
+                console.log('聊天数据获取成功');
             }
         )
+    }
+
+    //type = 1为私聊
+    //type = 2群聊
+    updateUnReadNum(type,targetId){
+        let updateSql = "";
+        if (type === 1){
+            updateSql = "update db"+uid+" set hasRead = 0 where hasRead = 1 and fromId = '" + targetId + "'"
+        }else{
+            updateSql = "update db"+uid+" set hasRead = 0 where hasRead = 1 and meetingId = '" + targetId + "'"
+        }
+        db.transaction(
+            tx => {
+                tx.executeSql(updateSql,[], (_, { rowsAffected }) => {
+                        //被修改了的数量
+                        totalUnReadMessageNum = (totalUnReadMessageNum - parseInt(rowsAffected));
+                        console.log("totalUnReadMessageNum:" + totalUnReadMessageNum);
+                    }
+                );
+            },
+            (error) => console.log("update chat error :" + error),
+            () => function () {
+                console.log("update Success");
+            }
+        );
     }
 
     upDateAvatar(id){
@@ -413,7 +453,6 @@ export default class FriendChatListView extends Component {
         })
     }
 
-
     render() {
         let friendList = [];
         if (this.state.messages.length!==0){
@@ -432,7 +471,8 @@ export default class FriendChatListView extends Component {
                                          name:messages.personName,
                                          personId:messages.id,
                                          myId:uid
-                                     })
+                                     });
+                                     this.updateUnReadNum(1,messages.id);
                                  }else{
                                      this.props.navigation.navigate('GroupChatPage', {
                                          avatar:messages.imageURL,
@@ -440,7 +480,9 @@ export default class FriendChatListView extends Component {
                                          personId:messages.id,
                                          myId:uid
                                      })
+                                     this.updateUnReadNum(2,messages.id);
                                  }
+                                 currentOnSelectId = messages.id;
                             }
                         }
                     />
