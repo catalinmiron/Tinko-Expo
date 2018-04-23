@@ -260,6 +260,7 @@ export default class RootNavigator extends React.Component {
                     'type int,' +
                     'meetingId text, '+
                     'meetUserData text,'+
+                    'hasRead int DEFAULT 1,' +
                     'isSystem int DEFAULT 0,'+
                     'timeStamp DATETIME DEFAULT CURRENT_TIMESTAMP);');
             },
