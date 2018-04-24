@@ -198,7 +198,7 @@ export default class TinkoDetailScreen extends React.Component {
                     tagsList,
                     title,
                     identity,
-                    });
+                    },()=>console.log('participatingUsersList',this.state.participatingUsersList));
                 this.setNavigationParams();
                 //console.log(this.state);
                 //this.marker.showCallout()

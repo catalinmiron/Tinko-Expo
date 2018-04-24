@@ -25,7 +25,7 @@ import {
 } from 'react-native-elements';
 import Expo, { SQLite } from 'expo';
 import { NavigationActions } from 'react-navigation';
-import {getPostRequest, getUserData} from "../../../modules/CommonUtility";
+import {getPostRequest, getUserData, getUserDataFromDatabase} from "../../../modules/CommonUtility";
 import {Ionicons} from '@expo/vector-icons'
 
 
@@ -58,7 +58,7 @@ export default class InvitationRangeScreen extends React.Component{
         this.state = {
             meetId:props.navigation.state.params.meetId,
             userUid:uid,
-            participatingUsersList:props.navigation.state.params.participatingUsersList,
+            participatingUsersList:props.navigation.state.params.participatingUsersList(),
             participatingUsersData:[],
         };
         this.renderRightElement=this.renderRightElement.bind(this);
@@ -72,22 +72,38 @@ export default class InvitationRangeScreen extends React.Component{
         });
     }
 
-    getParticipantsData(){
+   async getParticipantsData(){
         const {participatingUsersList} = this.state;
-        participatingUsersList.map((uid) => {
-            getUserData(uid).fork(
-                (error) => {
-                    console.log(error);
-                },
+        // participatingUsersList.map((uid) => {
+        //     getUserData(uid).fork(
+        //         (error) => {
+        //             console.log(error);
+        //         },
+        //         (userData) => {
+        //             this.setState((state)=>{
+        //                 let listData=state.participatingUsersData;
+        //                 listData.push(userData);
+        //                 return {participatingUsersData:listData};
+        //             })
+        //         }
+        //     );
+        // })
+        var participatingUsersData = [];
+        await participatingUsersList.reduce((p,e,i) => p.then(async ()=> {
+            //console.log(p, e, i);
+            let userUid = e;
+
+            await getUserDataFromDatabase(userUid,
                 (userData) => {
-                    this.setState((state)=>{
-                        let listData=state.participatingUsersData;
-                        listData.push(userData);
-                        return {participatingUsersData:listData};
-                    })
-                }
-            );
-        })
+                    //console.log(userData);
+                    participatingUsersData.push(userData);
+                },
+                (error) => {
+                    Alert.alert('Error', error);
+                });
+        }),Promise.resolve());
+
+        this.setState({participatingUsersData});
     }
 
 
@@ -105,6 +121,23 @@ export default class InvitationRangeScreen extends React.Component{
     }
 
 
+    deleteUser(userData){
+        let participatingUsersList = this.props.navigation.state.params.participatingUsersList();
+        _.pull(participatingUsersList,userData.uid);
+        let meetRef = firebase.firestore().collection("Meets").doc(this.state.meetId);
+        meetRef.update({
+            [`participatingUsersList.${userData.uid}`]:firebase.firestore.FieldValue.delete(),
+            participatingUsersArray:participatingUsersList
+        }).then(()=>{
+            this.setState((state)=>{
+                let participatingUsersData = state.participatingUsersData;
+                _.pull(participatingUsersData, userData);
+                return {participatingUsersData, participatingUsersList}
+            });
+        }).catch((error)=>{
+            Alert.alert('Error', error);
+        });
+    }
 
 
     renderRightElement({userData,i}){
@@ -122,18 +155,7 @@ export default class InvitationRangeScreen extends React.Component{
                         Alert.alert("Alert", "Are you sure to remove this user?",
                             [
                                 {text: 'Cancel', onPress: () => console.log('Cancel Pressed'), style: 'cancel'},
-                                {text: 'Yes', onPress: () => {
-                                        let meetRef = firebase.firestore().collection("Meets").doc(this.state.meetId);
-                                        meetRef.update({[`participatingUsersList.${userData.uid}`]:firebase.firestore.FieldValue.delete()}).then(()=>{
-                                            this.setState((state)=>{
-                                                let participatingUsersData = state.participatingUsersData;
-                                                _.pull(participatingUsersData, userData);
-                                                return {participatingUsersData}
-                                            });
-                                        }).catch((error)=>{
-                                            Alert.alert('Error', error);
-                                        });
-                                    }, style:"destructive"},
+                                {text: 'Yes', onPress: () => this.deleteUser(userData), style:"destructive"},
                             ]);
                     }}
                 />
