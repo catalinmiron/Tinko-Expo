@@ -156,6 +156,9 @@ export default class Me extends React.Component {
                     'userId text UNIQUE, avatarUrl text , ' +
                     'username text, ' +
                     'location text,' +
+                    'isFriend int DEFAULT 0,' +
+                    'nickname text,' +
+                    'isNicknameSet int DEFAULT 0,' +
                     'gender text);');
             },
             (error) => console.log("friendList :" + error),
@@ -173,8 +176,8 @@ export default class Me extends React.Component {
                     console.log("开始插入了");
                     console.log(userData);
                     tx.executeSql(
-                        'insert or replace into friend_list'+uid+' (userId,avatarUrl,username, location, gender) values (?,?,?,?,?)',
-                        [userData.uid,userData.photoURL,userData.username,userData.location,userData.gender]);
+                        'insert or replace into friend_list'+uid+' (userId,avatarUrl,username, location, gender,isFriend) values (?,?,?,?,?,?)',
+                        [userData.uid,userData.photoURL,userData.username,userData.location,userData.gender,1]);
                 })
             }
             ,

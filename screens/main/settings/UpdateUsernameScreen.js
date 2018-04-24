@@ -17,11 +17,13 @@ export default class UpdateUsernameScreen extends React.Component {
             userUid:user.uid,
             username:props.navigation.state.params.username,
             oldUsername:props.navigation.state.params.username,
+            buttonRefreshing:false
         };
 
     }
 
     onSubmitButtonPressed(){
+        this.setState({buttonRefreshing:true});
         const {userUid, username} = this.state;
         let userRef = firebase.firestore().collection('Users').doc(userUid);
         userRef.update({username:username}).then(()=>{
@@ -35,21 +37,20 @@ export default class UpdateUsernameScreen extends React.Component {
 
 
     render() {
-        const {username, oldUsername} = this.state;
+        const {username, oldUsername, buttonRefreshing} = this.state;
         console.log(username);
         return (
             <View style={styles.container}>
                 <Header
                     leftComponent={{ icon: 'chevron-left', color: '#fff', onPress:()=>this.props.navigation.goBack()}}
                     centerComponent={{ text: 'Username', style: { fontSize:18, fontFamily:'bold', color: '#fff' } }}
-                    outerContainerStyles={ifIphoneX({height:78})}
+                    outerContainerStyles={ifIphoneX({height:88})}
                 />
 
                 <Input
-                    inputContainerStyle={{flex:1, borderBottomColor:'transparent', borderBottomWidth:0, backgroundColor:'white'}}
-                    clearTextOnFocus={true}
+                    inputContainerStyle={{borderBottomColor:'transparent', borderBottomWidth:0, backgroundColor:'white'}}
                     placeholder='Username'
-                    containerStyle={{marginTop:30, width:'100%', backgroundColor:'white'}}
+                    containerStyle={{marginTop:50, width:'100%', backgroundColor:'white'}}
                     onChangeText ={username => {
                         console.log('onChangeText',username);
                         this.setState({username});
@@ -64,7 +65,9 @@ export default class UpdateUsernameScreen extends React.Component {
                 <Button
                     title='Submit'
                     onPress={() => this.onSubmitButtonPressed()}
-                    containerStyle={{marginTop:30}}
+                    containerStyle={{marginTop:50}}
+                    loading={buttonRefreshing}
+                    loadingProps={{size: 'large', color: 'white'}}
                 />
                 }
 

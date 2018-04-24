@@ -57,6 +57,14 @@ export default class SettingsScreen extends React.Component {
         })
     }
 
+    setLocation(location){
+        this.setState((state) => {
+            let userData = state.userData;
+            userData.location = location;
+            return {userData};
+        })
+    }
+
     //onPress={() => this.onLogoutButtonPressed()}
 
     render() {
@@ -66,7 +74,7 @@ export default class SettingsScreen extends React.Component {
                 <Header
                     leftComponent={{ icon: 'chevron-left', color: '#fff', onPress:()=>this.props.navigation.goBack()}}
                     centerComponent={{ text: 'Settings', style: { fontSize:18, fontFamily:'bold', color: '#fff' } }}
-                    outerContainerStyles={ifIphoneX({height:78})}
+                    outerContainerStyles={ifIphoneX({height:88})}
                 />
                 <ListItem
                     title='Avatar'
@@ -106,6 +114,11 @@ export default class SettingsScreen extends React.Component {
                     rightElement={
                         <Text>{userData.location}</Text>
                     }
+                    onPress={() => this.props.navigation.navigate('GooglePlacesAutocomplete', {
+                        getThisUserData:this.props.navigation.state.params.getThisUserData,
+                        setLocation: this.setLocation.bind(this),
+                        citySearchMode:true
+                    })}
                 />
                 <Button
                     onPress={() => this.onLogoutButtonPressed()}
