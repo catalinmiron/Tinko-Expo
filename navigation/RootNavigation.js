@@ -77,8 +77,8 @@ export default class RootNavigator extends React.Component {
       this.setState({userUid:uid});
       // 测试时才用drop
       //this.dropChatTable(uid);
-      //this.dropFriendsTable(uid);
-      this.initFriendsTable(uid);
+      this.dropFriendsTable(uid);
+      //this.initFriendsTable(uid);
       this.initChatTable(uid);
       // this.dropMeetingTable(uid);
       // this.initMeetingTable(uid);

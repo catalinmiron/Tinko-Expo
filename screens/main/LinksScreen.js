@@ -277,6 +277,7 @@ export default class FriendChatListView extends Component {
     };
 
     totalUnreadMessageNumChanged(num){
+        console.log(num);
         this.props.navigation.setParams({totalUnReadMessageNum:num});
     }
 
@@ -474,21 +475,21 @@ export default class FriendChatListView extends Component {
                         subtitle={messages.msg}
                         onPress={() => {
                                  if (messages.type === 1){
+                                     this.updateUnReadNum(1,messages.id);
                                      this.props.navigation.navigate('PrivateChatPage', {
                                          avatar:messages.imageURL,
                                          name:messages.personName,
                                          personId:messages.id,
                                          myId:uid
                                      });
-                                     this.updateUnReadNum(1,messages.id);
                                  }else{
+                                     this.updateUnReadNum(2,messages.id);
                                      this.props.navigation.navigate('GroupChatPage', {
                                          avatar:messages.imageURL,
                                          name:messages.personName,
                                          personId:messages.id,
                                          myId:uid
                                      })
-                                     this.updateUnReadNum(2,messages.id);
                                  }
                                  currentOnSelectId = messages.id;
                             }
