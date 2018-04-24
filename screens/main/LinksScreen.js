@@ -98,8 +98,6 @@ function Stack() {
     };
     this.updateMeets = function (data) {
         let meetId = data.id;
-        console.log("quitMeet");
-        quitMeet(uid,meetId);
         for (element in this.dataStore){
             let ele = this.dataStore[element];
             if (ele.id === meetId){
