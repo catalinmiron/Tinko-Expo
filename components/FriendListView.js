@@ -47,9 +47,9 @@ export default class FriendListView extends Component {
                     console.log(dataArr);
                     for (let i = 0; i <dataArr.length;i++){
                         rtnArr.push({
-                            avatar:dataArr[i].avatarUrl,
-                            key:dataArr[i].userId,
-                            title:dataArr[i].username
+                            photoURL:dataArr[i].avatarUrl,
+                            uid:dataArr[i].userId,
+                            username:dataArr[i].username
                         });
                         friendList.push(dataArr[i].userId)
                     }
@@ -64,14 +64,17 @@ export default class FriendListView extends Component {
     }
 
 
-    goToDetailPage(key){
+    goToDetailPage(uid){
         //console.log(key);
         //this.props.navigation.navigate('UserDetail', {uid:key});
-        this.props.showThisUser(key, this.props.navigation);
+        this.props.showThisUser(uid, this.props.navigation,this.updateUserDetail.bind(this));
 
     }
 
 
+    updateUserDetail(){
+        this.getSql();
+    }
 
     render() {
         const{selectedUid, overlayIsVisible} = this.state;
@@ -81,10 +84,10 @@ export default class FriendListView extends Component {
             friendList.push(
                 <ListItem
                     hideChevron
-                    leftAvatar={{ rounded: true, source: { uri: this.state.sqlRows[i].avatar } }}
-                    key={this.state.sqlRows[i].key}
-                    title={this.state.sqlRows[i].title}
-                    onPress={() => this.goToDetailPage(this.state.sqlRows[i].key)}
+                    leftAvatar={{ rounded: true, source: { uri: this.state.sqlRows[i].photoURL } }}
+                    key={this.state.sqlRows[i].uid}
+                    title={this.state.sqlRows[i].username}
+                    onPress={() => this.goToDetailPage(this.state.sqlRows[i].uid)}
                 />
             )
         }

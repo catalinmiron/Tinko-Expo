@@ -41,6 +41,7 @@ export default class UserDetailScreen extends Component{
             isFriends:true,
             isVisible:props.isVisible,
             navigation:null,
+            updateMethod:null,
             requestMessage:'',
             loading:true,
         }
@@ -51,16 +52,16 @@ export default class UserDetailScreen extends Component{
         //this.getUserDataFromFirebase();
     }
 
-    showThisUser(uid, navigation){
+    showThisUser(uid, navigation, updateMethod){
         if(uid===this.state.userUid){
-            this.getThisUserFromDatabase();
+            this.getThisUserFromAsyncStorage();
         } else {
             this.getUserDataFromSql(uid);
         }
-        this.setState({isVisible:true, navigation:navigation});
+        this.setState({isVisible:true, navigation:navigation, updateMethod:updateMethod});
     }
 
-    async getThisUserFromDatabase(){
+    async getThisUserFromAsyncStorage(){
         try {
             const value = await AsyncStorage.getItem('ThisUser'+this.state.userUid);
             if (value !== null){
@@ -85,20 +86,21 @@ export default class UserDetailScreen extends Component{
                         this.getUserDataFromFirebase(uid);
                     } else {
                         let data = rows._array;
-                        console.log(userData);
                         let userData = {
                             uid:data[0].userId,
                             photoURL:data[0].avatarUrl,
                             username:data[0].username,
                             location:data[0].location,
                             gender:data[0].gender,
-                        }
+                        };
+                        let isFriends = data[0].isFriend === 1;
                         this.setState({
                             userData:userData,
                             requestMessage:`I am ${data[0].username}`,
-                            isFriends:true,
+                            isFriends:isFriends,
                             loading:false,
                         });
+                        this.getUserDataFromFirebase(uid, isFriends);
                     }
                 });
             },
@@ -110,25 +112,53 @@ export default class UserDetailScreen extends Component{
         )
     }
 
-    getUserDataFromFirebase(uid){
+    getUserDataFromFirebase(uid, isFriends=false){
         let firestoreDb = firebase.firestore();
         var userRef = firestoreDb.collection("Users").doc(uid);
         userRef.get().then((userDoc) => {
             if (userDoc.exists) {
                 //console.log("Document data:", userDoc.data());
                 let user = userDoc.data();
-                this.setState({
-                    userData:user,
-                    requestMessage:`I am ${user.username}`,
-                    isFriends:false,
-                    loading:false,
-                });
+                let userData = this.state.userData;
+                if(userData.username===user.username && userData.photoURL === user.photoURL && userData.location === user.location && userData.gender === user.gender){
+
+                } else {
+                    this.setState({
+                        userData:user,
+                        requestMessage:`I am ${user.username}`,
+                        isFriends:isFriends,
+                        loading:false,
+                    });
+                    let callUpdateMethod = userData !== {};
+                    this.updateFriendSql(this.state.userUid, user, isFriends, callUpdateMethod);
+                }
+
             } else {
                 console.log("No such document!");
             }
         }).catch((error) => {
             console.log("Error getting document:", error);
         });
+    }
+
+    updateFriendSql(uid, userData, isFriends, callUpdateMethod){
+        let isFriend = isFriends ? 1 : 0;
+        db.transaction(
+            tx => {
+                tx.executeSql(
+                    'insert or replace into friend_list'+uid+' (userId,avatarUrl,username, location, gender, isFriend) values (?,?,?,?,?, ?)',
+                    [userData.uid,userData.photoURL,userData.username,userData.location,userData.gender, isFriend]);
+            }
+            ,
+            (error) => console.log("这里报错" + error),
+            () => {
+                console.log('updateFriendSql complete');
+                if(callUpdateMethod){
+                    //console.log(this.state.updateMethod);
+                    this.state.updateMethod();
+                }
+            }
+        );
     }
 
     render() {

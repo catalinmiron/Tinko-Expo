@@ -22,7 +22,7 @@ export default class SettingsScreen extends React.Component {
     }
 
     getThisUserDataForSetting(){
-        getFromAsyncStorage('ThisUser', this.state.userUid).then((userData) => {
+        getFromAsyncStorage('ThisUser').then((userData) => {
             if(userData) {
                 console.log(userData);
                 this.setState({userData});

@@ -2,22 +2,28 @@ import Task from 'data.task';
 import firebase from "firebase";
 import 'firebase/firestore'
 import {Alert, AsyncStorage} from "react-native";
+import {insertNewFriendsRequest} from "./SqliteClient";
 
 
+export const currentUserUid = () => {
+    if(firebase){
+        return firebase.auth().currentUser.uid;
+    }
+};
 
-export const writeInAsyncStorage = (code, data, userUid) => {
+export const writeInAsyncStorage = (code, data) => {
     let dataString = JSON.stringify(data);
     try {
-        AsyncStorage.setItem(code+userUid, dataString);
+        AsyncStorage.setItem(code+currentUserUid(), dataString);
     } catch (error) {
         // Error saving data
         console.log(error);
     }
 };
 
-export const getFromAsyncStorage = async (code, userUid) => {
+export const getFromAsyncStorage = async (code) => {
     try {
-        const value = await AsyncStorage.getItem(code + userUid);
+        const value = await AsyncStorage.getItem(code + currentUserUid());
         if (value !== null){
             // We have data!!
             //console.log(value);
@@ -82,6 +88,53 @@ export const getUserData = (userUid) => {
             reject(error);
         });
     });
+};
+
+export const getUserDataFromFirebase = (userUid, onComplete, onError) => {
+    let firestoreDb = firebase.firestore();
+    var userRef = firestoreDb.collection("Users").doc(userUid);
+    userRef.get().then((userDoc) => {
+        if (userDoc.exists) {
+            //console.log("Document data:", userDoc.data());
+            let user = userDoc.data();
+            onComplete({
+                username: user.username,
+                photoURL: user.photoURL,
+                uid: user.uid,
+                location:user.location,
+                gender:user.gender,
+            });
+        } else {
+            console.log("No such document!");
+            onError(error);
+        }
+    }).catch((error) => {
+        console.log("Error getting document:", error);
+        onError(error);
+    });
+};
+
+
+
+export const getUserDataFromDatabase = async (uid, onComplete, onError) => {
+    if(uid === currentUserUid()){
+        let userData = await getFromAsyncStorage('ThisUser');
+        if(userData !== {}){
+            onComplete(userData);
+        } else {
+            getUserDataFromFirebase(uid,
+                (userData) => {
+                    onComplete(userData);
+                    writeInAsyncStorage('ThisUser', userData);
+                },
+                (error) => {
+                    onError(error);
+                })
+        }
+    } else {
+        console.log('no');
+    }
+
 };
 
 export const getStartTimeString = (startTime) => {

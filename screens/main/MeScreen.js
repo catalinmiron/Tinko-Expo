@@ -34,12 +34,12 @@ export default class Me extends React.Component {
             userData:{},
             badgeHidden:true,
         };
-        getFromAsyncStorage('ThisUser', user.uid).then((userData) => {
+        getFromAsyncStorage('ThisUser').then((userData) => {
             if(userData) {
                 this.setState({userData})
             }
         });
-        getFromAsyncStorage('NewFriendsBadgeHidden', user.uid).then((badgeHidden) => {
+        getFromAsyncStorage('NewFriendsBadgeHidden').then((badgeHidden) => {
             if(badgeHidden){
                 this.setState({badgeHidden});
                 this.props.navigation.setParams({badgeHidden});
@@ -87,7 +87,7 @@ export default class Me extends React.Component {
     showBadge(){
         this.setState({badgeHidden:false});
         this.props.navigation.setParams({badgeHidden:false});
-        writeInAsyncStorage('NewFriendsBadgeHidden', false, this.state.userUid);
+        writeInAsyncStorage('NewFriendsBadgeHidden', false);
     }
 
     getThisUserData(){
@@ -99,7 +99,7 @@ export default class Me extends React.Component {
                 //console.log("Document data:", userDoc.data());
                 let userData = userDoc.data();
                 this.setState({userData});
-                writeInAsyncStorage('ThisUser', userData, userUid);
+                writeInAsyncStorage('ThisUser', userData);
             } else {
                 console.log("No such document!");
                 Alert.alert('Error', 'No Such Document');
@@ -206,7 +206,7 @@ export default class Me extends React.Component {
         this.setState({badgeHidden:true});
         this.props.navigation.setParams({badgeHidden:true});
         this.props.navigation.navigate('NewFriends');
-        writeInAsyncStorage('NewFriendsBadgeHidden', true, this.state.userUid);
+        writeInAsyncStorage('NewFriendsBadgeHidden', true);
     }
 
     render() {

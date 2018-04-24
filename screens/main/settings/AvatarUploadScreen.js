@@ -41,7 +41,7 @@ export default class AvatarUploadScreen extends React.Component {
             image: null,
             uploading: false,
         };
-        getFromAsyncStorage('ThisUser', user.uid).then((userData) => {
+        getFromAsyncStorage('ThisUser').then((userData) => {
             if(userData) {
                 this.setState({userData:userData, image:userData.photoURL})
             }

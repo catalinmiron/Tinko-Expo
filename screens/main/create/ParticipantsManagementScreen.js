@@ -25,7 +25,7 @@ import {
 } from 'react-native-elements';
 import Expo, { SQLite } from 'expo';
 import { NavigationActions } from 'react-navigation';
-import {getPostRequest, getUserData, writeInAsyncStorage} from "../../../modules/CommonUtility";
+import {getPostRequest, getUserData} from "../../../modules/CommonUtility";
 import {Ionicons} from '@expo/vector-icons'
 
 

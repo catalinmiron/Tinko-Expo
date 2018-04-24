@@ -10,7 +10,7 @@ import firebase from "firebase";
 import 'firebase/firestore';
 import { NavigationActions } from 'react-navigation';
 import { MaterialIcons } from '@expo/vector-icons';
-import { getStartTimeString, getPostTimeString, getPostRequest, getUserData,writeInAsyncStorage, getFromAsyncStorage } from "../../modules/CommonUtility";
+import { getStartTimeString, getPostTimeString, getPostRequest, getUserData,writeInAsyncStorage, getFromAsyncStorage, getUserDataFromDatabase } from "../../modules/CommonUtility";
 
 
 const SCREEN_WIDTH = Dimensions.get('window').width;
@@ -37,7 +37,7 @@ export default class TinkoScreen extends Component {
             lastVisible:null,
             orderByPostTime:true,
         };
-        getFromAsyncStorage('TinkoMeets', user.uid).then((meetsData) => {
+        getFromAsyncStorage('TinkoMeets').then((meetsData) => {
             if(meetsData){
                 this.setState({meetsData})
             }
@@ -89,7 +89,7 @@ export default class TinkoScreen extends Component {
             console.log("Done");
             var lastVisible = querySnapshot.docs[querySnapshot.docs.length-1];
             this.setState({refreshing:false, loadingDone:true, lastVisible:lastVisible});
-            writeInAsyncStorage('TinkoMeets', meetsData, this.state.userUid);
+            writeInAsyncStorage('TinkoMeets', meetsData);
         }).catch((error) => {
             console.log(error);
         });
@@ -102,6 +102,15 @@ export default class TinkoScreen extends Component {
             let meet = e.data();
             let meetId = e.id;
             let userUid = meet.creator;
+
+            getUserDataFromDatabase(userUid,
+                (userData) => {
+                    console.log(userData);
+                },
+                (error) => {
+                    Alert.alert('Error', error);
+                });
+
             let firestoreDb = firebase.firestore();
             var userRef = firestoreDb.collection("Users").doc(userUid);
             await userRef.get().then((userDoc) => {

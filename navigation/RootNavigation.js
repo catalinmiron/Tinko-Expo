@@ -147,8 +147,8 @@ export default class RootNavigator extends React.Component {
       //return <RootStackNavigator/>;
   }
 
-  showThisUser(uid, navigation){
-        this.userDetailOverlay.showThisUser(uid, navigation);
+  showThisUser(uid, navigation, updateMethod){
+        this.userDetailOverlay.showThisUser(uid, navigation, updateMethod);
   }
 
 
