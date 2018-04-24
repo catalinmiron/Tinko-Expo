@@ -4,7 +4,7 @@ import {View, Alert, TouchableWithoutFeedback, Image, ScrollView, Text, StyleShe
 import firebase from 'firebase';
 import 'firebase/firestore';
 import Swiper from 'react-native-swiper';
-import { getStartTimeString,  getDurationString, getUserData, getImageSource } from "../../../modules/CommonUtility";
+import { getStartTimeString,  getDurationString, getUserData, getImageSource, getUserDataFromDatabase } from "../../../modules/CommonUtility";
 import { MapView } from 'expo';
 import { Ionicons, MaterialIcons, Entypo, MaterialCommunityIcons, Feather  } from '@expo/vector-icons';
 import { Avatar, Button, Header} from 'react-native-elements';
@@ -138,7 +138,7 @@ export default class TinkoDetailScreen extends React.Component {
                     duration = meet.duration,
                     endTime = meet.endTime,
                     maxNo = meet.maxNo,
-                    participatingUsersList = Object.keys(meet.participatingUsersList),
+                    participatingUsersList = meet.participatingUsersArray,
                     placeAddress = meet.place.address,
                     placeName = meet.place.name,
                     placeCoordinate = meet.place.coordinate,
@@ -215,17 +215,27 @@ export default class TinkoDetailScreen extends React.Component {
     }
 
     getCreatorData(creatorUid){
-        getUserData(creatorUid).fork(
-            (error) => {
-                console.log(error);
-            },
-            (creatorObj) => {
-                //console.log(creatorObj);
-                let creatorUsername = creatorObj.username,
-                    creatorPhotoURL = creatorObj.photoURL;
+        // getUserData(creatorUid).fork(
+        //     (error) => {
+        //         console.log(error);
+        //     },
+        //     (creatorObj) => {
+        //         //console.log(creatorObj);
+        //         let creatorUsername = creatorObj.username,
+        //             creatorPhotoURL = creatorObj.photoURL;
+        //         this.setState({creatorUsername, creatorPhotoURL, creatorLoadingDone:true});
+        //     }
+        // );
+
+        getUserDataFromDatabase(creatorUid,
+            (userData) => {
+                let creatorUsername = userData.username,
+                    creatorPhotoURL = userData.photoURL;
                 this.setState({creatorUsername, creatorPhotoURL, creatorLoadingDone:true});
-            }
-        );
+            },
+            (error) => {
+                Alert.alert('Error', error);
+            })
 
     }
 
@@ -248,32 +258,53 @@ export default class TinkoDetailScreen extends React.Component {
 
     }
 
-    updateParticipatingUsersData(participatingUsersList){
-        this.setState({participatingUsersData:[]});
-        participatingUsersList
-            .map(userUid => getUserData(userUid))
-            .map(getUserDataTask => getUserDataTask.fork(
-                (error) => console.warn(error),
-                (userObj) => {
-                    this.setState(state => {
-                        var usersData = state.participatingUsersData;
-                        usersData.push(userObj);
-                        return {
-                            participatingUsersData: usersData,
-                        };
-                    });
-                    //console.log(this.state.participatingUsersData);
-                }
-            ));
+    async updateParticipatingUsersData(participatingUsersList){
+        // this.setState({participatingUsersData:[]});
+        // participatingUsersList
+        //     .map(userUid => getUserData(userUid))
+        //     .map(getUserDataTask => getUserDataTask.fork(
+        //         (error) => console.warn(error),
+        //         (userObj) => {
+        //             this.setState(state => {
+        //                 var usersData = state.participatingUsersData;
+        //                 usersData.push(userObj);
+        //                 return {
+        //                     participatingUsersData: usersData,
+        //                 };
+        //             });
+        //             //console.log(this.state.participatingUsersData);
+        //         }
+        //     ));
+
+        var participatingUsersData = [];
+        await participatingUsersList.reduce((p,e,i) => p.then(async ()=> {
+            //console.log(p, e, i);
+            let userUid = e;
+
+            await getUserDataFromDatabase(userUid,
+                (userData) => {
+                    //console.log(userData);
+                    participatingUsersData.push(userData);
+                },
+                (error) => {
+                    Alert.alert('Error', error);
+                });
+        }),Promise.resolve());
+
+        this.setState({participatingUsersData});
 
     }
 
     onJoinButtonPressed(){
         this.setState({buttonShowLoading:true});
-        const { userUid, meetId, meet } = this.state;
+        const { userUid, meetId, meet,participatingUsersList } = this.state;
+        participatingUsersList.push(userUid);
         let timeStatusDic = meet.participatingUsersList[meet.creator];
         let meetRef = firebase.firestore().collection("Meets").doc(meetId);
-        meetRef.update({[`participatingUsersList.${userUid}`]:timeStatusDic}).then(()=>{
+        meetRef.update({
+            [`participatingUsersList.${userUid}`]:timeStatusDic,
+            participatingUsersArray:participatingUsersList
+        }).then(()=>{
             this.setState({buttonShowLoading:false});
             createMeet(userUid,meetId);
             let bodyData ={meetId:meetId};
@@ -291,9 +322,13 @@ export default class TinkoDetailScreen extends React.Component {
     }
 
     onQuitMeetButtonPressed(){
-        const { userUid, meetId } = this.state;
+        const { userUid, meetId,participatingUsersList } = this.state;
+        _.pull(participatingUsersList,userUid);
         let meetRef = firebase.firestore().collection("Meets").doc(meetId);
-        meetRef.update({[`participatingUsersList.${userUid}`]:firebase.firestore.FieldValue.delete()}).then(()=>{
+        meetRef.update({
+            [`participatingUsersList.${userUid}`]:firebase.firestore.FieldValue.delete(),
+            participatingUsersArray:participatingUsersList
+        }).then(()=>{
             this.props.navigation.goBack(null);
             let bodyData ={meetId:meetId};
             getPostRequest('checkMeetStatus', bodyData,
