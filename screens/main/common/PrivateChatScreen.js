@@ -36,7 +36,7 @@ export default class PrivateChatScreen extends Component {
                 type = data.type;
             if (type === 1){
                 if (data.from === pid){
-                    this.appendFriendMessage(name,avatar,data.message,Date.parse(new Date()),new Date())
+                    this.appendFriendMessage(name,avatar,data.message,Date.parse(new Date()))
                 }
             }
             
@@ -98,16 +98,30 @@ export default class PrivateChatScreen extends Component {
         }))
     }
     appendFriendMessage(name,avatar,msg,key,time){
-        let chatData = {
-            _id: key,
-            text: msg,
-            createdAt: this.utcTime(time),
-            user: {
-                _id: Math.random()*100000,
-                name: name,
-                avatar: avatar,
-            },
-        };
+        let chatData =  {};
+        if (time === undefined){
+            chatData = {
+                _id: key,
+                text: msg,
+                createdAt: new Date(),
+                user: {
+                    _id: Math.random()*100000,
+                    name: name,
+                    avatar: avatar,
+                },
+            }
+        }else{
+            chatData = {
+                _id: key,
+                text: msg,
+                createdAt: time,
+                user: {
+                    _id: Math.random()*100000,
+                    name: name,
+                    avatar: avatar,
+                },
+            };
+        }
         messagesArr.push(chatData);
         this.setState(previousState => ({
             messages: GiftedChat.append(previousState.messages, chatData),
