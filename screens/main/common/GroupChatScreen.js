@@ -2,11 +2,12 @@ import React, {
     Component
 } from 'react';
 import {
-    View
+    AsyncStorage
 } from 'react-native';
+import {getUserDetail} from "../../../modules/UserAPI";
 import {SQLite } from 'expo';
 const db = SQLite.openDatabase('db.db');
-import { GiftedChat } from 'react-native-gifted-chat';
+import { GiftedChat, Actions, Bubble, SystemMessage } from 'react-native-gifted-chat';
 import SocketIOClient from 'socket.io-client';
 
 let uid = "",
@@ -34,6 +35,7 @@ export default class PrivateChatScreen extends Component {
                 if (MeetId === data.activityId){
                     let user = data.userData;
                    // let user = JSON.parse(data.userData);
+                    this.getThisUserFromDatabase(user.uid);
                     this.setState(previousState => ({
                         messages: GiftedChat.append(previousState.messages,{
                             _id: Math.floor(Math.random()*10000),
@@ -58,11 +60,28 @@ export default class PrivateChatScreen extends Component {
             <GiftedChat
                 messages={this.state.messages}
                 onSend={messages => this.onSend(messages)}
+                isLoadingEarlier={true}
+                showAvatarForEveryMessage = {true}
                 user={{
                     _id: 1,
                 }}
             />
         )
+    }
+
+    async getThisUserFromDatabase(){
+        try {
+            const value = await AsyncStorage.getItem('ThisUser'+this.state.userUid);
+            if (value !== null){
+                // We have data!!
+                console.log("we have data");
+                let userData = JSON.parse(value);
+                this.setState({userData, isFriends:true, loading:false});
+            }
+        } catch (error) {
+            // Error retrieving data
+            console.log("get data ",error);
+        }
     }
 
     getFromDB(uid,meetId){

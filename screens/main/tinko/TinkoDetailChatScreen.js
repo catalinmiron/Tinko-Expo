@@ -8,9 +8,14 @@ import firebase from "firebase/index";
 import {Header} from "react-native-elements";
 import { ifIphoneX } from 'react-native-iphone-x-helper';
 import SocketIOClient from 'socket.io-client';
+import {getUserDetail,getFriends} from "../../../modules/UserAPI";
 
 let MeetId = "",
-    uid = "";
+    uid = "",
+    userInfo = {
+
+    },
+    friendList = [];
 
 export default class TinkoDetailChatScreen extends React.Component {
 
@@ -18,10 +23,10 @@ export default class TinkoDetailChatScreen extends React.Component {
 
     constructor(props){
         super(props);
-        console.log("this detail :",props);
         let user = firebase.auth().currentUser;
         let userUid = user.uid;
         uid = user.uid;
+        getFriends(uid).then(data => (console.log(data)));
         this.socket = SocketIOClient('http://47.89.187.42:4000/');
         MeetId = this.props.navigation.state.params.meetId;
         this.socket.on("activity" + MeetId,(msg)=>{
@@ -123,12 +128,14 @@ export default class TinkoDetailChatScreen extends React.Component {
                 body: JSON.stringify(bodyData),
             }).then((response) => response.json())
                 .then((responseJson) => {
-                    console.log("在这里是数据:", responseJson);
                     let data = responseJson.data;
-                    //console.log(data);
                     let messages=[];
                     data.forEach((messageData) => {
-                        //console.log(messageData);
+                        let fromId = data.fromId;
+                        if (userInfo[fromId] === undefined){
+                            //发现不存在这个数据，需要去数据库获取
+                            getUserDetail(uid,fromId).then(data => (userInfo[fromId] = data));
+                        }
                         let userData = JSON.parse(messageData.data);
                         let message = {
                             _id: messageData.id,

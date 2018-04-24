@@ -93,7 +93,7 @@ export default class Me extends React.Component {
     getThisUserData(){
         const {userUid} = this.state;
         let firestoreDb = firebase.firestore();
-        var userRef = firestoreDb.collection("Users").doc(userUid);
+        let userRef = firestoreDb.collection("Users").doc(userUid);
         userRef.get().then((userDoc) => {
             if (userDoc.exists) {
                 //console.log("Document data:", userDoc.data());
