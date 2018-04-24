@@ -77,7 +77,8 @@ export default class Me extends React.Component {
 
     componentDidMount(){
         this.getThisUserData();
-        this.processFriendsList(this.state.userUid);
+        //this.processFriendsList(this.state.userUid);
+        this.initFriendsTableAndProcessFriendsList(this.state.userUid);
         this.props.screenProps.meRef(this);
     }
 
@@ -144,11 +145,12 @@ export default class Me extends React.Component {
                     //console.log("Removed city: ", change.doc.data());
                 }
             }),Promise.resolve());
-            this.initFriendsTableAndInsertData(uid,usersData);
+            //this.initFriendsTableAndInsertData(uid,usersData);
+            this.insertFriendsSql(uid, usersData)
         });
     }
 
-    initFriendsTableAndInsertData(uid, usersData){
+    initFriendsTableAndProcessFriendsList(uid){
         db.transaction(
             tx => {
                 tx.executeSql('create table if not exists friend_list'+ uid +' (' +
@@ -164,7 +166,8 @@ export default class Me extends React.Component {
             (error) => console.log("friendList :" + error),
             () => {
                 console.log('friend_list complete');
-                this.insertFriendsSql(uid,usersData);
+                //this.insertFriendsSql(uid,usersData);
+                this.processFriendsList(uid)
             }
         );
     }

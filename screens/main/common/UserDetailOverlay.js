@@ -82,7 +82,7 @@ export default class UserDetailScreen extends Component{
                 tx.executeSql(`SELECT * FROM friend_list${this.state.userUid} WHERE userId = '${uid}'` , [], (_, { rows }) => {
                     console.log(rows);
                     let length = rows.length;
-                    if(length==0){
+                    if(length===0){
                         this.getUserDataFromFirebase(uid);
                     } else {
                         let data = rows._array;

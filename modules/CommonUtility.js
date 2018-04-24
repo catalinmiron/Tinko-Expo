@@ -2,7 +2,9 @@ import Task from 'data.task';
 import firebase from "firebase";
 import 'firebase/firestore'
 import {Alert, AsyncStorage} from "react-native";
+const db = SQLite.openDatabase('db.db');
 import {insertNewFriendsRequest} from "./SqliteClient";
+import {SQLite} from "expo";
 
 
 export const currentUserUid = () => {
@@ -90,10 +92,10 @@ export const getUserData = (userUid) => {
     });
 };
 
-export const getUserDataFromFirebase = (userUid, onComplete, onError) => {
+export const getUserDataFromFirebase = async (userUid, onComplete, onError) => {
     let firestoreDb = firebase.firestore();
     var userRef = firestoreDb.collection("Users").doc(userUid);
-    userRef.get().then((userDoc) => {
+    await userRef.get().then((userDoc) => {
         if (userDoc.exists) {
             //console.log("Document data:", userDoc.data());
             let user = userDoc.data();
@@ -114,16 +116,66 @@ export const getUserDataFromFirebase = (userUid, onComplete, onError) => {
     });
 };
 
+export const insertFriendSql = (userData) => {
+    db.transaction(
+        tx => {
+            tx.executeSql(
+                'insert or replace into friend_list'+currentUserUid()+' (userId,avatarUrl,username, location, gender) values (?,?,?,?,?)',
+                [userData.uid,userData.photoURL,userData.username,userData.location,userData.gender]);
+        }
+        ,
+        (error) => console.log("insertFriendSql" + error),
+        () => {
+            console.log('insertFriendSql complete');
+        }
+    );
+};
+
+
+
+export const getUserDataFromSql = async (uid) => {
+    return new Promise((resolve, reject) => {
+        db.transaction(
+            tx => {
+                tx.executeSql(`SELECT * FROM friend_list${currentUserUid()} WHERE userId = '${uid}'`, [], (_, {rows}) => {
+                    console.log(rows);
+                    let length = rows.length;
+                    if (length === 0) {
+                        reject();
+                    } else {
+                        let data = rows._array;
+                        let userData = {
+                            uid: data[0].userId,
+                            photoURL: data[0].avatarUrl,
+                            username: data[0].username,
+                            location: data[0].location,
+                            gender: data[0].gender,
+                        };
+                        resolve(userData);
+                    }
+                });
+            },
+            (error) => {
+                console.log(error);
+                reject();
+            },
+            () => console.log('getUserDataFromSql')
+        )
+    });
+};
+
 
 
 export const getUserDataFromDatabase = async (uid, onComplete, onError) => {
     if(uid === currentUserUid()){
         let userData = await getFromAsyncStorage('ThisUser');
-        if(userData !== {}){
+        if(userData !== {} && userData){
+            console.log('user is theuser, get data from async storage'+userData.username);
             onComplete(userData);
         } else {
-            getUserDataFromFirebase(uid,
+            await getUserDataFromFirebase(uid,
                 (userData) => {
+                    console.log('user is theuser, get data from firebase'+userData.username);
                     onComplete(userData);
                     writeInAsyncStorage('ThisUser', userData);
                 },
@@ -132,7 +184,41 @@ export const getUserDataFromDatabase = async (uid, onComplete, onError) => {
                 })
         }
     } else {
-        console.log('no');
+        // await getUserDataFromSql(uid,
+        //     (userData) => {
+        //         console.log('user isnt the user, but found data in sql'+userData.username);
+        //         //onComplete(userData);
+        //     },
+        //     (error) => {
+        //         getUserDataFromFirebase(uid,
+        //             (userData) => {
+        //                 console.log('user isnt the user, get data from firebase'+userData.username);
+        //                 onComplete(userData);
+        //                 insertFriendSql(userData);
+        //             },
+        //             (error) => {
+        //                 onError(error);
+        //             })
+        //     });
+        // let userData = await getUserDataFromSql2(uid);
+        // if(userData){
+        //     onComplete(userData);
+        // }
+
+        await getUserDataFromSql(uid)
+            .then((userData) => onComplete(userData))
+            .catch(async () => {
+                await getUserDataFromFirebase(uid,
+                    (userData) => {
+                        console.log('user isnt the user, get data from firebase'+userData.username);
+                        onComplete(userData);
+                        insertFriendSql(userData);
+                    },
+                    (error) => {
+                        onError(error);
+                    })
+            })
+
     }
 
 };
