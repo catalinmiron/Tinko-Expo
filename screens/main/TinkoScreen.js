@@ -5,13 +5,13 @@ import { Input, Button } from 'react-native-elements'
 import {Toast} from 'native-base';
 import { Header } from 'react-navigation';
 import Masonry from '../../modules/react-native-masonry';
-import {Facebook, Font} from 'expo';
+import {Facebook, Font, SQLite} from 'expo';
 import firebase from "firebase";
 import 'firebase/firestore';
 import { NavigationActions } from 'react-navigation';
 import { MaterialIcons } from '@expo/vector-icons';
-import { getStartTimeString, getPostTimeString, getPostRequest, getUserData,writeInAsyncStorage, getFromAsyncStorage } from "../../modules/CommonUtility";
-
+import { getStartTimeString, getPostTimeString, getPostRequest, getUserData,writeInAsyncStorage, getFromAsyncStorage, getUserDataFromDatabase } from "../../modules/CommonUtility";
+const db = SQLite.openDatabase('db.db');
 
 const SCREEN_WIDTH = Dimensions.get('window').width;
 const SCREEN_HEIGHT = Dimensions.get('window').height;
@@ -37,7 +37,7 @@ export default class TinkoScreen extends Component {
             lastVisible:null,
             orderByPostTime:true,
         };
-        getFromAsyncStorage('TinkoMeets', user.uid).then((meetsData) => {
+        getFromAsyncStorage('TinkoMeets').then((meetsData) => {
             if(meetsData){
                 this.setState({meetsData})
             }
@@ -48,12 +48,34 @@ export default class TinkoScreen extends Component {
         //this.setState({meetsData:data});
         //console.log('componentDidMount');
 
-        this.getMeets();
+        //this.getMeets();
+        this.initFriendsTableAndGetMeets();
         this.props.screenProps.getRef(this);
     }
 
     componentWillUnmount(){
         console.log('tinko componentWillUnMount');
+    }
+
+    initFriendsTableAndGetMeets(){
+        db.transaction(
+            tx => {
+                tx.executeSql('create table if not exists friend_list'+ this.state.userUid +' (' +
+                    'id integer primary key not null , ' +
+                    'userId text UNIQUE, avatarUrl text , ' +
+                    'username text, ' +
+                    'location text,' +
+                    'isFriend int DEFAULT 0,' +
+                    'nickname text,' +
+                    'isNicknameSet int DEFAULT 0,' +
+                    'gender text);');
+            },
+            (error) => console.log("friendList :" + error),
+            () => {
+                console.log('friend_list complete');
+                this.getMeets();
+            }
+        );
     }
 
     onSortButtonPressed(){
@@ -89,7 +111,7 @@ export default class TinkoScreen extends Component {
             console.log("Done");
             var lastVisible = querySnapshot.docs[querySnapshot.docs.length-1];
             this.setState({refreshing:false, loadingDone:true, lastVisible:lastVisible});
-            writeInAsyncStorage('TinkoMeets', meetsData, this.state.userUid);
+            writeInAsyncStorage('TinkoMeets', meetsData);
         }).catch((error) => {
             console.log(error);
         });
@@ -102,20 +124,31 @@ export default class TinkoScreen extends Component {
             let meet = e.data();
             let meetId = e.id;
             let userUid = meet.creator;
-            let firestoreDb = firebase.firestore();
-            var userRef = firestoreDb.collection("Users").doc(userUid);
-            await userRef.get().then((userDoc) => {
-                if (userDoc.exists) {
-                    //console.log("Document data:", userDoc.data());
-                    let user = userDoc.data();
-                    let brick = this.buildBrick(meet, meetId, user);
+
+            await getUserDataFromDatabase(userUid,
+                (userData) => {
+                    //console.log(userData);
+                    let brick = this.buildBrick(meet, meetId, userData);
                     meetsData.push(brick);
-                } else {
-                    console.log("No such document!");
-                }
-            }).catch((error) => {
-                console.log("Error getting document:", error);
-            });
+                },
+                (error) => {
+                    Alert.alert('Error', error);
+                });
+
+            // let firestoreDb = firebase.firestore();
+            // var userRef = firestoreDb.collection("Users").doc(userUid);
+            // await userRef.get().then((userDoc) => {
+            //     if (userDoc.exists) {
+            //         //console.log("Document data:", userDoc.data());
+            //         let user = userDoc.data();
+            //         let brick = this.buildBrick(meet, meetId, user);
+            //         meetsData.push(brick);
+            //     } else {
+            //         console.log("No such document!");
+            //     }
+            // }).catch((error) => {
+            //     console.log("Error getting document:", error);
+            // });
 
         }),Promise.resolve());
 
@@ -198,7 +231,7 @@ export default class TinkoScreen extends Component {
                         //console.log('before handleonendreached');
                         this.handleOnEndReached();
                     }}
-                    onEndReachedThreshold={0}
+                    onEndReachedThreshold={500}
                     navigation={this.props.screenProps.navigation}
                     //renderFooter={()=>(<text>123</text>)}
                 />

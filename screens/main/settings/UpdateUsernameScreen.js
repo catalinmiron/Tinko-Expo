@@ -2,7 +2,6 @@ import React from 'react';
 import {Alert, View, StyleSheet, Text, Keyboard} from "react-native";
 import firebase from "firebase";
 import {Avatar, Header, ListItem, Button, Input} from 'react-native-elements';
-import {getFromAsyncStorage} from "../../../modules/CommonUtility";
 import {ifIphoneX} from "react-native-iphone-x-helper";
 
 export default class UpdateUsernameScreen extends React.Component {

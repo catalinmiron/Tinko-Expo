@@ -34,12 +34,12 @@ export default class Me extends React.Component {
             userData:{},
             badgeHidden:true,
         };
-        getFromAsyncStorage('ThisUser', user.uid).then((userData) => {
+        getFromAsyncStorage('ThisUser').then((userData) => {
             if(userData) {
                 this.setState({userData})
             }
         });
-        getFromAsyncStorage('NewFriendsBadgeHidden', user.uid).then((badgeHidden) => {
+        getFromAsyncStorage('NewFriendsBadgeHidden').then((badgeHidden) => {
             if(badgeHidden){
                 this.setState({badgeHidden});
                 this.props.navigation.setParams({badgeHidden});
@@ -77,7 +77,8 @@ export default class Me extends React.Component {
 
     componentDidMount(){
         this.getThisUserData();
-        this.processFriendsList(this.state.userUid);
+        //this.processFriendsList(this.state.userUid);
+        this.initFriendsTableAndProcessFriendsList(this.state.userUid);
         this.props.screenProps.meRef(this);
     }
 
@@ -87,7 +88,7 @@ export default class Me extends React.Component {
     showBadge(){
         this.setState({badgeHidden:false});
         this.props.navigation.setParams({badgeHidden:false});
-        writeInAsyncStorage('NewFriendsBadgeHidden', false, this.state.userUid);
+        writeInAsyncStorage('NewFriendsBadgeHidden', false);
     }
 
     getThisUserData(){
@@ -99,7 +100,7 @@ export default class Me extends React.Component {
                 //console.log("Document data:", userDoc.data());
                 let userData = userDoc.data();
                 this.setState({userData});
-                writeInAsyncStorage('ThisUser', userData, userUid);
+                writeInAsyncStorage('ThisUser', userData);
             } else {
                 console.log("No such document!");
                 Alert.alert('Error', 'No Such Document');
@@ -144,11 +145,12 @@ export default class Me extends React.Component {
                     //console.log("Removed city: ", change.doc.data());
                 }
             }),Promise.resolve());
-            this.initFriendsTableAndInsertData(uid,usersData);
+            //this.initFriendsTableAndInsertData(uid,usersData);
+            this.insertFriendsSql(uid, usersData)
         });
     }
 
-    initFriendsTableAndInsertData(uid, usersData){
+    initFriendsTableAndProcessFriendsList(uid){
         db.transaction(
             tx => {
                 tx.executeSql('create table if not exists friend_list'+ uid +' (' +
@@ -164,7 +166,8 @@ export default class Me extends React.Component {
             (error) => console.log("friendList :" + error),
             () => {
                 console.log('friend_list complete');
-                this.insertFriendsSql(uid,usersData);
+                //this.insertFriendsSql(uid,usersData);
+                this.processFriendsList(uid)
             }
         );
     }
@@ -206,7 +209,7 @@ export default class Me extends React.Component {
         this.setState({badgeHidden:true});
         this.props.navigation.setParams({badgeHidden:true});
         this.props.navigation.navigate('NewFriends');
-        writeInAsyncStorage('NewFriendsBadgeHidden', true, this.state.userUid);
+        writeInAsyncStorage('NewFriendsBadgeHidden', true);
     }
 
     render() {

@@ -57,7 +57,7 @@ export default class TinkoDetailChatScreen extends React.Component {
             limit:16,
             SafeAreaInsets:34,
         };
-        getFromAsyncStorage('ThisUser', user.uid).then((userData) => {
+        getFromAsyncStorage('ThisUser').then((userData) => {
             if(userData) {
                 let thisUser = {
                     _id:userData.uid,

@@ -52,7 +52,7 @@ export default class RootNavigator extends React.Component {
     constructor(props){
         super(props);
         this.state={
-            userUid:''
+            userUid:'',
         }
         //console.log(props);
     }
@@ -77,7 +77,7 @@ export default class RootNavigator extends React.Component {
       this.setState({userUid:uid});
       // 测试时才用drop
       //this.dropChatTable(uid);
-      this.dropFriendsTable(uid);
+      //this.dropFriendsTable(uid);
       //this.initFriendsTable(uid);
       this.initChatTable(uid);
       // this.dropMeetingTable(uid);
@@ -147,8 +147,8 @@ export default class RootNavigator extends React.Component {
       //return <RootStackNavigator/>;
   }
 
-  showThisUser(uid, navigation){
-        this.userDetailOverlay.showThisUser(uid, navigation);
+  showThisUser(uid, navigation, updateMethod){
+        this.userDetailOverlay.showThisUser(uid, navigation, updateMethod);
   }
 
 
@@ -183,6 +183,9 @@ export default class RootNavigator extends React.Component {
                     'userId text UNIQUE, avatarUrl text , ' +
                     'username text, ' +
                     'location text,' +
+                    'isFriend int DEFAULT 0,' +
+                    'nickname text,' +
+                    'isNicknameSet int DEFAULT 0,' +
                     'gender text);');
             },
             (error) => console.log("friendList :" + error),

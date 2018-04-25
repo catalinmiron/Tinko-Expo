@@ -741,7 +741,7 @@ export default class CreateScreen extends React.Component {
                             chevronColor={'black'}
                             onPress={()=>this.props.navigation.navigate('ParticipantsManagement',{
                                 meetId:meetId,
-                                participatingUsersList:this.props.navigation.state.params.getParticipatingUsersList()})}
+                                participatingUsersList:this.props.navigation.state.params.getParticipatingUsersList})}
                         />
                         }
 
