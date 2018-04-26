@@ -212,7 +212,13 @@ export default class TinkoScreen extends Component {
                 this.setState((state) => {
                     let meetsData = _.concat(state.meetsData, addMeetsData);
                     return {meetsData, lastVisible};
-                })
+                });
+                querySnapshot.forEach(doc => {
+                    //console.log(doc.id, '=>', doc.data());
+                    let meetId = doc.id;
+                    let meetData = doc.data();
+                    this.insertMeetData(meetId, meetData);
+                });
             }).catch((error)=>{
                 console.log(error);
             });

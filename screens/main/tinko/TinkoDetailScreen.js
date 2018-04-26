@@ -155,32 +155,36 @@ export default class TinkoDetailScreen extends React.Component {
                 tx.executeSql(`select * from meet${userUid} WHERE meetId = '${meetId}'`, [], (_, { rows }) => {
                     let data =  rows['_array'];
                     //console.log('sqlite meetData', data);
-                    let meetDataString = data[0].meetData;
+                    if(data.length > 0){
+                        let meetDataString = data[0].meetData;
 
-                    let meet = JSON.parse(meetDataString);
-                    console.log('meet',meet);
+                        let meet = JSON.parse(meetDataString);
+                        console.log('meet',meet);
 
-                    let creatorDataString = data[0].creatorData;
-                    let placePhotoDataString = data[0].placePhotoData;
-                    let participatingUsersDataString = data[0].participatingUsersData;
+                        let creatorDataString = data[0].creatorData;
+                        let placePhotoDataString = data[0].placePhotoData;
+                        let participatingUsersDataString = data[0].participatingUsersData;
 
 
-                    if(creatorDataString){
-                        let creatorData = JSON.parse(creatorDataString);
-                        this.setState({creatorData:creatorData, creatorLoadingDone:true});
+                        if(creatorDataString){
+                            let creatorData = JSON.parse(creatorDataString);
+                            this.setState({creatorData:creatorData, creatorLoadingDone:true});
+                        }
+
+                        if(placePhotoDataString){
+                            let placePhotoData = JSON.parse(placePhotoDataString);
+                            this.setState({placePhotos: placePhotoData, placePhotosLoadingDone: true});
+                        }
+
+                        if(participatingUsersDataString){
+                            let participatingUsersData = JSON.parse(participatingUsersDataString);
+                            this.setState({participatingUsersData});
+                        }
+
+                        this.processMeet(meet);
+                    }else {
+                        console.log('No this meet in sql');
                     }
-
-                    if(placePhotoDataString){
-                        let placePhotoData = JSON.parse(placePhotoDataString);
-                        this.setState({placePhotos: placePhotoData, placePhotosLoadingDone: true});
-                    }
-
-                    if(participatingUsersDataString){
-                        let participatingUsersData = JSON.parse(participatingUsersDataString);
-                        this.setState({participatingUsersData});
-                    }
-
-                    this.processMeet(meet);
                 });
             },
             null,
@@ -196,7 +200,7 @@ export default class TinkoDetailScreen extends React.Component {
             if (meetDoc.exists) {
                 //console.log("Document data:", meetDoc.data());
                 let meet = meetDoc.data();
-                //this.processMeet(meet);
+                this.processMeet(meet);
                 //console.log(this.state);
                 //this.marker.showCallout()
             } else {
@@ -314,9 +318,12 @@ export default class TinkoDetailScreen extends React.Component {
             fetch(`https://maps.googleapis.com/maps/api/place/details/json?placeid=${placeId}&key=AIzaSyCw_VwOF6hmY5yri8OpqOr9sCzTTT7JKiU`)
                 .then((response) => response.json())
                 .then((responseJson) => {
-                    //console.log(responseJson);
+                    console.log(responseJson);
                     console.log('getPlacePhotos')
                     let photos = responseJson.result.photos;
+                    if(!photos){
+                        photos=[];
+                    }
                     this.setState({placePhotos: photos, placePhotosLoadingDone: true});
 
                 }).catch((error) => {
@@ -452,11 +459,11 @@ export default class TinkoDetailScreen extends React.Component {
             creatorData, title, placePhotos, startTime, allowPeopleNearby, participatingUsersList,
             maxNo, description, duration, participatingUsersData, placeName, placeCoordinate, placeAddress, placeId, tagsList, showMap } = this.state;
 
-        if(!(creatorLoadingDone && placePhotosLoadingDone)){
-            return(
-                <View style={styles.container}/>
-            );
-        }
+        // if(!(creatorLoadingDone && placePhotosLoadingDone)){
+        //     return(
+        //         <View style={styles.container}/>
+        //     );
+        // }
 
         let tagsString='';
         for(let i=0; i<tagsList.length; i++){
