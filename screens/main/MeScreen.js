@@ -215,7 +215,7 @@ export default class Me extends React.Component {
     render() {
         const { userData ,badgeHidden} = this.state;
         return (
-            <SafeAreaView style={{backgroundColor:'white'}}>
+            <SafeAreaView style={{flex: 1, backgroundColor:'white'}}>
                 <ScrollView style={{backgroundColor: "white", height: "100%" ,width: "100%"}}>
                     <Ionicons
                         onPress={() => this.props.navigation.navigate('Setting',{getThisUserData:this.getThisUserData.bind(this)})}

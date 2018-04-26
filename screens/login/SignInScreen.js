@@ -14,7 +14,8 @@ const SCREEN_HEIGHT = Dimensions.get('window').height;
 const BG_IMAGE = require('../../assets/images/bg_screen1.jpg');
 
 export default class SignInScreen extends Component {
-    static navigationOptions = {headerStyle:{ position: 'absolute', backgroundColor: 'transparent', zIndex: 100, top: 0, left: 0, right: 0, borderBottomWidth: 0,borderBottomColor: 'transparent',shadowColor: 'transparent', elevation:0, shadowOpacity: 0 }};
+    //static navigationOptions = {headerStyle:{ position: 'absolute', backgroundColor: 'transparent', zIndex: 100, top: 0, left: 0, right: 0, borderBottomWidth: 0,borderBottomColor: 'transparent',shadowColor: 'transparent', elevation:0, shadowOpacity: 0 }};
+    static navigationOptions = {header:null};
 
     constructor(props) {
         super(props);
@@ -104,13 +105,13 @@ export default class SignInScreen extends Component {
             console.log("Login: ", user);
             const { a, b } = user.metadata;
             console.log(a, b); //a = creationTime, b = lastSignInTime
-            this.initializeNewUser(token, user.uid);
-            // if(a===b){ //first time login
-            //     this.initializeNewUser(token, user.uid);
-            // } else {
-            //     console.log('goingToMain');
-            //     this.props.screenProps.handleUserLoggedIn();
-            // }
+            //this.initializeNewUser(token, user.uid);
+            if(a===b){ //first time login
+                this.initializeNewUser(token, user.uid);
+            } else {
+                console.log('goingToMain');
+                this.props.screenProps.handleUserLoggedIn();
+            }
         }).catch((error) => {
             console.log(error);
         })
@@ -142,17 +143,11 @@ export default class SignInScreen extends Component {
                             <View style={styles.loginInput}>
                                 <View style={{marginVertical: 10}}>
                                     <Input
-                                        width={230}
-                                        // icon={
-                                        //     <Icon
-                                        //         name='user-o'
-                                        //         color='rgba(171, 189, 219, 1)'
-                                        //         size={25}
-                                        //     />
-                                        // }
+                                        containerStyle={{width:250}}
                                         onChangeText={email => this.setState({email})}
                                         value={email}
-                                        inputStyle={{marginLeft: 10, color: 'white'}}
+                                        inputContainerStyle={{borderBottomColor:'white'}}
+                                        inputStyle={{color: 'white'}}
                                         keyboardAppearance="light"
                                         placeholder="Email"
                                         autoFocus={false}
@@ -166,24 +161,18 @@ export default class SignInScreen extends Component {
                                         }}
                                         blurOnSubmit={false}
                                         placeholderTextColor="white"
-                                        displayError={!email_valid}
-                                        errorStyle={{textAlign: 'center', fontSize: 12}}
-                                        errorMessage="Please enter a valid email address"
+                                        // displayError={!email_valid}
+                                        // errorStyle={{textAlign: 'center', fontSize: 12}}
+                                        // errorMessage="Please enter a valid email address"
                                     />
                                 </View>
                                 <View style={{marginVertical: 10}}>
                                     <Input
-                                        width={230}
-                                        // icon={
-                                        //     <Icon
-                                        //         name='lock'
-                                        //         color='rgba(171, 189, 219, 1)'
-                                        //         size={25}
-                                        //     />
-                                        // }
+                                        containerStyle={{width:250}}
                                         onChangeText={(password) => this.setState({password})}
                                         value={password}
-                                        inputStyle={{marginLeft: 10, color: 'white'}}
+                                        inputContainerStyle={{borderBottomColor:'white'}}
+                                        inputStyle={{color: 'white'}}
                                         secureTextEntry={true}
                                         keyboardAppearance="light"
                                         placeholder="Password"
@@ -194,9 +183,9 @@ export default class SignInScreen extends Component {
                                         ref={ input => this.passwordInput = input}
                                         blurOnSubmit={true}
                                         placeholderTextColor="white"
-                                        displayError={false}
-                                        errorStyle={{textAlign: 'center', fontSize: 12}}
-                                        errorMessage="The email and password you entered did not match out records. Please try again!"
+                                        // displayError={false}
+                                        // errorStyle={{textAlign: 'center', fontSize: 12}}
+                                        // errorMessage="The email and password you entered did not match out records. Please try again!"
                                     />
                                 </View>
                             </View>
@@ -210,7 +199,7 @@ export default class SignInScreen extends Component {
                                     loadingProps={{size: 'small', color: 'white'}}
                                     disabled={ !email_valid && password.length < 8}
                                     buttonStyle={{height: 50, width: 250, backgroundColor: 'transparent', borderWidth: 2, borderColor: 'white', borderRadius: 30}}
-                                    containerStyle={{marginVertical: 10}}
+                                    containerStyle={{marginVertical: 30}}
                                     titleStyle={{fontWeight: 'bold', color: 'white'}}
                                 />
                             </View>
@@ -219,7 +208,7 @@ export default class SignInScreen extends Component {
                                     New here?
                                 </Text>
                                 <Button
-                                    title="Sign up with Facebook"
+                                    title="Sign up / Sign In with Facebook"
                                     clear
                                     activeOpacity={0.5}
                                     titleStyle={{color: 'white', fontSize: 15}}

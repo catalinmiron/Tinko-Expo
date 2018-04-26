@@ -58,6 +58,7 @@ export default class UpdateUsernameScreen extends React.Component {
                     returnKeyType={'done'}
                     onSubmitEditing={() => Keyboard.dismiss()}
                     autoFocus={true}
+                    maxLength={30}
                 />
 
                 {username !== oldUsername &&
