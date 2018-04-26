@@ -4,14 +4,16 @@ import React, {
 import {
     AsyncStorage
 } from 'react-native';
-import {getUserDetail} from "../../../modules/UserAPI";
+import {getUserDataFromDatabase} from "../../../modules/CommonUtility";
 import {SQLite } from 'expo';
 const db = SQLite.openDatabase('db.db');
 import { GiftedChat, Actions, Bubble, SystemMessage } from 'react-native-gifted-chat';
 import SocketIOClient from 'socket.io-client';
 
 let uid = "",
-    MeetId = "";
+    MeetId = "",
+    dbInfoList = [],
+    limit = 15;
 
 export default class PrivateChatScreen extends Component {
 
@@ -19,7 +21,9 @@ export default class PrivateChatScreen extends Component {
 
     state = {
         messages: [],
-        user: []
+        user: [],
+        isLoadingEarlier:true,
+        hasCache:true
     };
 
     constructor(props){
@@ -33,26 +37,72 @@ export default class PrivateChatScreen extends Component {
             let data = JSON.parse(msg);
             if (data.type === 2){
                 if (MeetId === data.activityId){
-                    let user = data.userData;
-                   // let user = JSON.parse(data.userData);
-                    this.getThisUserFromDatabase(user.uid);
-                    this.setState(previousState => ({
-                        messages: GiftedChat.append(previousState.messages,{
-                            _id: Math.floor(Math.random()*10000),
-                            text: data.message,
-                            user: {
-                                _id: user.uid,
-                                name: user.username,
-                                avatar: user.photoURL,
-                            },
-                            sent: true,
-                            received: true,
-                        }),
-                    }))
+                    data.fromId = data.from;
+                    data.time = new Date();
+                    data.msg = data.message;
+                    if (data.fromId!==uid){
+                        data.status = 0;
+                    }
+                    this.processMessageData([data]);
                 }
             }
         });
         this.getFromDB(uid,MeetId);
+    }
+
+    //type === 1为历史 需要unshift
+    async processMessageData(data,type){
+        let messages = [];
+        await data.reduce((p,e,i) => p.then(async ()=> {
+            await getUserDataFromDatabase(e.fromId,
+                (userData) => {
+                    let message = {};
+                    if (e.status === 0){
+                        message = {
+                            _id: Math.floor(Math.random()*10000),
+                            text: e.msg,
+                            user: {
+                                _id: userData.uid,
+                                name: userData.username,
+                                avatar: userData.photoURL,
+                            },
+                            createdAt:(e.time)?e.time:this.utcTime(e.timeStamp),
+                            sent: (e.status === 0)
+                        };
+                    }else{
+                        if (e.type!==0){
+                            message = {
+                                _id: Math.round(Math.random() * 10000),
+                                text: e.msg,
+                                createdAt: (e.time)?e.time:this.utcTime(e.timeStamp),
+                                user: {
+                                    _id: 1,
+                                    name: 'Developer',
+                                }
+                            };
+                        }else{
+                            message = {
+                                _id: Math.round(Math.random() * 10000),
+                                text: e.msg,
+                                createdAt: (e.time)?e.time:this.utcTime(e.timeStamp),
+                                system:true
+                            };
+                        }
+                    }
+                    messages.push(message);
+                },
+                (error) => {
+                    Alert.alert('Error', error);
+                });
+        }),Promise.resolve());
+        if (type === 1){
+            messages = this.state.messages.concat(messages);
+        }else{
+            messages = messages.concat(this.state.messages);
+        }
+        this.setState({
+            messages:messages
+        });
     }
 
     render() {
@@ -60,48 +110,64 @@ export default class PrivateChatScreen extends Component {
             <GiftedChat
                 messages={this.state.messages}
                 onSend={messages => this.onSend(messages)}
-                isLoadingEarlier={true}
                 showAvatarForEveryMessage = {true}
                 user={{
                     _id: 1,
                 }}
+                loadEarlier={this.state.hasCache}
+                isLoadingEarlier={this.state.isLoadingEarlier}
+                onLoadEarlier={() => this.getGroupChatContents()}
             />
         )
     }
 
-    async getThisUserFromDatabase(){
-        try {
-            const value = await AsyncStorage.getItem('ThisUser'+this.state.userUid);
-            if (value !== null){
-                // We have data!!
-                console.log("we have data");
-                let userData = JSON.parse(value);
-                this.setState({userData, isFriends:true, loading:false});
+    getGroupChatContents(){
+
+        this.setState({isLoadingEarlier:true});
+        // console.log("dbInfoList",dbInfoList);
+        if (dbInfoList.length>limit){
+            let processIng = [];
+            for (let i = 0;i<limit;i++){
+                processIng.push(dbInfoList.shift());
             }
-        } catch (error) {
-            // Error retrieving data
-            console.log("get data ",error);
+            this.setState({
+                hasCache:true
+            });
+            this.processMessageData(processIng,1);
+        }else{
+            this.setState({
+                hasCache:false
+            });
+            this.processMessageData(dbInfoList,1);
         }
+
+        this.setState({isLoadingEarlier:false});
     }
 
     getFromDB(uid,meetId){
         // ORDER BY id DESC limit 10
         db.transaction(
             tx => {
-                tx.executeSql("SELECT * FROM db"+ uid + " WHERE meetingId = '"+meetId +"'", [], (_, {rows}) => {
+                tx.executeSql("SELECT * FROM db"+ uid + " WHERE meetingId = '"+meetId +"' ORDER BY id DESC", [], (_, {rows}) => {
                     let dataArr = rows['_array'];
-                    for (let i = 0;i<dataArr.length;i++){
-                        if (dataArr[i].status === 0){
-                            let userData =  JSON.parse(dataArr[i].meetUserData);
-                            this.appendMessageFromCache(dataArr[i].timeStamp,dataArr[i].msg,userData.uid,userData.username,userData.photoURL);
-                        }else{
-                            if (dataArr[i].type !== 0 ){
-                                this.appendMessage(dataArr[i].timeStamp,dataArr[i].msg,0);
-                            }else{
-                                this.appendMessage(dataArr[i].timeStamp,dataArr[i].msg);
-                            }
+                    if (dataArr.length>limit){
+                        let processIng = [];
+                        for (let i = 0;i<limit;i++){
+                            processIng.push(dataArr.shift());
                         }
+                        dbInfoList = dataArr;
+                        this.setState({
+                            hasCache:true
+                        });
+                        this.processMessageData(processIng,1);
+                    }else{
+                        this.setState({
+                            hasCache:false
+                        });
+                        this.processMessageData(dataArr,1);
                     }
+
+                    this.setState({isLoadingEarlier:false});
                 })
             },
             null,
@@ -114,34 +180,10 @@ export default class PrivateChatScreen extends Component {
         if (time !== undefined) {
             let timeArr = time.split(" "),
                 year = timeArr[0].split("-"),
-                hour = timeArr[1].split(":");
-            return new Date(Date.UTC(parseInt(year[0]), parseInt(year[1])-1, parseInt(year[2]), hour[0], hour[1], hour[2]))
+                hour = timeArr[1].split(":"),
+                date = new Date(Date.UTC(parseInt(year[0]), parseInt(year[1])-1, parseInt(year[2]), hour[0], hour[1], hour[2]));
+            return date.toUTCString();
         }
-    }
-
-    appendMessage(time,msg,type){
-        let chatData = {};
-        if (type === 0){
-            chatData = {
-                _id: Math.round(Math.random() * 10000),
-                text: msg,
-                createdAt: this.utcTime(time),
-                user: {
-                    _id: 1,
-                    name: 'Developer',
-                }
-            };
-        } else{
-            chatData = {
-                _id: Math.round(Math.random() * 10000),
-                text: msg,
-                createdAt: this.utcTime(time),
-                system:true
-            };
-        }
-        this.setState(previousState => ({
-            messages: GiftedChat.append(previousState.messages, chatData),
-        }))
     }
 
     onSend(messages = []) {
@@ -150,24 +192,6 @@ export default class PrivateChatScreen extends Component {
         this.setState(previousState => ({
             messages: GiftedChat.append(previousState.messages, messages[0]),
         }))
-    }
-
-    appendMessageFromCache(time,msg,userId,userName,userAvatar){
-        let chatData = {
-            _id: Math.floor(Math.random()*10000),
-            text: msg,
-            user: {
-                _id: userId,
-                name: userName,
-                avatar: userAvatar,
-            },
-            createdAt: this.utcTime(time),
-            sent: true,
-            received: true,
-        };
-        this.setState((previousState) => ({
-            messages: GiftedChat.append(previousState.messages, chatData),
-        }));
     }
 
 }
