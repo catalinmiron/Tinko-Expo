@@ -36,7 +36,6 @@ export default class TinkoDetailChatScreen extends React.Component {
                 this.messageMap[userId].push(this.dataStore.length)
             }
             if (userInfo[userId]!==undefined){
-                console.log("有头像数据:",userId);
                 this.dataStore.push({
                     _id: Math.floor(Math.random()*10000),
                     text: msg,
@@ -48,7 +47,6 @@ export default class TinkoDetailChatScreen extends React.Component {
                     sent: (type === 0)
                 });
             }else{
-                console.log("没有头像数据:",userId);
                 this.dataStore.push({
                     _id: Math.floor(Math.random()*10000),
                     text: msg,
@@ -62,22 +60,29 @@ export default class TinkoDetailChatScreen extends React.Component {
             }
         };
         this.reloadUserInfo = function (userId) {
-            console.log("在刷新头像数据了:",userId);
-            let num = this.messageMap[userId];
-            for (let i = 0;i<num.length;i++){
-                let number = num[i];
-                this.dataStore[number].user = {
-                    _id: uid,
-                    name: userInfo[uid].username,
-                    avatar: userInfo[uid].photoURL
-                };
-                this.dataStore[number]._id = (this.dataStore[number]._id + 1);
+            for (let i = 0;i<this.dataStore.length;i++){
+                if (this.dataStore[i].user._id === userId){
+                    this.dataStore[i].user = {
+                        _id: userId,
+                        name: userInfo[userId].username,
+                        avatar: userInfo[userId].photoURL
+                    };
+                }
             }
+            // let num = this.messageMap[userId];
+            // for (let i = 0;i<num.length;i++){
+            //     let number = num[i];
+            //     this.dataStore[number].user = {
+            //         _id: userId,
+            //         name: userInfo[userId].username,
+            //         avatar: userInfo[userId].photoURL
+            //     };
+            // }
         };
         this.getData = function () {
             return (this.dataStore);
         }
-    }
+    }                                                                               c
 
     constructor(props){
         super(props);
@@ -113,7 +118,7 @@ export default class TinkoDetailChatScreen extends React.Component {
             loadEarlier: true,
             isLoadingEarlier:false,
             lastMeetId:-1,
-            limit:5,
+            limit:3,
             SafeAreaInsets:34,
         };
         getFromAsyncStorage('ThisUser').then((userData) => {
@@ -157,6 +162,9 @@ export default class TinkoDetailChatScreen extends React.Component {
                         photoURL:userData.photoURL
                     };
                     stack.reloadUserInfo(pid);
+                    this.setState({
+                        messages:[]
+                    });
                     this.setState({
                         messages:stack.getData()
                     });
@@ -207,7 +215,6 @@ export default class TinkoDetailChatScreen extends React.Component {
                         stack.appendMsg(fromId,messageData.msg,0);
                         let userData = JSON.parse(messageData.data);
                     });
-
                     if(data.length<limit){
                         this.setState({loadEarlier:false, });
                     }
@@ -215,10 +222,9 @@ export default class TinkoDetailChatScreen extends React.Component {
                     if(data.length!==0){
                         lastId=data[data.length-1].id;
                     }
-                    // this.setState(
-                    //     {messages:stack.getData()}
-                    // );
-
+                    this.setState(
+                        {messages:stack.getData()}
+                    );
                     this.setState({isLoadingEarlier:false, lastMeetId:lastId});
                 })
                 .catch((error) => {
