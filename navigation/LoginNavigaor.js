@@ -22,7 +22,7 @@ export default LoginStackNavigator = StackNavigator(
             mode:'modal'
         }
     },{
-        initialRouteName: 'Login',
+        initialRouteName: 'SignIn',
         transitionConfig : () => ({
             transitionSpec: {
                 duration: 0,

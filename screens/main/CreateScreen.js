@@ -408,6 +408,7 @@ export default class CreateScreen extends React.Component {
         } else {
 
             docData.participatingUsersList=participatingUsersListObj;
+            docData.participatingUsersArray=[userUid];
             docData.selectedFriendsList=selectedFriendsListObj;
             docData.status = true;
 

@@ -76,6 +76,7 @@ export default class RootNavigator extends React.Component {
       uid = user.uid;
       this.setState({userUid:uid});
       // 测试时才用drop
+      //this.dropMeetTable(uid);
       //this.dropChatTable(uid);
       //this.dropFriendsTable(uid);
       //this.initFriendsTable(uid);
@@ -196,6 +197,17 @@ export default class RootNavigator extends React.Component {
     }
 
 
+    dropMeetTable(uid){
+        db.transaction(
+            tx => {
+                tx.executeSql('drop table if exists meet'+ uid);
+            },
+            (error) => console.log("meet drop :" + error),
+            () => {
+                console.log('meet complete');
+            }
+        );
+    }
 
     dropMeetingTable(uid){
         db.transaction(
