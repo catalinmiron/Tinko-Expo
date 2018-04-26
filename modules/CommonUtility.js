@@ -184,27 +184,6 @@ export const getUserDataFromDatabase = async (uid, onComplete, onError) => {
                 })
         }
     } else {
-        // await getUserDataFromSql(uid,
-        //     (userData) => {
-        //         console.log('user isnt the user, but found data in sql'+userData.username);
-        //         //onComplete(userData);
-        //     },
-        //     (error) => {
-        //         getUserDataFromFirebase(uid,
-        //             (userData) => {
-        //                 console.log('user isnt the user, get data from firebase'+userData.username);
-        //                 onComplete(userData);
-        //                 insertFriendSql(userData);
-        //             },
-        //             (error) => {
-        //                 onError(error);
-        //             })
-        //     });
-        // let userData = await getUserDataFromSql2(uid);
-        // if(userData){
-        //     onComplete(userData);
-        // }
-
         await getUserDataFromSql(uid)
             .then((userData) => onComplete(userData))
             .catch(async () => {
@@ -224,6 +203,10 @@ export const getUserDataFromDatabase = async (uid, onComplete, onError) => {
 };
 
 export const getStartTimeString = (startTime) => {
+    if(typeof(startTime)==='string'){
+        startTime = new Date(startTime);
+    }
+    //console.log('--------------------------------',startTime, typeof(startTime));
     let year = startTime.getFullYear();
     let month = startTime.getMonth() + 1;
     let day = startTime.getDate();

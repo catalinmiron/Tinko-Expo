@@ -60,6 +60,7 @@ export default class TinkoScreen extends Component {
     initFriendsTableAndGetMeets(){
         db.transaction(
             tx => {
+                //tx.executeSql('drop table if exists meet'+ this.state.userUid);
                 tx.executeSql('create table if not exists friend_list'+ this.state.userUid +' (' +
                     'id integer primary key not null , ' +
                     'userId text UNIQUE, avatarUrl text , ' +
@@ -69,12 +70,37 @@ export default class TinkoScreen extends Component {
                     'nickname text,' +
                     'isNicknameSet int DEFAULT 0,' +
                     'gender text);');
+                tx.executeSql('create table if not exists meet'+ this.state.userUid +' (' +
+                    'meetId text UNIQUE primary key not null,' +
+                    'meetData text, ' +
+                    'creatorData text,' +
+                    'placePhotoData text,' +
+                    'participatingUsersData text);');
             },
             (error) => console.log("friendList :" + error),
             () => {
                 console.log('friend_list complete');
                 this.getMeets();
             }
+        );
+    }
+
+
+    insertMeetData(meetId, meetData){
+        let meetDataString = JSON.stringify(meetData);
+        db.transaction(
+            tx => {
+                tx.executeSql(
+                    `INSERT OR REPLACE INTO meet${this.state.userUid} (meetId, meetData,creatorData,placePhotoData, participatingUsersData) 
+                        VALUES (?,?,
+                                (SELECT creatorData FROM meet${this.state.userUid} WHERE meetId = '${meetId}'),
+                                (SELECT placePhotoData FROM meet${this.state.userUid} WHERE meetId = '${meetId}'),
+                                (SELECT participatingUsersData FROM meet${this.state.userUid} WHERE meetId = '${meetId}'))`,
+                    [meetId,meetDataString]);
+            }
+            ,
+            (error) => console.log("insertMeetData" + error),
+            () => console.log('insertMeetData complete')
         );
     }
 
@@ -112,6 +138,12 @@ export default class TinkoScreen extends Component {
             var lastVisible = querySnapshot.docs[querySnapshot.docs.length-1];
             this.setState({refreshing:false, loadingDone:true, lastVisible:lastVisible});
             writeInAsyncStorage('TinkoMeets', meetsData);
+            querySnapshot.forEach(doc => {
+                //console.log(doc.id, '=>', doc.data());
+                let meetId = doc.id;
+                let meetData = doc.data();
+                this.insertMeetData(meetId, meetData);
+            });
         }).catch((error) => {
             console.log(error);
         });
@@ -134,21 +166,6 @@ export default class TinkoScreen extends Component {
                 (error) => {
                     Alert.alert('Error', error);
                 });
-
-            // let firestoreDb = firebase.firestore();
-            // var userRef = firestoreDb.collection("Users").doc(userUid);
-            // await userRef.get().then((userDoc) => {
-            //     if (userDoc.exists) {
-            //         //console.log("Document data:", userDoc.data());
-            //         let user = userDoc.data();
-            //         let brick = this.buildBrick(meet, meetId, user);
-            //         meetsData.push(brick);
-            //     } else {
-            //         console.log("No such document!");
-            //     }
-            // }).catch((error) => {
-            //     console.log("Error getting document:", error);
-            // });
 
         }),Promise.resolve());
 

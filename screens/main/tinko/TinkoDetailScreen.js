@@ -5,7 +5,7 @@ import firebase from 'firebase';
 import 'firebase/firestore';
 import Swiper from 'react-native-swiper';
 import { getStartTimeString,  getDurationString, getUserData, getImageSource, getUserDataFromDatabase } from "../../../modules/CommonUtility";
-import { MapView } from 'expo';
+import {MapView, SQLite} from 'expo';
 import { Ionicons, MaterialIcons, Entypo, MaterialCommunityIcons, Feather  } from '@expo/vector-icons';
 import { Avatar, Button, Header} from 'react-native-elements';
 import { ifIphoneX } from 'react-native-iphone-x-helper';
@@ -13,7 +13,7 @@ import { getPostRequest } from "../../../modules/CommonUtility";
 import { ActionSheetProvider, connectActionSheet } from '@expo/react-native-action-sheet';
 import SocketIOClient from "socket.io-client";
 import {createMeet} from "../../../modules/SocketClient";
-
+const db = SQLite.openDatabase('db.db');
 
 const SCREEN_WIDTH = Dimensions.get('window').width;
 
@@ -84,8 +84,7 @@ export default class TinkoDetailScreen extends React.Component {
             status:false,
             tagsList:[],
             title:'',
-            creatorUsername:'',
-            creatorPhotoURL:'',
+            creatorData:{},
             placePhotos:[],
             participatingUsersData:[],
             creatorLoadingDone:false,
@@ -98,7 +97,7 @@ export default class TinkoDetailScreen extends React.Component {
             //          1: creator
             //          2: joined cannot invite
             //          3: joined can invite
-        }
+        };
     }
 
     setNavigationParams(){
@@ -107,7 +106,7 @@ export default class TinkoDetailScreen extends React.Component {
     }
 
     componentDidMount(){
-
+        this.getMeetDataFromSql();
         this.setMeetDataListener();
         this.props.navigation.setParams({threeDots:this.onOpenThreeDotsActionSheet.bind(this)});
         this.setNavigationParams();
@@ -116,7 +115,70 @@ export default class TinkoDetailScreen extends React.Component {
 
     componentWillUnmount(){
         const {unsubscribe} = this.state;
-        unsubscribe();
+        if(unsubscribe){
+            unsubscribe();
+        }
+        this.updateMeetDataToSql();
+
+    }
+
+    updateMeetDataToSql(){
+        const { meetId, meet, creatorData, placePhotos, participatingUsersData } = this.state;
+        let meetDataString = JSON.stringify(meet);
+        let creatorDataString = JSON.stringify(creatorData);
+        let placePhotosDataString = JSON.stringify(placePhotos);
+        let participatingUsersDataString = JSON.stringify(participatingUsersData);
+        db.transaction(
+            tx => {
+                tx.executeSql(
+                    `INSERT OR REPLACE INTO meet${this.state.userUid} (meetId, meetData,creatorData,placePhotoData, participatingUsersData) 
+                        VALUES (?,?,?,?,?)`,
+                    [meetId, meetDataString, creatorDataString, placePhotosDataString, participatingUsersDataString]);
+            }
+            ,
+            (error) => console.log("updateMeetData" + error),
+            () => console.log('updateMeetData complete')
+        );
+    }
+
+    getMeetDataFromSql(){
+        const{userUid, meetId} = this.state;
+        db.transaction(
+            tx => {
+                tx.executeSql(`select * from meet${userUid} WHERE meetId = '${meetId}'`, [], (_, { rows }) => {
+                    let data =  rows['_array'];
+                    //console.log('sqlite meetData', data);
+                    let meetDataString = data[0].meetData;
+
+                    let meet = JSON.parse(meetDataString);
+                    console.log('meet',meet);
+                    this.processMeet(meet);
+                    let creatorDataString = data[0].creatorData;
+                    let placePhotoDataString = data[0].placePhotoData;
+                    let participatingUsersDataString = data[0].participatingUsersData;
+
+
+                    if(creatorDataString){
+                        let creatorData = JSON.parse(creatorDataString);
+                        this.setState({creatorData:creatorData, creatorLoadingDone:true});
+                    }
+
+                    // if(placePhotoDataString){
+                    //     let placePhotoData = JSON.parse(placePhotoDataString);
+                    //     this.setState({placePhotos: placePhotoData, placePhotosLoadingDone: true});
+                    // }
+
+                    if(participatingUsersDataString){
+                        let participatingUsersData = JSON.parse(participatingUsersDataString);
+                        this.setState({participatingUsersData});
+                    }
+
+
+                });
+            },
+            null,
+            null
+        )
     }
 
     setMeetDataListener(){
@@ -127,87 +189,102 @@ export default class TinkoDetailScreen extends React.Component {
             if (meetDoc.exists) {
                 //console.log("Document data:", meetDoc.data());
                 let meet = meetDoc.data();
-                meet['meetId'] = meetId;
-                //console.log(meet);
-
-                let allFriends = meet.allFriends,
-                    allowParticipantsInvite = meet.allowParticipantsInvite,
-                    allowPeopleNearby = meet.allowPeopleNearby,
-                    creatorUid = meet.creator,
-                    description = meet.description,
-                    duration = meet.duration,
-                    endTime = meet.endTime,
-                    maxNo = meet.maxNo,
-                    participatingUsersList = meet.participatingUsersArray,
-                    placeAddress = meet.place.address,
-                    placeName = meet.place.name,
-                    placeCoordinate = meet.place.coordinate,
-                    placeId = meet.place.placeId,
-                    postTime = meet.postTime,
-                    selectedFriendsList = Object.keys(meet.selectedFriendsList),
-                    startTime = meet.startTime,
-                    status = meet.status,
-                    title = meet.title;
-                let tagsList;
-                if(meet.tagsList){
-                    tagsList=meet.tagsList;
-                }else{
-                    tagsList=[];
-                }
-
-                var identity;
-                if(userUid === creatorUid){
-                    identity=1;//创佳人
-                } else {
-                    let isJoined = _.includes(participatingUsersList, userUid);
-                    if(isJoined){
-                        if(allowParticipantsInvite){
-                            identity=3;//参加，可邀请
-                        }else{
-                            identity=2;//参加，不可邀请
-                        }
-                    }else{
-                        identity=0;//游客
-                    }
-
-                }
-
-                this.getCreatorData(creatorUid);
-                this.getPlacePhotos(placeId);
-                this.updateParticipatingUsersData(participatingUsersList);
-
-                this.setState({
-                    meet,
-                    allFriends,
-                    allowParticipantsInvite,
-                    allowPeopleNearby,
-                    creatorUid,
-                    description,
-                    duration,
-                    endTime,
-                    maxNo,
-                    participatingUsersList,
-                    placeAddress,
-                    placeName,
-                    placeCoordinate,
-                    placeId,
-                    postTime,
-                    selectedFriendsList,
-                    startTime,
-                    status,
-                    tagsList,
-                    title,
-                    identity,
-                    },()=>console.log('participatingUsersList',this.state.participatingUsersList));
-                this.setNavigationParams();
+                //this.processMeet(meet);
                 //console.log(this.state);
                 //this.marker.showCallout()
             } else {
                 console.log("No such document!");
-                Aler.alert('Sorry','This Tinko is not available anymore')
+                Alert.alert('Sorry','This Tinko is not available anymore')
             }
         });
         this.setState({unsubscribe});
+    }
+
+    processMeet(meet){
+        const {meetId,userUid}=this.state;
+        meet['meetId'] = meetId;
+        //console.log(meet);
+
+        let allFriends = meet.allFriends,
+            allowParticipantsInvite = meet.allowParticipantsInvite,
+            allowPeopleNearby = meet.allowPeopleNearby,
+            creatorUid = meet.creator,
+            description = meet.description,
+            duration = meet.duration,
+            endTime = meet.endTime,
+            maxNo = meet.maxNo,
+            participatingUsersList = meet.participatingUsersArray,
+            placeAddress = meet.place.address,
+            placeName = meet.place.name,
+            placeCoordinate = meet.place.coordinate,
+            placeId = meet.place.placeId,
+            postTime = meet.postTime,
+            selectedFriendsList = Object.keys(meet.selectedFriendsList),
+            startTime = meet.startTime,
+            status = meet.status,
+            title = meet.title;
+        let tagsList;
+        if(meet.tagsList){
+            tagsList=meet.tagsList;
+        }else{
+            tagsList=[];
+        }
+
+        var identity;
+        if(userUid === creatorUid){
+            identity=1;//创佳人
+        } else {
+            let isJoined = _.includes(participatingUsersList, userUid);
+            if(isJoined){
+                if(allowParticipantsInvite){
+                    identity=3;//参加，可邀请
+                }else{
+                    identity=2;//参加，不可邀请
+                }
+            }else{
+                identity=0;//游客
+            }
+
+        }
+
+        const {creatorData, placePhotos, participatingUsersData} = this.state;
+        if(!creatorData || creatorUid !== this.state.creatorUid){
+            this.getCreatorData(creatorUid);
+        }
+        if(!placePhotos || placeId !== this.state.placeId){
+            this.getPlacePhotos(placeId);
+        }
+        if(!participatingUsersData){
+            this.updateParticipatingUsersData(participatingUsersList);
+        }
+        this.getCreatorData(creatorUid);
+        this.getPlacePhotos(placeId);
+        this.updateParticipatingUsersData(participatingUsersList);
+
+        this.setState({
+            meet,
+            allFriends,
+            allowParticipantsInvite,
+            allowPeopleNearby,
+            creatorUid,
+            description,
+            duration,
+            endTime,
+            maxNo,
+            participatingUsersList,
+            placeAddress,
+            placeName,
+            placeCoordinate,
+            placeId,
+            postTime,
+            selectedFriendsList,
+            startTime,
+            status,
+            tagsList,
+            title,
+            identity,
+        },()=>console.log('participatingUsersList',this.state.participatingUsersList));
+        this.setNavigationParams();
     }
 
     getParticipatingUsersList(){
@@ -215,23 +292,9 @@ export default class TinkoDetailScreen extends React.Component {
     }
 
     getCreatorData(creatorUid){
-        // getUserData(creatorUid).fork(
-        //     (error) => {
-        //         console.log(error);
-        //     },
-        //     (creatorObj) => {
-        //         //console.log(creatorObj);
-        //         let creatorUsername = creatorObj.username,
-        //             creatorPhotoURL = creatorObj.photoURL;
-        //         this.setState({creatorUsername, creatorPhotoURL, creatorLoadingDone:true});
-        //     }
-        // );
-
         getUserDataFromDatabase(creatorUid,
             (userData) => {
-                let creatorUsername = userData.username,
-                    creatorPhotoURL = userData.photoURL;
-                this.setState({creatorUsername, creatorPhotoURL, creatorLoadingDone:true});
+                this.setState({creatorData:userData, creatorLoadingDone:true});
             },
             (error) => {
                 Alert.alert('Error', error);
@@ -245,6 +308,7 @@ export default class TinkoDetailScreen extends React.Component {
                 .then((response) => response.json())
                 .then((responseJson) => {
                     //console.log(responseJson);
+                    console.log('getPlacePhotos')
                     let photos = responseJson.result.photos;
                     this.setState({placePhotos: photos, placePhotosLoadingDone: true});
 
@@ -259,23 +323,6 @@ export default class TinkoDetailScreen extends React.Component {
     }
 
     async updateParticipatingUsersData(participatingUsersList){
-        // this.setState({participatingUsersData:[]});
-        // participatingUsersList
-        //     .map(userUid => getUserData(userUid))
-        //     .map(getUserDataTask => getUserDataTask.fork(
-        //         (error) => console.warn(error),
-        //         (userObj) => {
-        //             this.setState(state => {
-        //                 var usersData = state.participatingUsersData;
-        //                 usersData.push(userObj);
-        //                 return {
-        //                     participatingUsersData: usersData,
-        //                 };
-        //             });
-        //             //console.log(this.state.participatingUsersData);
-        //         }
-        //     ));
-
         var participatingUsersData = [];
         await participatingUsersList.reduce((p,e,i) => p.then(async ()=> {
             //console.log(p, e, i);
@@ -395,12 +442,12 @@ export default class TinkoDetailScreen extends React.Component {
 
     render() {
         const { creatorLoadingDone, placePhotosLoadingDone, userUid, creatorUid, identity,
-            creatorPhotoURL, creatorUsername, title, placePhotos, startTime, allowPeopleNearby, participatingUsersList,
+            creatorData, title, placePhotos, startTime, allowPeopleNearby, participatingUsersList,
             maxNo, description, duration, participatingUsersData, placeName, placeCoordinate, placeAddress, placeId, tagsList } = this.state;
 
         if(!(creatorLoadingDone && placePhotosLoadingDone)){
             return(
-                <View/>
+                <View style={styles.container}/>
             );
         }
 
@@ -414,7 +461,7 @@ export default class TinkoDetailScreen extends React.Component {
                 <ScrollView>
                     <View style={{height:SCREEN_WIDTH/2}}>
                         <Swiper
-                            loop
+                            //loop
                             showsPagination = {false}
                         >
 
@@ -440,7 +487,7 @@ export default class TinkoDetailScreen extends React.Component {
                     <View style={{flexDirection: 'row', alignItems:'center', position:'absolute', marginTop:SCREEN_WIDTH/2-60, right:0}}>
                         <Text
                             onPress={() => this.props.screenProps.showThisUser(creatorUid, this.props.navigation)}
-                            style={{marginRight:30, color:'white', fontSize: 18, fontWeight:'bold'}}>{creatorUsername}</Text>
+                            style={{marginRight:30, color:'white', fontSize: 18, fontWeight:'bold'}}>{creatorData.username}</Text>
                         <TouchableWithoutFeedback
                             onPress={() => this.props.screenProps.showThisUser(creatorUid, this.props.navigation)}
                         >
@@ -448,7 +495,7 @@ export default class TinkoDetailScreen extends React.Component {
                                 onPress={() => this.props.screenProps.showThisUser(creatorUid, this.props.navigation)}
                                 style={{width:80, height:80, marginRight:15, borderWidth:1.5, borderColor:'white'}}
                                 key='creatorPhoto'
-                                source={{uri: creatorPhotoURL}}
+                                source={{uri: creatorData.photoURL}}
                             />
                         </TouchableWithoutFeedback>
                     </View>
@@ -503,34 +550,34 @@ export default class TinkoDetailScreen extends React.Component {
                         {/*</List>*/}
                     </View>
 
-                    <TouchableOpacity>
-                        <MapView
-                            rotateEnabled={false}
-                            scrollEnabled={false}
-                            style={{marginTop:30, width:SCREEN_WIDTH, height: SCREEN_WIDTH*2/3 }}
-                            showsUserLocation
-                            region={{
-                                latitude: placeCoordinate.lat,
-                                longitude: placeCoordinate.lng,
-                                latitudeDelta: 0.0922,
-                                longitudeDelta: 0.0421,
-                            }}
-                            onRegionChangeComplete={() => this.marker.showCallout()}
-                        >
+                    {/*<TouchableOpacity>*/}
+                        {/*<MapView*/}
+                            {/*rotateEnabled={false}*/}
+                            {/*scrollEnabled={false}*/}
+                            {/*style={{marginTop:30, width:SCREEN_WIDTH, height: SCREEN_WIDTH*2/3 }}*/}
+                            {/*//showsUserLocation*/}
+                            {/*region={{*/}
+                                {/*latitude: placeCoordinate.lat,*/}
+                                {/*longitude: placeCoordinate.lng,*/}
+                                {/*latitudeDelta: 0.0922,*/}
+                                {/*longitudeDelta: 0.0421,*/}
+                            {/*}}*/}
+                            {/*onRegionChangeComplete={() => this.marker.showCallout()}*/}
+                        {/*>*/}
 
-                            <MapView.Marker
-                                coordinate={{
-                                    latitude: placeCoordinate.lat,
-                                    longitude: placeCoordinate.lng,
-                                }}
-                                title={placeName}
-                                description={placeAddress}
-                                key={placeId}
-                                ref={ref => { this.marker = ref; }}
-                            />
-                            <MapView.Callout/>
-                        </MapView>
-                    </TouchableOpacity>
+                            {/*<MapView.Marker*/}
+                                {/*coordinate={{*/}
+                                    {/*latitude: placeCoordinate.lat,*/}
+                                    {/*longitude: placeCoordinate.lng,*/}
+                                {/*}}*/}
+                                {/*title={placeName}*/}
+                                {/*description={placeAddress}*/}
+                                {/*key={placeId}*/}
+                                {/*ref={ref => { this.marker = ref; }}*/}
+                            {/*/>*/}
+                            {/*<MapView.Callout/>*/}
+                        {/*</MapView>*/}
+                    {/*</TouchableOpacity>*/}
 
 
                 </ScrollView>

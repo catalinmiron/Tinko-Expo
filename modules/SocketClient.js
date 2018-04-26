@@ -22,6 +22,7 @@ export const acceptFriendRequest = (requester, responser) => {
 //    //type = 1 为创建
 //     //type = 2 为加入
 //     //type = -1 为退出
+//      //type = -2 创建者移除用户
 //     socket.on("Meets",function (uid,MeetId,type) {
 //
 //     });
