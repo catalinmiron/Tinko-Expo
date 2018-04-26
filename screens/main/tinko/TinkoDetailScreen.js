@@ -1,6 +1,6 @@
 import _ from 'lodash';
 import React from 'react';
-import {View, Alert, TouchableWithoutFeedback, Image, ScrollView, Text, StyleSheet, Dimensions, SafeAreaView, TouchableOpacity} from 'react-native';
+import {View, Alert, TouchableWithoutFeedback, Image, ScrollView, Text, StyleSheet, Dimensions, SafeAreaView, TouchableOpacity, InteractionManager} from 'react-native';
 import firebase from 'firebase';
 import 'firebase/firestore';
 import Swiper from 'react-native-swiper';
@@ -93,6 +93,7 @@ export default class TinkoDetailScreen extends React.Component {
             buttonShowLoading:false,
             unsubscribe:null,
             identity:1,
+            showMap:false,
             //identity: 0: not joined
             //          1: creator
             //          2: joined cannot invite
@@ -110,6 +111,12 @@ export default class TinkoDetailScreen extends React.Component {
         this.setMeetDataListener();
         this.props.navigation.setParams({threeDots:this.onOpenThreeDotsActionSheet.bind(this)});
         this.setNavigationParams();
+        // this.timer = TimerMixin.setTimeout(() => {
+        //     this.setState({ showMap: true });
+        // }, 250);
+        InteractionManager.runAfterInteractions(() => {
+            this.setState({showMap:true});
+        });
     }
 
 
@@ -152,7 +159,7 @@ export default class TinkoDetailScreen extends React.Component {
 
                     let meet = JSON.parse(meetDataString);
                     console.log('meet',meet);
-                    this.processMeet(meet);
+
                     let creatorDataString = data[0].creatorData;
                     let placePhotoDataString = data[0].placePhotoData;
                     let participatingUsersDataString = data[0].participatingUsersData;
@@ -163,17 +170,17 @@ export default class TinkoDetailScreen extends React.Component {
                         this.setState({creatorData:creatorData, creatorLoadingDone:true});
                     }
 
-                    // if(placePhotoDataString){
-                    //     let placePhotoData = JSON.parse(placePhotoDataString);
-                    //     this.setState({placePhotos: placePhotoData, placePhotosLoadingDone: true});
-                    // }
+                    if(placePhotoDataString){
+                        let placePhotoData = JSON.parse(placePhotoDataString);
+                        this.setState({placePhotos: placePhotoData, placePhotosLoadingDone: true});
+                    }
 
                     if(participatingUsersDataString){
                         let participatingUsersData = JSON.parse(participatingUsersDataString);
                         this.setState({participatingUsersData});
                     }
 
-
+                    this.processMeet(meet);
                 });
             },
             null,
@@ -254,11 +261,11 @@ export default class TinkoDetailScreen extends React.Component {
         if(!placePhotos || placeId !== this.state.placeId){
             this.getPlacePhotos(placeId);
         }
-        if(!participatingUsersData){
-            this.updateParticipatingUsersData(participatingUsersList);
-        }
-        this.getCreatorData(creatorUid);
-        this.getPlacePhotos(placeId);
+        // if(!participatingUsersData){
+        //     this.updateParticipatingUsersData(participatingUsersList);
+        // }
+        // this.getCreatorData(creatorUid);
+        // this.getPlacePhotos(placeId);
         this.updateParticipatingUsersData(participatingUsersList);
 
         this.setState({
@@ -443,7 +450,7 @@ export default class TinkoDetailScreen extends React.Component {
     render() {
         const { creatorLoadingDone, placePhotosLoadingDone, userUid, creatorUid, identity,
             creatorData, title, placePhotos, startTime, allowPeopleNearby, participatingUsersList,
-            maxNo, description, duration, participatingUsersData, placeName, placeCoordinate, placeAddress, placeId, tagsList } = this.state;
+            maxNo, description, duration, participatingUsersData, placeName, placeCoordinate, placeAddress, placeId, tagsList, showMap } = this.state;
 
         if(!(creatorLoadingDone && placePhotosLoadingDone)){
             return(
@@ -460,12 +467,10 @@ export default class TinkoDetailScreen extends React.Component {
             <View style={styles.container}>
                 <ScrollView>
                     <View style={{height:SCREEN_WIDTH/2}}>
-                        <Swiper
-                            //loop
-                            showsPagination = {false}
+                        <ScrollView
+                            horizontal={true}
+                            showsHorizontalScrollIndicator={false}
                         >
-
-
                             {_.size(placePhotos) > 0 ?
                                 placePhotos.map((l, i) =>(
                                     <Image
@@ -481,7 +486,29 @@ export default class TinkoDetailScreen extends React.Component {
                                     key = {'placePhoto'}
                                     source={getImageSource(tagsList[0])}/>
                             }
-                        </Swiper>
+                        </ScrollView>
+                        {/*<Swiper*/}
+                            {/*//loop*/}
+                            {/*showsPagination = {false}*/}
+                        {/*>*/}
+
+
+                            {/*{_.size(placePhotos) > 0 ?*/}
+                                {/*placePhotos.map((l, i) =>(*/}
+                                    {/*<Image*/}
+                                        {/*resizeMethod={'auto'}*/}
+                                        {/*style={{width:SCREEN_WIDTH, height:SCREEN_WIDTH/2}}*/}
+                                        {/*key = {l.photo_reference}*/}
+                                        {/*source={{uri:`https://maps.googleapis.com/maps/api/place/photo?maxwidth=${SCREEN_WIDTH}&photoreference=${l.photo_reference}&key=AIzaSyCw_VwOF6hmY5yri8OpqOr9sCzTTT7JKiU`}}/>*/}
+                                {/*))*/}
+                                {/*:*/}
+                                {/*<Image*/}
+                                    {/*resizeMethod={'auto'}*/}
+                                    {/*style={{width:SCREEN_WIDTH, height:SCREEN_WIDTH/2}}*/}
+                                    {/*key = {'placePhoto'}*/}
+                                    {/*source={getImageSource(tagsList[0])}/>*/}
+                            {/*}*/}
+                        {/*</Swiper>*/}
                     </View>
 
                     <View style={{flexDirection: 'row', alignItems:'center', position:'absolute', marginTop:SCREEN_WIDTH/2-60, right:0}}>
@@ -550,34 +577,37 @@ export default class TinkoDetailScreen extends React.Component {
                         {/*</List>*/}
                     </View>
 
-                    {/*<TouchableOpacity>*/}
-                        {/*<MapView*/}
-                            {/*rotateEnabled={false}*/}
-                            {/*scrollEnabled={false}*/}
-                            {/*style={{marginTop:30, width:SCREEN_WIDTH, height: SCREEN_WIDTH*2/3 }}*/}
-                            {/*//showsUserLocation*/}
-                            {/*region={{*/}
-                                {/*latitude: placeCoordinate.lat,*/}
-                                {/*longitude: placeCoordinate.lng,*/}
-                                {/*latitudeDelta: 0.0922,*/}
-                                {/*longitudeDelta: 0.0421,*/}
-                            {/*}}*/}
-                            {/*onRegionChangeComplete={() => this.marker.showCallout()}*/}
-                        {/*>*/}
+                    {showMap &&
+                    <TouchableOpacity>
+                        <MapView
+                            rotateEnabled={false}
+                            scrollEnabled={false}
+                            style={{marginTop:30, width:SCREEN_WIDTH, height: SCREEN_WIDTH*2/3 }}
+                            //showsUserLocation
+                            region={{
+                                latitude: placeCoordinate.lat,
+                                longitude: placeCoordinate.lng,
+                                latitudeDelta: 0.0922,
+                                longitudeDelta: 0.0421,
+                            }}
+                            onRegionChangeComplete={() => this.marker.showCallout()}
+                        >
 
-                            {/*<MapView.Marker*/}
-                                {/*coordinate={{*/}
-                                    {/*latitude: placeCoordinate.lat,*/}
-                                    {/*longitude: placeCoordinate.lng,*/}
-                                {/*}}*/}
-                                {/*title={placeName}*/}
-                                {/*description={placeAddress}*/}
-                                {/*key={placeId}*/}
-                                {/*ref={ref => { this.marker = ref; }}*/}
-                            {/*/>*/}
-                            {/*<MapView.Callout/>*/}
-                        {/*</MapView>*/}
-                    {/*</TouchableOpacity>*/}
+                            <MapView.Marker
+                                coordinate={{
+                                    latitude: placeCoordinate.lat,
+                                    longitude: placeCoordinate.lng,
+                                }}
+                                title={placeName}
+                                description={placeAddress}
+                                key={placeId}
+                                ref={ref => { this.marker = ref; }}
+                            />
+                            <MapView.Callout/>
+                        </MapView>
+                    </TouchableOpacity>
+                    }
+
 
 
                 </ScrollView>

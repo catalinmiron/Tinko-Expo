@@ -1,5 +1,5 @@
 import React from "react";
-import { View, Platform, SafeAreaView, Keyboard } from 'react-native';
+import {View, Platform, SafeAreaView, Keyboard, Alert} from 'react-native';
 import { GiftedChat } from 'react-native-gifted-chat'
 import SlackMessage from '../../../components/SlackMessage'
 import emojiUtils from 'emoji-utils';
@@ -230,6 +230,35 @@ export default class TinkoDetailChatScreen extends React.Component {
         }
     }
 
+    // async processMessageData(data){
+    //     var messages = [];
+    //     await data.reduce((p,e,i) => p.then(async ()=> {
+    //         console.log(e);
+    //
+    //
+    //         await getUserDataFromDatabase(e.fromId,
+    //             (userData) => {
+    //                 //console.log(userData);
+    //                 let message = {
+    //                     _id: Math.floor(Math.random()*10000),
+    //                     text: e.msg,
+    //                     user: {
+    //                         _id: userData.uid,
+    //                         name: userData.username,
+    //                         avatar: userData.photoURL,
+    //                     },
+    //                     sent: (e.status === 0)
+    //                 }
+    //                 messages.push(message);
+    //             },
+    //             (error) => {
+    //                 Alert.alert('Error', error);
+    //             });
+    //     }),Promise.resolve());
+    //
+    //     this.setState({messages});
+    // }
+
     componentWillMount() {
         //this.getGroupChatContents();
         // this.setState({
@@ -289,11 +318,12 @@ export default class TinkoDetailChatScreen extends React.Component {
 
     render() {
         const {thisUser, messages, loadEarlier, isLoadingEarlier, SafeAreaInsets} = this.state;
+        console.log('render:', messages);
         return (
             <View style={{flex:1}}>
                 <Header
                     centerComponent={{ text: 'Chat', style: { fontSize:18, fontFamily:'bold', color: '#fff' } }}
-                    outerContainerStyles={ifIphoneX({height:78})}
+                    outerContainerStyles={ifIphoneX({height:88})}
                 />
                 <GiftedChat
 

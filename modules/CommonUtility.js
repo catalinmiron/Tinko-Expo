@@ -125,9 +125,9 @@ export const insertFriendSql = (userData) => {
         }
         ,
         (error) => console.log("insertFriendSql" + error),
-        () => {
-            console.log('insertFriendSql complete');
-        }
+        // () => {
+        //     console.log('insertFriendSql complete');
+        // }
     );
 };
 
@@ -138,7 +138,7 @@ export const getUserDataFromSql = async (uid) => {
         db.transaction(
             tx => {
                 tx.executeSql(`SELECT * FROM friend_list${currentUserUid()} WHERE userId = '${uid}'`, [], (_, {rows}) => {
-                    console.log(rows);
+                    //console.log(rows);
                     let length = rows.length;
                     if (length === 0) {
                         reject();
@@ -159,7 +159,7 @@ export const getUserDataFromSql = async (uid) => {
                 console.log(error);
                 reject();
             },
-            () => console.log('getUserDataFromSql')
+            //() => console.log('getUserDataFromSql')
         )
     });
 };
