@@ -1,6 +1,6 @@
 import React from "react";
 import { View, Platform, SafeAreaView, Keyboard } from 'react-native';
-import { GiftedChat } from 'react-native-gifted-chat'
+import { GiftedChat,Bubble } from 'react-native-gifted-chat'
 import SlackMessage from '../../../components/SlackMessage'
 import emojiUtils from 'emoji-utils';
 import {getFromAsyncStorage, getUserData, writeInAsyncStorage,getUserDataFromDatabase} from "../../../modules/CommonUtility";
@@ -69,15 +69,6 @@ export default class TinkoDetailChatScreen extends React.Component {
                     };
                 }
             }
-            // let num = this.messageMap[userId];
-            // for (let i = 0;i<num.length;i++){
-            //     let number = num[i];
-            //     this.dataStore[number].user = {
-            //         _id: userId,
-            //         name: userInfo[userId].username,
-            //         avatar: userInfo[userId].photoURL
-            //     };
-            // }
         };
         this.getData = function () {
             return (this.dataStore);
@@ -118,7 +109,7 @@ export default class TinkoDetailChatScreen extends React.Component {
             loadEarlier: true,
             isLoadingEarlier:false,
             lastMeetId:-1,
-            limit:3,
+            limit:16,
             SafeAreaInsets:34,
         };
         getFromAsyncStorage('ThisUser').then((userData) => {
@@ -163,9 +154,6 @@ export default class TinkoDetailChatScreen extends React.Component {
                     };
                     stack.reloadUserInfo(pid);
                     this.setState({
-                        messages:[]
-                    });
-                    this.setState({
                         messages:stack.getData()
                     });
                     console.log("我们刷新了state:",this.state.messages);
@@ -209,12 +197,7 @@ export default class TinkoDetailChatScreen extends React.Component {
                 .then((responseJson) => {
                     let data = responseJson.data;
                     let messages=[];
-                    data.forEach((messageData) => {
-                        let fromId = messageData.fromId;
-                        this.getInfo(fromId);
-                        stack.appendMsg(fromId,messageData.msg,0);
-                        let userData = JSON.parse(messageData.data);
-                    });
+                    this.processMessageData(data,1);
                     if(data.length<limit){
                         this.setState({loadEarlier:false, });
                     }
@@ -222,9 +205,6 @@ export default class TinkoDetailChatScreen extends React.Component {
                     if(data.length!==0){
                         lastId=data[data.length-1].id;
                     }
-                    this.setState(
-                        {messages:stack.getData()}
-                    );
                     this.setState({isLoadingEarlier:false, lastMeetId:lastId});
                 })
                 .catch((error) => {
@@ -234,6 +214,38 @@ export default class TinkoDetailChatScreen extends React.Component {
             console.error(error);
 
         }
+    }
+
+    //type === 1为历史 需要unshift
+    async processMessageData(data,type){
+        let messages = [];
+        await data.reduce((p,e,i) => p.then(async ()=> {
+            console.log(e);
+            await getUserDataFromDatabase(e.fromId,
+                (userData) => {
+                    //console.log(userData);
+                    let message = {
+                        _id: Math.floor(Math.random()*10000),
+                        text: e.msg,
+                        user: {
+                            _id: userData.uid,
+                            name: userData.username,
+                            avatar: userData.photoURL,
+                        },
+                        sent: (e.status === 0)
+                    };
+                    messages.push(message);
+                },
+                (error) => {
+                    Alert.alert('Error', error);
+                });
+        }),Promise.resolve());
+        if (type === 1){
+            messages = this.state.messages.concat(messages);
+        }
+        this.setState({
+            messages:messages
+        });
     }
 
     componentWillMount() {
@@ -306,6 +318,7 @@ export default class TinkoDetailChatScreen extends React.Component {
                     showAvatarForEveryMessage={true}
                     messages={messages}
                     renderMessage={this.renderMessage}
+                    renderBubble={this.renderBubble}
                     onSend={messages => this.onSend(messages)}
                     user={thisUser}
                     listViewProps={{
