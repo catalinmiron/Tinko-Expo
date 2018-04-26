@@ -2,8 +2,9 @@ import React, {
     Component
 } from 'react';
 import {
-    View
+    AsyncStorage
 } from 'react-native';
+import {getUserDetail} from "../../../modules/UserAPI";
 import {SQLite } from 'expo';
 const db = SQLite.openDatabase('db.db');
 import { GiftedChat } from 'react-native-gifted-chat';
@@ -26,6 +27,7 @@ export default class PrivateChatScreen extends Component {
         let dataStore = this.props.navigation.state.params;
         uid = dataStore.myId;
         pid = dataStore.personId;
+        this.getFriendsInfo();
         const avatar = dataStore.avatar,
               name = dataStore.name;
         this.getFromDB(uid,pid,avatar,name);
@@ -41,6 +43,10 @@ export default class PrivateChatScreen extends Component {
             }
             
         });
+    }
+
+    getFriendsInfo(){
+        getUserDetail(uid,pid).then(data => console.log(data));
     }
 
     getFromDB(uid,pid,avatar,name){
@@ -68,7 +74,6 @@ export default class PrivateChatScreen extends Component {
             null
         );
     }
-
 
     appendMessage(msg,time){
         let chatData = {

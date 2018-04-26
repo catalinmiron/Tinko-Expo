@@ -3,22 +3,85 @@ import { View, Platform, SafeAreaView, Keyboard } from 'react-native';
 import { GiftedChat } from 'react-native-gifted-chat'
 import SlackMessage from '../../../components/SlackMessage'
 import emojiUtils from 'emoji-utils';
-import {getFromAsyncStorage, getUserData, writeInAsyncStorage} from "../../../modules/CommonUtility";
+import {getFromAsyncStorage, getUserData, writeInAsyncStorage,getUserDataFromDatabase} from "../../../modules/CommonUtility";
 import firebase from "firebase/index";
 import {Header} from "react-native-elements";
 import { ifIphoneX } from 'react-native-iphone-x-helper';
 import SocketIOClient from 'socket.io-client';
 
 let MeetId = "",
-    uid = "";
+    uid = "",
+    userList = [],
+    waitingList = [],
+    userInfo = {},
+    stack;
 
 export default class TinkoDetailChatScreen extends React.Component {
 
     static navigationOptions = {header:null};
 
+    state = {
+        messages: []
+    };
+
+    messageStack(){
+        this.dataStore = [];
+        this.messageMap = {
+
+        };
+        this.appendMsg = function (userId,msg,type) {
+            if (this.messageMap[userId] === undefined){
+                this.messageMap[userId] = [this.dataStore.length];
+            }else{
+                this.messageMap[userId].push(this.dataStore.length)
+            }
+            if (userInfo[userId]!==undefined){
+                console.log("有头像数据:",userId);
+                this.dataStore.push({
+                    _id: Math.floor(Math.random()*10000),
+                    text: msg,
+                    user: {
+                        _id: userId,
+                        name: userInfo[userId].username,
+                        avatar: userInfo[userId].photoURL,
+                    },
+                    sent: (type === 0)
+                });
+            }else{
+                console.log("没有头像数据:",userId);
+                this.dataStore.push({
+                    _id: Math.floor(Math.random()*10000),
+                    text: msg,
+                    user: {
+                        _id: userId,
+                        name: "Tinko用户",
+                        avatar: "http://larissayuan.com/home/img/prisma.png",
+                    },
+                    sent: (type === 0)
+                });
+            }
+        };
+        this.reloadUserInfo = function (userId) {
+            console.log("在刷新头像数据了:",userId);
+            let num = this.messageMap[userId];
+            for (let i = 0;i<num.length;i++){
+                let number = num[i];
+                this.dataStore[number].user = {
+                    _id: uid,
+                    name: userInfo[uid].username,
+                    avatar: userInfo[uid].photoURL
+                };
+                this.dataStore[number]._id = (this.dataStore[number]._id + 1);
+            }
+        };
+        this.getData = function () {
+            return (this.dataStore);
+        }
+    }
+
     constructor(props){
         super(props);
-        console.log("this detail :",props);
+        stack = new this.messageStack();
         let user = firebase.auth().currentUser;
         let userUid = user.uid;
         uid = user.uid;
@@ -27,6 +90,7 @@ export default class TinkoDetailChatScreen extends React.Component {
         this.socket.on("activity" + MeetId,(msg)=>{
             let data = JSON.parse(msg);
             let user = data.userData;
+            // this.getInfo();
             this.setState(previousState => ({
                 messages: GiftedChat.append(previousState.messages,{
                     _id: Math.floor(Math.random()*10000),
@@ -49,7 +113,7 @@ export default class TinkoDetailChatScreen extends React.Component {
             loadEarlier: true,
             isLoadingEarlier:false,
             lastMeetId:-1,
-            limit:16,
+            limit:5,
             SafeAreaInsets:34,
         };
         getFromAsyncStorage('ThisUser').then((userData) => {
@@ -80,6 +144,31 @@ export default class TinkoDetailChatScreen extends React.Component {
         });
     }
 
+    getInfo(pid){
+        if (waitingList.indexOf(pid) === -1){
+            waitingList.push(pid);
+            getUserDataFromDatabase(
+                pid,
+                (userData) => {
+                    let creatorUsername = userData.username,
+                        creatorPhotoURL = userData.photoURL;
+                    userInfo[pid] = {
+                        username:userData.username,
+                        photoURL:userData.photoURL
+                    };
+                    stack.reloadUserInfo(pid);
+                    this.setState({
+                        messages:stack.getData()
+                    });
+                    console.log("我们刷新了state:",this.state.messages);
+                },
+                (error) => {
+                    console.log('Error', error);
+                }
+            );
+        }
+    }
+
     componentDidMount(){
         this.getGroupChatContents();
         // this.keyboardDidShowListener = Keyboard.addListener('keyboardWillShow', this._keyboardDidShow());
@@ -91,24 +180,11 @@ export default class TinkoDetailChatScreen extends React.Component {
         //this.keyboardDidShowListener.remove();
         //this.keyboardDidHideListener.remove();
     }
-    //
-    // _keyboardDidShow () {
-    //     alert('Keyboard Shown');
-    //     //this.setState({SafeAreaInsets:0})
-    // }
-    //
-    // _keyboardDidHide () {
-    //     alert('Keyboard Hidden');
-    //     //this.setState({SafeAreaInsets:34})
-    // }
-
 
     getGroupChatContents() {
         this.setState({isLoadingEarlier:true});
-        //console.log(this.state.lastMeedId);
         const {lastMeetId, limit} = this.state;
         let bodyData={
-            // meetId: "1iuLxFd8aMZVuYHR97do",
             meetId:this.state.meetId,
             lastId: lastMeetId,
             limit:limit
@@ -123,26 +199,13 @@ export default class TinkoDetailChatScreen extends React.Component {
                 body: JSON.stringify(bodyData),
             }).then((response) => response.json())
                 .then((responseJson) => {
-                    console.log("在这里是数据:", responseJson);
                     let data = responseJson.data;
-                    //console.log(data);
                     let messages=[];
                     data.forEach((messageData) => {
-                        //console.log(messageData);
+                        let fromId = messageData.fromId;
+                        this.getInfo(fromId);
+                        stack.appendMsg(fromId,messageData.msg,0);
                         let userData = JSON.parse(messageData.data);
-                        let message = {
-                            _id: messageData.id,
-                            text: messageData.msg,
-                            createdAt:messageData.time,
-                            user:{
-                                _id: Math.random()*100000,
-                                uid:messageData.fromId,
-                                name:userData.username,
-                                avatar:userData.photoURL,
-                            }
-                        };
-                        //console.log(message);
-                        messages.push(message);
                     });
 
                     if(data.length<limit){
@@ -152,11 +215,10 @@ export default class TinkoDetailChatScreen extends React.Component {
                     if(data.length!==0){
                         lastId=data[data.length-1].id;
                     }
-                    console.log('lastId', lastId);
-                    this.setState((state) => {
-                        let a = state.messages.concat(messages);
-                        return {messages:a};
-                    });
+                    // this.setState(
+                    //     {messages:stack.getData()}
+                    // );
+
                     this.setState({isLoadingEarlier:false, lastMeetId:lastId});
                 })
                 .catch((error) => {
