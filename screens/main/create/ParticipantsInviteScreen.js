@@ -108,7 +108,7 @@ export default class InvitationRangeScreen extends React.Component{
         const{ userUid } = this.state;
         db.transaction(
             tx => {
-                tx.executeSql('select * from friend_list'+userUid, [], (_, { rows }) => {
+                tx.executeSql(`SELECT * FROM friend_list${userUid} WHERE isFriend = 1`, [], (_, { rows }) => {
                     let dataArr =  rows['_array'],
                         rtnArr = [];
                     for (let i = 0; i <dataArr.length;i++){

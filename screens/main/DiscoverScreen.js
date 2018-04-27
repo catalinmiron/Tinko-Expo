@@ -306,15 +306,18 @@ export default class DiscoverScreen extends Component {
                                     <View
                                         style={styles.headerTop}
                                     >
-                                        <Image
-                                            source={{ uri: meet.creator.photoURL }}
-                                            style={styles.userPic}/>
-                                        <View style={{marginTop:10}}>
-                                            <Text style={styles.meetTitle}>{meet.title}</Text>
-                                            <Text style={styles.userName}>{meet.creator.name}</Text>
-                                            <Text style={styles.startTime}>{meet.startTime}</Text>
-                                            <Text style={styles.meetPlaceName}>{meet.placeName}</Text>
-                                            <Text style={styles.postTime}>{meet.postTime}</Text>
+                                        <Text style={styles.meetTitle} numberOfLines={1}>{meet.title}</Text>
+                                        <View style={{flexDirection:'row'}}>
+                                            <Image
+                                                source={{ uri: meet.creator.photoURL }}
+                                                style={styles.userPic}/>
+                                            <View style={{marginTop:10}}>
+
+                                                <Text style={styles.userName}>{meet.creator.name}</Text>
+                                                <Text style={styles.startTime}>{meet.startTime}</Text>
+                                                <Text style={styles.meetPlaceName}>{meet.placeName}</Text>
+                                                <Text style={styles.postTime}>{meet.postTime}</Text>
+                                            </View>
                                         </View>
                                     </View>
                                 </View>
@@ -426,7 +429,7 @@ const styles = StyleSheet.create({
 
     },
     headerTop: {
-        flexDirection: 'row',
+        //flexDirection: 'row',
         //padding: 5,
         marginLeft:10,
         alignItems: 'center',
@@ -483,55 +486,3 @@ const styles = StyleSheet.create({
         position:'absolute'
     },
 });
-
-// function getImage (image, listHeight, marginBottomValue) {
-//
-//
-//     console.log(image, listHeight, marginBottomValue);
-//
-//     var imageSource;
-//
-//     switch(image.data.tags[0]){
-//         case "Party":
-//             imageSource = '../../assets/images/tagsTheme/StaindGlass.jpg';
-//             break;
-//         case "Sport":
-//             imageSource = '../../assets/images/tagsTheme/lines.jpg';
-//             break;
-//         case "Food":
-//             imageSource = '../../assets/images/tagsTheme/yumao.jpg';
-//             break;
-//         case "Shop":
-//             imageSource = '../../assets/images/tagsTheme/city.png';
-//             break;
-//         case "Movie":
-//             imageSource = '../../assets/images/tagsTheme/city.png';
-//             break;
-//         case "KTV":
-//             imageSource = '../../assets/images/tagsTheme/leaves.jpg';
-//             break;
-//         case "Travel":
-//             imageSource = '../../assets/images/tagsTheme/humian.jpg';
-//             break;
-//         case "Study":
-//             imageSource = '../../assets/images/tagsTheme/cloud.jpg';
-//             break;
-//         case "ESports":
-//             imageSource = '../../assets/images/tagsTheme/humian.jpg';
-//             break;
-//         default:
-//             imageSource = '../../assets/images/tagsTheme/StaindGlass.jpg';
-//     }
-//
-//     return (
-//         <Image
-//             resizeMethod={'auto'}
-//             source={require(imageSource)}
-//             style={{ borderRadius:10, width: SCREEN_WIDTH-10, height: listHeight, marginBottom: marginBottomValue }}
-//         />
-//     )
-//     return (
-//         <Text>123</Text>
-//     )
-//
-// }
