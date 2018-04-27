@@ -14,7 +14,10 @@ import {Header} from "react-native-elements";
 
 let uid = "",
     pid = "",
-    messagesArr = [];
+    dbInfoList = [],
+    limit = 15,
+    messagesArr = [],
+    userAvatar,userName;
 
 export default class PrivateChatScreen extends Component {
 
@@ -22,6 +25,9 @@ export default class PrivateChatScreen extends Component {
 
     state = {
         messages: [],
+        isLoadingEarlier:false,
+        hasCache:false,
+        viewLoading:true,
     };
 
     constructor(props){
@@ -29,10 +35,9 @@ export default class PrivateChatScreen extends Component {
         let dataStore = this.props.navigation.state.params;
         uid = dataStore.myId;
         pid = dataStore.personId;
-        this.getFriendsInfo();
-        const avatar = dataStore.avatar,
-              name = dataStore.name;
-        this.getFromDB(uid,pid,avatar,name);
+        userAvatar =  dataStore.avatar;
+        userName = dataStore.name;
+        this.getFromDB(uid,pid);
         // this.socket = SocketIOClient('https://shuaiyixu.xyz');
         this.socket = SocketIOClient('http://47.89.187.42:4000/');
         this.socket.on("connect" + uid,(msg)=>{
@@ -40,41 +45,77 @@ export default class PrivateChatScreen extends Component {
                 type = data.type;
             if (type === 1){
                 if (data.from === pid){
-                    this.appendFriendMessage(name,avatar,data.message,Date.parse(new Date()))
+                    this.appendFriendMessage(data.message,Date.parse(new Date()))
                 }
             }
             
         });
     }
 
-    getFriendsInfo(){
-        getUserDetail(uid,pid).then(data => console.log(data));
-    }
-
-    getFromDB(uid,pid,avatar,name){
+    getFromDB(uid,pid){
         // ORDER BY id DESC limit 10
         db.transaction(
             tx => {
                 tx.executeSql("SELECT * from db" + uid + " WHERE fromId = '" + pid + "' and meetingId = ''", [], (_, {rows}) => {
                     let dataArr = rows['_array'];
-                    for (let i = 0;i<dataArr.length;i++){
-                        //收到的
-                        if (dataArr[i].isSystem === 1){
-                            this.appendSystemMessage(dataArr[i].msg,dataArr[i].timeStamp)
-                        }else{
-                            if (dataArr[i].status === 0){
-                                this.appendFriendMessage(name,avatar,dataArr[i].msg,"cache"+dataArr[i].id,dataArr[i].timeStamp);
-                            }else{
-                                //发出去的
-                                this.appendMessage(dataArr[i].msg,dataArr[i].timeStamp);
-                            }
+                    if (dataArr.length>limit){
+                        let processIng = [];
+                        for (let i = 0;i<limit;i++){
+                            processIng.push(dataArr.shift());
                         }
+                        dbInfoList = dataArr;
+                        this.processData(processIng);
+                    }else{
+                        this.setState({
+                            hasCache:false
+                        });
+                        this.processData(dataArr);
                     }
                 })
             },
             null,
             null
         );
+    }
+
+    processData(infoList,type){
+        for (let i = 0;i<infoList.length;i++){
+            if (infoList[i].isSystem === 1){
+                this.appendSystemMessage(infoList[i].msg,infoList[i].timeStamp)
+            }else{
+                if (infoList[i].status === 0){
+                    this.appendFriendMessage(infoList[i].msg,"cache"+infoList[i].id,infoList[i].timeStamp);
+                }else{
+                    //发出去的
+                    this.appendMessage(infoList[i].msg,infoList[i].timeStamp);
+                }
+            }
+        }
+        if (type===undefined){
+            this.setState({
+                hasCache:(dbInfoList.length !== 0)
+            });
+        }else{
+            this.setState({
+                hasCache:false
+            });
+        }
+    }
+
+    getHistoryChatContents(){
+        this.setState({isLoadingEarlier:true});
+        // console.log("dbInfoList",dbInfoList);
+        if (dbInfoList.length>limit){
+            let processIng = [];
+            for (let i = 0;i<limit;i++){
+                processIng.push(dbInfoList.shift());
+            }
+            this.processData(processIng);
+        }else{
+            this.processData(dbInfoList,1);
+        }
+
+        this.setState({isLoadingEarlier:false});
     }
 
     appendMessage(msg,time){
@@ -104,7 +145,7 @@ export default class PrivateChatScreen extends Component {
             messages: GiftedChat.append(previousState.messages, chatData),
         }))
     }
-    appendFriendMessage(name,avatar,msg,key,time){
+    appendFriendMessage(msg,key,time){
         let chatData =  {};
         if (time === undefined){
             chatData = {
@@ -113,8 +154,8 @@ export default class PrivateChatScreen extends Component {
                 createdAt: new Date(),
                 user: {
                     _id: Math.random()*100000,
-                    name: name,
-                    avatar: avatar,
+                    name: userName,
+                    avatar: userAvatar,
                 },
             }
         }else{
@@ -124,8 +165,8 @@ export default class PrivateChatScreen extends Component {
                 createdAt: time,
                 user: {
                     _id: Math.random()*100000,
-                    name: name,
-                    avatar: avatar,
+                    name: userName,
+                    avatar: userAvatar,
                 },
             };
         }
@@ -166,6 +207,9 @@ export default class PrivateChatScreen extends Component {
                     user={{
                         _id: 1,
                     }}
+                    loadEarlier={this.state.hasCache}
+                    isLoadingEarlier={this.state.isLoadingEarlier}
+                    onLoadEarlier={() => this.getHistoryChatContents()}
                     bottomOffset={ifIphoneX(34)}
                 />
                 <View style={{...ifIphoneX({height:34, backgroundColor:'white'}, {})}}/>
