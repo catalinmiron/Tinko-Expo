@@ -42,8 +42,6 @@ async function getToken() {
             token: value,
         }),
     });
-
-    console.log('Our token', value);
 }
 
 let uid = "";
@@ -54,7 +52,6 @@ export default class RootNavigator extends React.Component {
         this.state={
             userUid:'',
         }
-        //console.log(props);
     }
 
     componentDidMount() {
@@ -77,12 +74,10 @@ export default class RootNavigator extends React.Component {
       this.setState({userUid:uid});
       // 测试时才用drop
       //this.dropMeetTable(uid);
-      //this.dropChatTable(uid);
+      this.dropChatTable(uid);
       //this.dropFriendsTable(uid);
       //this.initFriendsTable(uid);
       this.initChatTable(uid);
-      // this.dropMeetingTable(uid);
-      // this.initMeetingTable(uid);
       initNewFriendsRequestTable(uid);
 
 
@@ -90,39 +85,15 @@ export default class RootNavigator extends React.Component {
       this.socket = SocketIOClient('http://47.89.187.42:4000/');
       this.socket.on("mySendBox"+uid,msg=>{
           let data = JSON.parse(msg);
-          if (data.type!==999){
-              this.insertChatSql(uid,data,0);
-          }else{
-              db.transaction(
-                  tx => {
-                      tx.executeSql("INSERT INTO db"+uid+" (" +
-                          "fromId," +
-                          "msg," +
-                          "status," +
-                          "type," +
-                          "meetingId," +
-                          "meetUserData," +
-                          "isSystem) VALUES (?,?,?,?,?,?,?)",[data.requester,data.msg,0,1,"","",1]);
-                  },
-                  (error) => console.log("system info insert :" + error),
-                  () => {
-                      console.log('system info insert complete');
-                  }
-              );
+          if (data.type){
+              if (data.type!==999&&data.type!==1){
+                  this.insertChatSql(uid,data,0);
+              }
           }
       });
       this.socket.on("systemListener"+uid,msg=>{
           this.getFriendRequestInfo(JSON.parse(msg))
       });
-
-      // let meetRef = firebase.firestore().collection("Meets").where(`participatingUsersList.${uid}.status`, "==", true);
-      // meetRef.get().then((querySnapshot)=>{
-      //     for (let i = 0;i<querySnapshot.docs.length;i++){
-      //         this.insertMeetingId(uid,querySnapshot.docs[i]);
-      //     }
-      // }).catch((error) => {
-      //     console.log("Error getting documents: ", error);
-      // });
   }
 
   render() {
@@ -274,6 +245,7 @@ export default class RootNavigator extends React.Component {
                     'status int, ' +
                     'type int,' +
                     'meetingId text, '+
+                    'sendCode int DEFAULT 0,'+
                     'meetUserData text,'+
                     'hasRead int DEFAULT 1,' +
                     'isSystem int DEFAULT 0,'+
@@ -316,7 +288,7 @@ export default class RootNavigator extends React.Component {
                 tx.executeSql("INSERT INTO db"+uid+" (fromId,msg,status,type,meetingId,meetUserData) VALUES (?,?,?,?,?,?)",[from,message,status,type,meetingId,userData]);
             },
             null,
-            this.update
+            null
         );
     }
 
@@ -335,7 +307,6 @@ export default class RootNavigator extends React.Component {
 
     getFriendRequestInfo(data){
         //data.msg 代表想说的话
-        console.log("===================getFriendRequest",data);
         getUserData(data.requester).fork(
             (error) => {
                 console.log(error);
