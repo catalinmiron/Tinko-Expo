@@ -33,6 +33,7 @@ export default class PrivateChatScreen extends Component {
 
     constructor(props){
         super(props);
+        dbInfoList = [];
         let dataStore = this.props.navigation.state.params;
         uid = dataStore.myId;
         MeetId = dataStore.personId;

@@ -2,7 +2,7 @@ import React, {
     Component
 } from 'react';
 import {
-    AsyncStorage, View
+    AsyncStorage, View  ,StyleSheet,Text
 } from 'react-native';
 import {getUserDetail} from "../../../modules/UserAPI";
 import {SQLite } from 'expo';
@@ -16,8 +16,8 @@ let uid = "",
     pid = "",
     dbInfoList = [],
     limit = 15,
-    messagesArr = [],
-    userAvatar,userName;
+    userAvatar,userName,
+    timeSTP = "";
 
 export default class PrivateChatScreen extends Component {
 
@@ -33,6 +33,8 @@ export default class PrivateChatScreen extends Component {
 
     constructor(props){
         super(props);
+        dbInfoList = [];
+        this.state.messages = [];
         let dataStore = this.props.navigation.state.params;
         uid = dataStore.myId;
         pid = dataStore.personId;
@@ -50,6 +52,22 @@ export default class PrivateChatScreen extends Component {
                 }
             }
             
+        });
+        this.socket.on("mySendBox"+uid,msg=>{
+            let data = JSON.parse(msg);
+            if (data.type === 1){
+                //updateSql = "update db"+uid+" set hasRead = 0 where hasRead = 1 and fromId = '" + targetId + "'"
+                let updateSQL = "update db" + uid + " set sendCode = 0 where id = " + data.code;
+                db.transaction(
+                    tx => {
+                        tx.executeSql(updateSQL,[]);
+                    },
+                    (error) => console.log("update chat error :" + error),
+                    () => function () {
+                        console.log("update Success");
+                    }
+                );
+            }
         });
     }
 
@@ -88,16 +106,19 @@ export default class PrivateChatScreen extends Component {
                 if (infoList[i].status === 0){
                     this.appendFriendMessage(true,infoList[i].msg,"cache"+infoList[i].id,infoList[i].timeStamp);
                 }else{
-                    this.appendMessage(true,infoList[i].msg,infoList[i].timeStamp);
+                    if (infoList[i].sendCode!==0){
+                        this.appendMessage(true,infoList[i].msg,infoList[i].timeStamp,1);
+                    }else{
+                        this.appendMessage(true,infoList[i].msg,infoList[i].timeStamp);
+                    }
                 }
             }
-        }
+        }                 
         if (type===undefined){
             this.setState({
                 hasCache:(dbInfoList.length !== 0)
             });
         }else{
-
             this.setState({
                 hasCache:false
             });
@@ -120,9 +141,11 @@ export default class PrivateChatScreen extends Component {
         this.setState({isLoadingEarlier:false});
     }
 
-    appendMessage(isCache,msg,time){
-        let messages = [];
-        let chatData = {
+    appendMessage(isCache,msg,time,isFailed){
+        if (isFailed!==undefined){
+            msg = "失败了:"+msg;
+        }
+        let messages = [{
             _id: Math.round(Math.random() * 10000),
             text: msg,
             createdAt: this.utcTime(time),
@@ -130,36 +153,38 @@ export default class PrivateChatScreen extends Component {
                 _id: 1,
                 name: 'Developer',
             }
-        };
+        }];
         if (isCache){
-            messages = this.state.messages.concat(chatData);
+            messages = this.state.messages.concat(messages);
         }else{
-            messages = chatData.concat(this.state.messages);
+            messages = messages.concat(this.state.messages);
         }
         this.setState({
             messages:messages
         })
     }
     appendSystemMessage(isCache,msg,time){
-        let chatData = {
+        let chatData = [{
             _id: Math.round(Math.random() * 10000),
             text: msg,
             createdAt: this.utcTime(time),
             system:true
-        };
+        }];
         if (isCache){
-            messages = this.state.messages.concat(chatData);
+            chatData = this.state.messages.concat(chatData);
         }else{
-            messages = chatData.concat(this.state.messages);
+            chatData = chatData.concat(this.state.messages);
         }
         this.setState({
-            messages:messages
+            messages:chatData
         })
     }
+
+
     appendFriendMessage(isCache,msg,key,time){
-        let chatData =  {};
+        let chatData = [];
         if (time === undefined){
-            chatData = {
+            chatData = [{
                 _id: key,
                 text: msg,
                 createdAt: new Date(),
@@ -168,31 +193,32 @@ export default class PrivateChatScreen extends Component {
                     name: userName,
                     avatar: userAvatar,
                 },
-            }
+            }]
         }else{
-            chatData = {
+            chatData = [{
                 _id: key,
                 text: msg,
-                createdAt: time,
+                createdAt: this.utcTime(time),
                 user: {
                     _id: Math.random()*100000,
                     name: userName,
                     avatar: userAvatar,
                 },
-            };
+            }];
         }
         if (isCache){
-            messages = this.state.messages.concat(chatData);
+            chatData = this.state.messages.concat(chatData);
         }else{
-            messages = chatData.concat(this.state.messages);
+            chatData = chatData.concat(this.state.messages);
         }
         this.setState({
-            messages:messages
+            messages:chatData
         })
     }
 
     utcTime(time){
         //2018-04-17 2:19:51
+        console.log("time:",time);
         if (time !== undefined) {
             let timeArr = time.split(" "),
                 year = timeArr[0].split("-"),
@@ -201,12 +227,37 @@ export default class PrivateChatScreen extends Component {
         }
     }
 
-    onSend(messages = []) {
+    SendMSG(messages = []) {
         let text = messages[0].text;
-        this.socket.emit("privateChat",uid,pid,text);
-        this.setState(previousState => ({
-            messages: GiftedChat.append(previousState.messages, messages[0]),
-        }))
+        let code =  Date.parse( new Date())/1000;
+        if (code !== timeSTP){
+            timeSTP = code;
+            db.transaction(
+                tx => {
+                    tx.executeSql("INSERT INTO db"+uid+" (" +
+                        "fromId," +
+                        "msg," +
+                        "status," +
+                        "type," +
+                        "meetingId," +
+                        "meetUserData," +
+                        "isSystem," +
+                        "sendCode) VALUES (?,?,?,?,?,?,?,?)",[pid,text,1,1,"","",0,code],(_, { insertId }) => {
+                                //被修改了的数量
+                            this.socket.emit("privateChat",uid,pid,text,insertId);
+                            this.setState(previousState => ({
+                                messages: GiftedChat.append(previousState.messages, messages[0]),
+                            }))
+                        }
+                    );
+                },
+                (error) => {
+
+                },
+                () => {
+                }
+            );
+        }
     }
 
     render() {
@@ -219,8 +270,10 @@ export default class PrivateChatScreen extends Component {
                 />
                 <GiftedChat
                     messages={this.state.messages}
-                    onSend={messages => this.onSend(messages)}
+                    
                     user={this.state.thisUser}
+                    onSend={messages => this.SendMSG(messages)}
+
                     loadEarlier={this.state.hasCache}
                     isLoadingEarlier={this.state.isLoadingEarlier}
                     onLoadEarlier={() => this.getHistoryChatContents()}
@@ -248,3 +301,16 @@ export default class PrivateChatScreen extends Component {
         )
     }
 }
+
+const styles = StyleSheet.create({
+    footerContainer: {
+        marginTop: 5,
+        marginLeft: 10,
+        marginRight: 10,
+        marginBottom: 10,
+    },
+    footerText: {
+        fontSize: 14,
+        color: '#aaa',
+    },
+});
