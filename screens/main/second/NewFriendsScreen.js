@@ -157,6 +157,7 @@ export default class NewFriendsScreen extends Component {
         return (
             <View style={{flex:1}}>
                 <Header
+                    leftComponent={{ icon: 'chevron-left', color: '#fff', onPress:()=>this.props.navigation.goBack()}}
                     centerComponent={{ text: 'New Friends', style: { fontSize:18, fontFamily:'regular', color: '#fff' } }}
                     outerContainerStyles={ifIphoneX({height:78})}
                 />

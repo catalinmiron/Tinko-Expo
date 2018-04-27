@@ -1,6 +1,7 @@
 //import db from './SqliteDB';
 import {SQLite} from "expo";
 import Task from "data.task";
+import {currentUserUid} from "./CommonUtility";
 const db = SQLite.openDatabase('db.db');
 
 export const initNewFriendsRequestTable = (uid) => {
@@ -68,3 +69,80 @@ export const updateNewFriendsRequestType = (uid, id) => {
         )
     });
 };
+
+export const insertFriendSql = (userData) => {
+    db.transaction(
+        tx => {
+            tx.executeSql(
+                'insert or replace into friend_list'+currentUserUid()+' (userId,avatarUrl,username, location, gender) values (?,?,?,?,?)',
+                [userData.uid,userData.photoURL,userData.username,userData.location,userData.gender]);
+        }
+        ,
+        (error) => console.log("insertFriendSql" + error),
+        // () => {
+        //     console.log('insertFriendSql complete');
+        // }
+    );
+};
+
+
+
+export const getUserDataFromSql = async (uid) => {
+    return new Promise((resolve, reject) => {
+        db.transaction(
+            tx => {
+                tx.executeSql(`SELECT * FROM friend_list${currentUserUid()} WHERE userId = '${uid}'`, [], (_, {rows}) => {
+                    //console.log(rows);
+                    let length = rows.length;
+                    if (length === 0) {
+                        reject();
+                    } else {
+                        let data = rows._array;
+                        let userData = {
+                            uid: data[0].userId,
+                            photoURL: data[0].avatarUrl,
+                            username: data[0].username,
+                            location: data[0].location,
+                            gender: data[0].gender,
+                        };
+                        resolve(userData);
+                    }
+                });
+            },
+            (error) => {
+                console.log(error);
+                reject();
+            },
+            //() => console.log('getUserDataFromSql')
+        )
+    });
+};
+
+
+export const getMeetTitleFromSql = async (meetId) => {
+    return new Promise((resolve, reject) => {
+        db.transaction(
+            tx => {
+                tx.executeSql(`SELECT * FROM meet${currentUserUid()} WHERE meetId = '${meetId}'`, [], (_, {rows}) => {
+                    //console.log(rows);
+                    let length = rows.length;
+                    if (length === 0) {
+                        reject();
+                    } else {
+                        let data = rows._array;
+                        let meetDataString = data[0].meetData;
+                        let meetData = JSON.parse(meetDataString);
+                        resolve(meetData.title);
+                    }
+                });
+            },
+            (error) => {
+                console.log(error);
+                reject();
+            },
+            //() => console.log('getUserDataFromSql')
+        )
+    });
+};
+
+

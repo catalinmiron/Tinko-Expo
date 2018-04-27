@@ -20,6 +20,7 @@ import PrivateChatScreen from './common/PrivateChatScreen';
 import GroupChatScreen from './common/GroupChatScreen';
 import Colors from "../../constants/Colors";
 import TinkoScreen from "./TinkoScreen";
+import {getMeetTitle, getUserDataFromDatabase} from "../../modules/CommonUtility";
 
 
 import {quitMeet} from "../../modules/SocketClient";
@@ -423,43 +424,33 @@ export default class FriendChatListView extends Component {
         );
     }
 
-    upDateAvatar(id){
-        let docRef = firebase.firestore().collection("Users").doc(id);
-        let getDoc = docRef.get().then(
-            doc =>{
-                if (!doc.exists){
-                    console.log("no data");
-                }else{
-                    chatInfo.updateUserInfo(doc.data());
-                    this.setState({
-                        messages:chatInfo.getData()
-                    });
-                }
-            }
-        ).catch(err => {
-            console.log("ERROR: ",err);
-        })
+    async upDateAvatar(id){
+        await getUserDataFromDatabase(id,
+            (userData) => {
+                chatInfo.updateUserInfo(userData);
+                this.setState({
+                    messages:chatInfo.getData()
+                });
+            },
+            (error) => {
+                console.log(error);
+            });
     }
 
-    getMeetsName(id){
-        let docRef = firebase.firestore().collection("Meets").doc(id);
-        let getDoc = docRef.get().then(
-            doc =>{
-                if (!doc.exists){
-                    console.log("no data");
-                }else{
-                    chatInfo.updateMeets({
-                        name:doc.data().title,
-                        id:id
-                    });
-                    this.setState({
-                        messages:chatInfo.getData()
-                    });
-                }
-            }
-        ).catch(err => {
-            console.log("ERROR: ",err);
-        })
+    async getMeetsName(id){
+        await getMeetTitle(id,
+            (title)=>{
+                chatInfo.updateMeets({
+                    name:title,
+                    id:id
+                });
+                this.setState({
+                    messages:chatInfo.getData()
+                });
+            },
+            (error) => {
+                console.log(error);
+            });
     }
 
     render() {
@@ -472,7 +463,9 @@ export default class FriendChatListView extends Component {
                         leftAvatar={{ rounded: true, source: { uri: messages.imageURL } }}
                         key={messages.id}
                         title={messages.personName}
+                        titleProps={{numberOfLines:1}}
                         subtitle={messages.msg}
+                        subtitleProps={{numberOfLines:1}}
                         onPress={() => {
                                  if (messages.type === 1){
                                      this.updateUnReadNum(1,messages.id);

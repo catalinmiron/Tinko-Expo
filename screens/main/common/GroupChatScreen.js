@@ -4,7 +4,7 @@ import React, {
 import {
     AsyncStorage, View
 } from 'react-native';
-import {getUserDataFromDatabase} from "../../../modules/CommonUtility";
+import {getUserDataFromDatabase,getMeetTitle} from "../../../modules/CommonUtility";
 import {SQLite } from 'expo';
 const db = SQLite.openDatabase('db.db');
 import { GiftedChat, Actions, Bubble, SystemMessage } from 'react-native-gifted-chat';
@@ -27,6 +27,8 @@ export default class PrivateChatScreen extends Component {
         isLoadingEarlier:false,
         hasCache:false,
         viewLoading:true,
+        thisUser:{_id: 1},
+        meetTitle:'Group Chat'
     };
 
     constructor(props){
@@ -52,6 +54,7 @@ export default class PrivateChatScreen extends Component {
             }
         });
         this.getFromDB(uid,MeetId);
+        this.getMeetTitle(MeetId);
     }
 
     //type === 1为历史 需要unshift
@@ -106,34 +109,62 @@ export default class PrivateChatScreen extends Component {
         }
         this.setState({
             hasCache:(dbInfoList.length !== 0),
-            messages:messages
+            messages:messages,
+            viewLoading:false,
         });
     }
 
     render() {
         return (
-            <View style={{flex:1}}>
+            <View
+                //onLayout={() => this.setState({viewLoading:false})}
+                style={{flex:1, backgroundColor:'white'}}>
                 <Header
-                    centerComponent={{ text: 'Group Chat', style: { fontSize:18, fontFamily:'regular', color: '#fff' } }}
+                    leftComponent={{ icon: 'chevron-left', color: '#fff', onPress:()=>this.props.navigation.goBack()}}
+                    centerComponent={{ text: this.state.meetTitle, style: { fontSize:18, fontFamily:'regular', color: '#fff' } }}
                     outerContainerStyles={ifIphoneX({height:88})}
                 />
                 <GiftedChat
+                    ref={(c) => this.giftedChatRef = c}
                     messages={this.state.messages}
                     onSend={messages => this.onSend(messages)}
                     showAvatarForEveryMessage = {true}
-                    user={{
-                        _id: 1,
-                    }}
+                    user={this.state.thisUser}
                     loadEarlier={this.state.hasCache}
                     isLoadingEarlier={this.state.isLoadingEarlier}
                     onLoadEarlier={() => this.getGroupChatContents()}
                     bottomOffset={ifIphoneX(34)}
-                    onLayout={() => {this.setState({ viewLoading:false })}}
-                    textInputProps={{ multiline: !this.state.viewLoading}}
+                    onLayout={() => console.log('onLayout')}
+                    textInputProps={{
+                        // onSubmitEditing: () => {
+                        //      let text = this.giftedChatRef.textInput._getText();
+                        //      let messages = [{
+                        //          createdAt: new Date(),
+                        //          text: text,
+                        //          user: this.state.thisUser,
+                        //          _id: Math.floor(Math.random()*10000)
+                        //      }];
+                        //      this.giftedChatRef.onSend(messages);
+                        //      this.giftedChatRef.onInputTextChanged('');
+                        // },
+                        // returnKeyType:'send',
+                        multiline: !this.state.viewLoading
+                    }}
+                    renderAvatarOnTop={true}
                 />
                 <View style={{...ifIphoneX({height:34, backgroundColor:'white'}, {})}}/>
             </View>
         )
+    }
+
+    async getMeetTitle(meetId){
+        await getMeetTitle(meetId,
+            (title)=>{
+                this.setState({meetTitle:title});
+            },
+            (error)=>{
+                console.log(error);
+            })
     }
 
     getGroupChatContents(){
@@ -202,5 +233,6 @@ export default class PrivateChatScreen extends Component {
             messages: GiftedChat.append(previousState.messages, messages[0]),
         }))
     }
+
 
 }
