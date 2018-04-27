@@ -27,6 +27,7 @@ export default class PrivateChatScreen extends Component {
         isLoadingEarlier:false,
         hasCache:false,
         viewLoading:true,
+        thisUser:{_id: 1}
     };
 
     constructor(props){
@@ -110,24 +111,37 @@ export default class PrivateChatScreen extends Component {
 
     render() {
         return (
-            <View style={{flex:1}}>
+            <View style={{flex:1, backgroundColor:'white'}}>
                 <Header
                     centerComponent={{ text: 'Group Chat', style: { fontSize:18, fontFamily:'regular', color: '#fff' } }}
                     outerContainerStyles={ifIphoneX({height:88})}
                 />
                 <GiftedChat
+                    ref={(c) => this.giftedChatRef = c}
                     messages={this.state.messages}
                     onSend={messages => this.onSend(messages)}
                     showAvatarForEveryMessage = {true}
-                    user={{
-                        _id: 1,
-                    }}
+                    user={this.state.thisUser}
                     loadEarlier={this.state.hasCache}
                     isLoadingEarlier={this.state.isLoadingEarlier}
                     onLoadEarlier={() => this.getGroupChatContents()}
                     bottomOffset={ifIphoneX(34)}
-                    onLayout={() => {this.setState({ viewLoading:false })}}
-                    textInputProps={{ multiline: !this.state.viewLoading}}
+                    textInputProps={{
+                        onSubmitEditing: () => {
+                             let text = this.giftedChatRef.textInput._getText();
+                             let messages = [{
+                                 createdAt: new Date(),
+                                 text: text,
+                                 user: this.state.thisUser,
+                                 _id: Math.floor(Math.random()*10000)
+                             }];
+                             this.giftedChatRef.onSend(messages);
+                             this.giftedChatRef.onInputTextChanged('');
+                        },
+                        returnKeyType:'send',
+                        multiline: false
+                    }}
+                    renderAvatarOnTop={true}
                 />
                 <View style={{...ifIphoneX({height:34, backgroundColor:'white'}, {})}}/>
             </View>
@@ -206,5 +220,6 @@ export default class PrivateChatScreen extends Component {
             messages: GiftedChat.append(previousState.messages, messages[0]),
         }))
     }
+
 
 }

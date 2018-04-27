@@ -22,6 +22,7 @@ export default class PrivateChatScreen extends Component {
 
     state = {
         messages: [],
+        thisUser:{_id: 1}
     };
 
     constructor(props){
@@ -155,7 +156,7 @@ export default class PrivateChatScreen extends Component {
 
     render() {
         return (
-            <View style={{flex:1}}>
+            <View style={{flex:1, backgroundColor:'white'}}>
                 <Header
                     centerComponent={{ text: 'Private Chat', style: { fontSize:18, fontFamily:'regular', color: '#fff' } }}
                     outerContainerStyles={ifIphoneX({height:88})}
@@ -163,10 +164,25 @@ export default class PrivateChatScreen extends Component {
                 <GiftedChat
                     messages={this.state.messages}
                     onSend={messages => this.onSend(messages)}
-                    user={{
-                        _id: 1,
-                    }}
+                    user={this.state.thisUser}
                     bottomOffset={ifIphoneX(34)}
+                    renderAvatarOnTop={true}
+                    ref={(c) => this.giftedChatRef = c}
+                    textInputProps={{
+                        onSubmitEditing: () => {
+                            let text = this.giftedChatRef.textInput._getText();
+                            let messages = [{
+                                createdAt: new Date(),
+                                text: text,
+                                user: this.state.thisUser,
+                                _id: Math.floor(Math.random()*10000)
+                            }];
+                            this.giftedChatRef.onSend(messages);
+                            this.giftedChatRef.onInputTextChanged('');
+                        },
+                        returnKeyType:'send',
+                        multiline: false
+                    }}
                 />
                 <View style={{...ifIphoneX({height:34, backgroundColor:'white'}, {})}}/>
             </View>

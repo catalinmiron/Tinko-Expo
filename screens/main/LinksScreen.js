@@ -471,7 +471,9 @@ export default class FriendChatListView extends Component {
                         leftAvatar={{ rounded: true, source: { uri: messages.imageURL } }}
                         key={messages.id}
                         title={messages.personName}
+                        titleProps={{numberOfLines:1}}
                         subtitle={messages.msg}
+                        subtitleProps={{numberOfLines:1}}
                         onPress={() => {
                                  if (messages.type === 1){
                                      this.updateUnReadNum(1,messages.id);
