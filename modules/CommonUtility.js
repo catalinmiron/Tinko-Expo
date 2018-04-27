@@ -2,9 +2,7 @@ import Task from 'data.task';
 import firebase from "firebase";
 import 'firebase/firestore'
 import {Alert, AsyncStorage} from "react-native";
-const db = SQLite.openDatabase('db.db');
-import {insertNewFriendsRequest} from "./SqliteClient";
-import {SQLite} from "expo";
+import {getUserDataFromSql, insertFriendSql, getMeetTitleFromSql} from "./SqliteClient";
 
 
 export const currentUserUid = () => {
@@ -116,53 +114,7 @@ export const getUserDataFromFirebase = async (userUid, onComplete, onError) => {
     });
 };
 
-export const insertFriendSql = (userData) => {
-    db.transaction(
-        tx => {
-            tx.executeSql(
-                'insert or replace into friend_list'+currentUserUid()+' (userId,avatarUrl,username, location, gender) values (?,?,?,?,?)',
-                [userData.uid,userData.photoURL,userData.username,userData.location,userData.gender]);
-        }
-        ,
-        (error) => console.log("insertFriendSql" + error),
-        // () => {
-        //     console.log('insertFriendSql complete');
-        // }
-    );
-};
 
-
-
-export const getUserDataFromSql = async (uid) => {
-    return new Promise((resolve, reject) => {
-        db.transaction(
-            tx => {
-                tx.executeSql(`SELECT * FROM friend_list${currentUserUid()} WHERE userId = '${uid}'`, [], (_, {rows}) => {
-                    //console.log(rows);
-                    let length = rows.length;
-                    if (length === 0) {
-                        reject();
-                    } else {
-                        let data = rows._array;
-                        let userData = {
-                            uid: data[0].userId,
-                            photoURL: data[0].avatarUrl,
-                            username: data[0].username,
-                            location: data[0].location,
-                            gender: data[0].gender,
-                        };
-                        resolve(userData);
-                    }
-                });
-            },
-            (error) => {
-                console.log(error);
-                reject();
-            },
-            //() => console.log('getUserDataFromSql')
-        )
-    });
-};
 
 
 
@@ -200,6 +152,28 @@ export const getUserDataFromDatabase = async (uid, onComplete, onError) => {
 
     }
 
+};
+
+
+export const getMeetTitle = async (meetId, onComplete, onError) => {
+    await getMeetTitleFromSql(meetId)
+        .then((meetTitle) => onComplete(meetTitle))
+        .catch(async () => {
+            let docRef = firebase.firestore().collection("Meets").doc(meetId);
+            await docRef.get().then(
+                doc =>{
+                    if (!doc.exists){
+                        console.log("no data");
+                        onError('no data');
+                    }else{
+                        onComplete(doc.data().title);
+                    }
+                }
+            ).catch(err => {
+                console.log("ERROR: ",err);
+                onError(err);
+            })
+        })
 };
 
 export const getStartTimeString = (startTime) => {

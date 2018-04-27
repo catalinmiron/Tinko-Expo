@@ -102,6 +102,7 @@ export default class PrivateChatScreen extends Component {
                 hasCache:false
             });
         }
+        this.setState({viewLoading:false});
     }
 
     getHistoryChatContents(){
@@ -212,7 +213,8 @@ export default class PrivateChatScreen extends Component {
         return (
             <View style={{flex:1, backgroundColor:'white'}}>
                 <Header
-                    centerComponent={{ text: 'Private Chat', style: { fontSize:18, fontFamily:'regular', color: '#fff' } }}
+                    leftComponent={{ icon: 'chevron-left', color: '#fff', onPress:()=>this.props.navigation.goBack()}}
+                    centerComponent={{ text: userName, style: { fontSize:18, fontFamily:'regular', color: '#fff' } }}
                     outerContainerStyles={ifIphoneX({height:88})}
                 />
                 <GiftedChat
@@ -226,19 +228,19 @@ export default class PrivateChatScreen extends Component {
                     renderAvatarOnTop={true}
                     ref={(c) => this.giftedChatRef = c}
                     textInputProps={{
-                        onSubmitEditing: () => {
-                            let text = this.giftedChatRef.textInput._getText();
-                            let messages = [{
-                                createdAt: new Date(),
-                                text: text,
-                                user: this.state.thisUser,
-                                _id: Math.floor(Math.random()*10000)
-                            }];
-                            this.giftedChatRef.onSend(messages);
-                            this.giftedChatRef.onInputTextChanged('');
-                        },
-                        returnKeyType:'send',
-                        multiline: false
+                        // onSubmitEditing: () => {
+                        //     let text = this.giftedChatRef.textInput._getText();
+                        //     let messages = [{
+                        //         createdAt: new Date(),
+                        //         text: text,
+                        //         user: this.state.thisUser,
+                        //         _id: Math.floor(Math.random()*10000)
+                        //     }];
+                        //     this.giftedChatRef.onSend(messages);
+                        //     this.giftedChatRef.onInputTextChanged('');
+                        // },
+                        // returnKeyType:'send',
+                        multiline: !this.state.viewLoading
                     }}
                 />
                 <View style={{...ifIphoneX({height:34, backgroundColor:'white'}, {})}}/>
