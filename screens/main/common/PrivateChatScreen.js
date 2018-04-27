@@ -76,7 +76,6 @@ export default class PrivateChatScreen extends Component {
             tx => {
                 tx.executeSql("SELECT * from db" + uid + " WHERE fromId = '" + pid + "' and meetingId = '' ORDER by id DESC", [], (_, {rows}) => {
                     let dataArr = rows['_array'];
-                    console.log("======",dataArr);
                     if (dataArr.length>limit){
                         let processIng = [];
                         for (let i = 0;i<limit;i++){
@@ -103,11 +102,14 @@ export default class PrivateChatScreen extends Component {
             if (infoList[i].isSystem === 1){
                 this.appendSystemMessage(true,infoList[i].msg,infoList[i].timeStamp)
             }else{
-                console.log(infoList[i].timeStamp);
                 if (infoList[i].status === 0){
                     this.appendFriendMessage(true,infoList[i].msg,"cache"+infoList[i].id,infoList[i].timeStamp);
                 }else{
-                    this.appendMessage(true,infoList[i].msg,infoList[i].timeStamp);
+                    if (infoList[i].sendCode!==0){
+                        this.appendMessage(true,infoList[i].msg,infoList[i].timeStamp,1);
+                    }else{
+                        this.appendMessage(true,infoList[i].msg,infoList[i].timeStamp);
+                    }
                 }
             }
         }                 
@@ -137,8 +139,10 @@ export default class PrivateChatScreen extends Component {
         this.setState({isLoadingEarlier:false});
     }
 
-    appendMessage(isCache,msg,time){
-        console.log("appendMessage:",time);
+    appendMessage(isCache,msg,time,isFailed){
+        if (isFailed!==undefined){
+            msg = "失败了:"+msg;
+        }
         let messages = [{
             _id: Math.round(Math.random() * 10000),
             text: msg,
