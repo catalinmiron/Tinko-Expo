@@ -45,7 +45,7 @@ export default class PrivateChatScreen extends Component {
                 type = data.type;
             if (type === 1){
                 if (data.from === pid){
-                    this.appendFriendMessage(data.message,Date.parse(new Date()))
+                    this.appendFriendMessage(false,data.message,Date.parse(new Date()))
                 }
             }
             
@@ -56,7 +56,7 @@ export default class PrivateChatScreen extends Component {
         // ORDER BY id DESC limit 10
         db.transaction(
             tx => {
-                tx.executeSql("SELECT * from db" + uid + " WHERE fromId = '" + pid + "' and meetingId = ''", [], (_, {rows}) => {
+                tx.executeSql("SELECT * from db" + uid + " WHERE fromId = '" + pid + "' and meetingId = '' ORDER by id DESC", [], (_, {rows}) => {
                     let dataArr = rows['_array'];
                     if (dataArr.length>limit){
                         let processIng = [];
@@ -78,16 +78,16 @@ export default class PrivateChatScreen extends Component {
         );
     }
 
+    //1代表还有
     processData(infoList,type){
         for (let i = 0;i<infoList.length;i++){
             if (infoList[i].isSystem === 1){
-                this.appendSystemMessage(infoList[i].msg,infoList[i].timeStamp)
+                this.appendSystemMessage(true,infoList[i].msg,infoList[i].timeStamp)
             }else{
                 if (infoList[i].status === 0){
-                    this.appendFriendMessage(infoList[i].msg,"cache"+infoList[i].id,infoList[i].timeStamp);
+                    this.appendFriendMessage(true,infoList[i].msg,"cache"+infoList[i].id,infoList[i].timeStamp);
                 }else{
-                    //发出去的
-                    this.appendMessage(infoList[i].msg,infoList[i].timeStamp);
+                    this.appendMessage(true,infoList[i].msg,infoList[i].timeStamp);
                 }
             }
         }
@@ -96,6 +96,7 @@ export default class PrivateChatScreen extends Component {
                 hasCache:(dbInfoList.length !== 0)
             });
         }else{
+
             this.setState({
                 hasCache:false
             });
@@ -104,7 +105,6 @@ export default class PrivateChatScreen extends Component {
 
     getHistoryChatContents(){
         this.setState({isLoadingEarlier:true});
-        // console.log("dbInfoList",dbInfoList);
         if (dbInfoList.length>limit){
             let processIng = [];
             for (let i = 0;i<limit;i++){
@@ -118,7 +118,8 @@ export default class PrivateChatScreen extends Component {
         this.setState({isLoadingEarlier:false});
     }
 
-    appendMessage(msg,time){
+    appendMessage(isCache,msg,time){
+        let messages = [];
         let chatData = {
             _id: Math.round(Math.random() * 10000),
             text: msg,
@@ -128,24 +129,32 @@ export default class PrivateChatScreen extends Component {
                 name: 'Developer',
             }
         };
-        messagesArr.push(chatData);
-        this.setState(previousState => ({
-            messages: GiftedChat.append(previousState.messages, chatData),
-        }))
+        if (isCache){
+            messages = this.state.messages.concat(chatData);
+        }else{
+            messages = chatData.concat(this.state.messages);
+        }
+        this.setState({
+            messages:messages
+        })
     }
-    appendSystemMessage(msg,time){
+    appendSystemMessage(isCache,msg,time){
         let chatData = {
             _id: Math.round(Math.random() * 10000),
             text: msg,
             createdAt: this.utcTime(time),
             system:true
         };
-        messagesArr.push(chatData);
-        this.setState(previousState => ({
-            messages: GiftedChat.append(previousState.messages, chatData),
-        }))
+        if (isCache){
+            messages = this.state.messages.concat(chatData);
+        }else{
+            messages = chatData.concat(this.state.messages);
+        }
+        this.setState({
+            messages:messages
+        })
     }
-    appendFriendMessage(msg,key,time){
+    appendFriendMessage(isCache,msg,key,time){
         let chatData =  {};
         if (time === undefined){
             chatData = {
@@ -170,10 +179,14 @@ export default class PrivateChatScreen extends Component {
                 },
             };
         }
-        messagesArr.push(chatData);
-        this.setState(previousState => ({
-            messages: GiftedChat.append(previousState.messages, chatData),
-        }))
+        if (isCache){
+            messages = this.state.messages.concat(chatData);
+        }else{
+            messages = chatData.concat(this.state.messages);
+        }
+        this.setState({
+            messages:messages
+        })
     }
 
     utcTime(time){
