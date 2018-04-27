@@ -104,6 +104,7 @@ export default class PrivateChatScreen extends Component {
             messages = messages.concat(this.state.messages);
         }
         this.setState({
+            hasCache:(dbInfoList.length !== 0),
             messages:messages
         });
     }
@@ -143,21 +144,18 @@ export default class PrivateChatScreen extends Component {
             for (let i = 0;i<limit;i++){
                 processIng.push(dbInfoList.shift());
             }
-            this.setState({
-                hasCache:true
-            });
             this.processMessageData(processIng,1);
         }else{
-            this.setState({
-                hasCache:false
-            });
             this.processMessageData(dbInfoList,1);
+
+            dbInfoList = [];
         }
 
         this.setState({isLoadingEarlier:false});
     }
 
     getFromDB(uid,meetId){
+
         // ORDER BY id DESC limit 10
         db.transaction(
             tx => {
@@ -169,9 +167,6 @@ export default class PrivateChatScreen extends Component {
                             processIng.push(dataArr.shift());
                         }
                         dbInfoList = dataArr;
-                        this.setState({
-                            hasCache:true
-                        });
                         this.processMessageData(processIng,1);
                     }else{
                         this.setState({
@@ -179,7 +174,6 @@ export default class PrivateChatScreen extends Component {
                         });
                         this.processMessageData(dataArr,1);
                     }
-
                     this.setState({isLoadingEarlier:false});
                 })
             },
