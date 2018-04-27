@@ -2,13 +2,15 @@ import React, {
     Component
 } from 'react';
 import {
-    AsyncStorage
+    AsyncStorage, View
 } from 'react-native';
 import {getUserDetail} from "../../../modules/UserAPI";
 import {SQLite } from 'expo';
 const db = SQLite.openDatabase('db.db');
 import { GiftedChat } from 'react-native-gifted-chat';
 import SocketIOClient from 'socket.io-client';
+import {ifIphoneX} from "react-native-iphone-x-helper";
+import {Header} from "react-native-elements";
 
 let uid = "",
     pid = "",
@@ -153,13 +155,21 @@ export default class PrivateChatScreen extends Component {
 
     render() {
         return (
-            <GiftedChat
-                messages={this.state.messages}
-                onSend={messages => this.onSend(messages)}
-                user={{
-                    _id: 1,
-                }}
-            />
+            <View style={{flex:1}}>
+                <Header
+                    centerComponent={{ text: 'Private Chat', style: { fontSize:18, fontFamily:'regular', color: '#fff' } }}
+                    outerContainerStyles={ifIphoneX({height:88})}
+                />
+                <GiftedChat
+                    messages={this.state.messages}
+                    onSend={messages => this.onSend(messages)}
+                    user={{
+                        _id: 1,
+                    }}
+                    bottomOffset={ifIphoneX(34)}
+                />
+                <View style={{...ifIphoneX({height:34, backgroundColor:'white'}, {})}}/>
+            </View>
         )
     }
 }

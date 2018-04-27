@@ -310,8 +310,8 @@ export default class TinkoDetailChatScreen extends React.Component {
         return (
             <View style={{flex:1}}>
                 <Header
-                    centerComponent={{ text: 'Chat', style: { fontSize:18, fontFamily:'bold', color: '#fff' } }}
-                    outerContainerStyles={ifIphoneX({height:78})}
+                    centerComponent={{ text: 'Discuss', style: { fontSize:18, fontFamily:'regular', color: '#fff' } }}
+                    outerContainerStyles={ifIphoneX({height:88})}
                 />
                 <GiftedChat
 

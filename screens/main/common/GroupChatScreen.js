@@ -2,13 +2,15 @@ import React, {
     Component
 } from 'react';
 import {
-    AsyncStorage
+    AsyncStorage, View
 } from 'react-native';
 import {getUserDataFromDatabase} from "../../../modules/CommonUtility";
 import {SQLite } from 'expo';
 const db = SQLite.openDatabase('db.db');
 import { GiftedChat, Actions, Bubble, SystemMessage } from 'react-native-gifted-chat';
 import SocketIOClient from 'socket.io-client';
+import {ifIphoneX} from "react-native-iphone-x-helper";
+import {Header} from "react-native-elements";
 
 let uid = "",
     MeetId = "",
@@ -22,8 +24,9 @@ export default class PrivateChatScreen extends Component {
     state = {
         messages: [],
         user: [],
-        isLoadingEarlier:true,
-        hasCache:true
+        isLoadingEarlier:false,
+        hasCache:false,
+        viewLoading:true,
     };
 
     constructor(props){
@@ -107,17 +110,27 @@ export default class PrivateChatScreen extends Component {
 
     render() {
         return (
-            <GiftedChat
-                messages={this.state.messages}
-                onSend={messages => this.onSend(messages)}
-                showAvatarForEveryMessage = {true}
-                user={{
-                    _id: 1,
-                }}
-                loadEarlier={this.state.hasCache}
-                isLoadingEarlier={this.state.isLoadingEarlier}
-                onLoadEarlier={() => this.getGroupChatContents()}
-            />
+            <View style={{flex:1}}>
+                <Header
+                    centerComponent={{ text: 'Group Chat', style: { fontSize:18, fontFamily:'regular', color: '#fff' } }}
+                    outerContainerStyles={ifIphoneX({height:88})}
+                />
+                <GiftedChat
+                    messages={this.state.messages}
+                    onSend={messages => this.onSend(messages)}
+                    showAvatarForEveryMessage = {true}
+                    user={{
+                        _id: 1,
+                    }}
+                    loadEarlier={this.state.hasCache}
+                    isLoadingEarlier={this.state.isLoadingEarlier}
+                    onLoadEarlier={() => this.getGroupChatContents()}
+                    bottomOffset={ifIphoneX(34)}
+                    onLayout={() => {this.setState({ viewLoading:false })}}
+                    textInputProps={{ multiline: !this.state.viewLoading}}
+                />
+                <View style={{...ifIphoneX({height:34, backgroundColor:'white'}, {})}}/>
+            </View>
         )
     }
 

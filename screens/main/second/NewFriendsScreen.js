@@ -8,6 +8,7 @@ import {acceptFriendRequest} from "../../../modules/SocketClient";
 import Socket from "../../../modules/SocketModule";
 import SocketIOClient from "socket.io-client";
 import {getPostRequest} from "../../../modules/CommonUtility";
+import {ifIphoneX} from "react-native-iphone-x-helper";
 
 export default class NewFriendsScreen extends Component {
     static navigationOptions = ({
@@ -156,7 +157,8 @@ export default class NewFriendsScreen extends Component {
         return (
             <View style={{flex:1}}>
                 <Header
-                    centerComponent={{ text: 'New Friends', style: { color: '#fff' } }}
+                    centerComponent={{ text: 'New Friends', style: { fontSize:18, fontFamily:'regular', color: '#fff' } }}
+                    outerContainerStyles={ifIphoneX({height:78})}
                 />
 
                 <ScrollView>

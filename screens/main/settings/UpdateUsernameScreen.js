@@ -42,7 +42,7 @@ export default class UpdateUsernameScreen extends React.Component {
             <View style={styles.container}>
                 <Header
                     leftComponent={{ icon: 'chevron-left', color: '#fff', onPress:()=>this.props.navigation.goBack()}}
-                    centerComponent={{ text: 'Username', style: { fontSize:18, fontFamily:'bold', color: '#fff' } }}
+                    centerComponent={{ text: 'Username', style: { fontSize:18, fontFamily:'regular', color: '#fff' } }}
                     outerContainerStyles={ifIphoneX({height:88})}
                 />
 

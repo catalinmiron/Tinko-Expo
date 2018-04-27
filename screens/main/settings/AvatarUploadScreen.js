@@ -58,7 +58,7 @@ export default class AvatarUploadScreen extends React.Component {
             <View style={{ flex: 1 , backgroundColor:'white'}}>
                 <Header
                     leftComponent={{ icon: 'chevron-left', color: '#fff', onPress:()=>this.props.navigation.goBack()}}
-                    centerComponent={{ text: 'Avatar', style: { fontSize:18, fontFamily:'bold', color: '#fff' } }}
+                    centerComponent={{ text: 'Avatar', style: { fontSize:18, fontFamily:'regular', color: '#fff' } }}
                     outerContainerStyles={ifIphoneX({height:88})}
                 />
 

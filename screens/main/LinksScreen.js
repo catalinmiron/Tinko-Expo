@@ -23,6 +23,7 @@ import TinkoScreen from "./TinkoScreen";
 
 
 import {quitMeet} from "../../modules/SocketClient";
+import {ifIphoneX} from "react-native-iphone-x-helper";
 
 let friendList = [];
 let uid = "";
@@ -500,7 +501,8 @@ export default class FriendChatListView extends Component {
         return (
             <View style={{flex:1}}>
                 <Header
-                    centerComponent={{ text: 'Message', style: { color: '#fff' } }}
+                    centerComponent={{ text: 'Message', style: { fontSize:18, fontFamily:'regular', color: '#fff' } }}
+                    outerContainerStyles={ifIphoneX({height:88})}
                 />
                 <ScrollView>
                     {friendList}
