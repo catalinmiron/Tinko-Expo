@@ -193,6 +193,7 @@ export default class PrivateChatScreen extends Component {
             tx => {
                 tx.executeSql("SELECT * FROM db"+ uid + " WHERE meetingId = '"+meetId +"' ORDER BY id DESC", [], (_, {rows}) => {
                     let dataArr = rows['_array'];
+                    console.log(dataArr);
                     if (dataArr.length>limit){
                         let processIng = [];
                         for (let i = 0;i<limit;i++){

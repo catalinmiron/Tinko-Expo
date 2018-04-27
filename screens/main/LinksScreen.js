@@ -216,6 +216,7 @@ export default class FriendChatListView extends Component {
         });
         this.socket.on("mySendBox"+uid,msg=>{
             let data = JSON.parse(msg);
+            console.log("get data:",data);
             let type = data.type;
             if (parseInt(type) === 0){
                 //系统

@@ -85,10 +85,9 @@ export default class RootNavigator extends React.Component {
       this.socket = SocketIOClient('http://47.89.187.42:4000/');
       this.socket.on("mySendBox"+uid,msg=>{
           let data = JSON.parse(msg);
-          if (data.type){
-              if (data.type!==999&&data.type!==1){
-                  this.insertChatSql(uid,data,0);
-              }
+          if (data.type!==999&&data.type!==1){
+              console.log("data is here:",data);
+              this.insertChatSql(uid,data,0);
           }
       });
       this.socket.on("systemListener"+uid,msg=>{

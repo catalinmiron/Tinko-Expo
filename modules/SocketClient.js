@@ -35,6 +35,10 @@ export const createMeet = (uid,meetId) => {
     Socket.emit("Meets",uid,meetId,1);
 };
 
+export const joinMeet = (uid,meetId) => {
+    Socket.emit("Meets",uid,meetId,2);
+};
+
 //删除自己
 export const quitMeet = (uid,meetId) => {
     Socket.emit("Meets",uid,meetId,-1);

@@ -12,7 +12,7 @@ import { ifIphoneX } from 'react-native-iphone-x-helper';
 import { getPostRequest } from "../../../modules/CommonUtility";
 import { ActionSheetProvider, connectActionSheet } from '@expo/react-native-action-sheet';
 import SocketIOClient from "socket.io-client";
-import {createMeet} from "../../../modules/SocketClient";
+import {quitMeet,joinMeet} from "../../../modules/SocketClient";
 const db = SQLite.openDatabase('db.db');
 
 const SCREEN_WIDTH = Dimensions.get('window').width;
@@ -367,7 +367,7 @@ export default class TinkoDetailScreen extends React.Component {
             participatingUsersArray:participatingUsersList
         }).then(()=>{
             this.setState({buttonShowLoading:false});
-            createMeet(userUid,meetId);
+            joinMeet(userUid,meetId);
             let bodyData ={meetId:meetId};
             getPostRequest('checkMeetStatus', bodyData,
                 () => {
@@ -392,6 +392,7 @@ export default class TinkoDetailScreen extends React.Component {
         }).then(()=>{
             this.props.navigation.goBack(null);
             let bodyData ={meetId:meetId};
+            quitMeet(userUid,meetId);
             getPostRequest('checkMeetStatus', bodyData,
                 () => {
                 },
