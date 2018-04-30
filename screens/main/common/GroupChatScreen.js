@@ -26,7 +26,6 @@ export default class PrivateChatScreen extends Component {
         user: [],
         isLoadingEarlier:false,
         hasCache:false,
-        viewLoading:true,
         thisUser:{_id: 1},
         meetTitle:'Group Chat'
     };
@@ -110,14 +109,12 @@ export default class PrivateChatScreen extends Component {
         this.setState({
             hasCache:(dbInfoList.length !== 0),
             messages:messages,
-            viewLoading:false,
         });
     }
 
     render() {
         return (
             <View
-                //onLayout={() => this.setState({viewLoading:false})}
                 style={{flex:1, backgroundColor:'white'}}>
                 <Header
                     leftComponent={{ icon: 'chevron-left', color: '#fff', onPress:()=>this.props.navigation.goBack()}}
@@ -148,7 +145,6 @@ export default class PrivateChatScreen extends Component {
                         //      this.giftedChatRef.onInputTextChanged('');
                         // },
                         // returnKeyType:'send',
-                        multiline: !this.state.viewLoading
                     }}
                     renderAvatarOnTop={true}
                 />
