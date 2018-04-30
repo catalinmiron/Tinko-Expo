@@ -2,11 +2,12 @@ import React, {
     Component
 } from 'react';
 import {
-    AsyncStorage, View
+    View,DeviceEventEmitter
 } from 'react-native';
 import {getUserDataFromDatabase,getMeetTitle} from "../../../modules/CommonUtility";
 import {SQLite } from 'expo';
 const db = SQLite.openDatabase('db.db');
+import {unReadNumNeedsUpdates} from "../../../modules/ChatStack";
 import { GiftedChat, Actions, Bubble, SystemMessage } from 'react-native-gifted-chat';
 import SocketIOClient from 'socket.io-client';
 import {ifIphoneX} from "react-native-iphone-x-helper";
@@ -20,6 +21,10 @@ let uid = "",
 export default class PrivateChatScreen extends Component {
 
     static navigationOptions = {header:null};
+
+    componentWillUnmount(){
+        unReadNumNeedsUpdates(MeetId);
+    }
 
     state = {
         messages: [],

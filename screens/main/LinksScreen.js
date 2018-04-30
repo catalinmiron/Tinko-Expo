@@ -6,8 +6,8 @@ import {
 } from 'react-native'
 import { ListItem, Header } from 'react-native-elements'
 import Expo, { SQLite } from 'expo';
-import * as firebase from "firebase";
 const db = SQLite.openDatabase('db.db');
+import * as firebase from "firebase";
 import IconBadge from '../../modules/react-native-icon-badge'
 import {Ionicons} from '@expo/vector-icons'
 
@@ -21,7 +21,7 @@ import GroupChatScreen from './common/GroupChatScreen';
 import Colors from "../../constants/Colors";
 import TinkoScreen from "./TinkoScreen";
 import {getMeetTitle, getUserDataFromDatabase} from "../../modules/CommonUtility";
-import {appendChatData,updateUserInfo,updateMeets,getLength,getData} from "../../modules/ChatStack";
+import {appendChatData,updateUserInfo,updateMeets,getLength,getData,updateUnReadNum,setUid,getTotalUnReadNum} from "../../modules/ChatStack";
 
 
 import {quitMeet} from "../../modules/SocketClient";
@@ -43,7 +43,7 @@ export default class FriendChatListView extends Component {
         super();
         let user = firebase.auth().currentUser;
         uid = user.uid;
-        // this.socket = SocketIOClient('https://shuaiyixu.xyz');
+        setUid(uid);
         this.socket = SocketIOClient('http://47.89.187.42:4000/');
         this.getAvatar();
         this.getDBData();
@@ -52,6 +52,21 @@ export default class FriendChatListView extends Component {
             friendInfo:[],
             totalUnReadMessageNum:0
         };
+        this.initSocket();
+        this.listener =DeviceEventEmitter.addListener('updateUnReadNum',(param)=>{
+            getLength(param.id);
+            // console.log("获取到了");
+            // console.log(getTotalUnReadNum());
+            totalUnReadMessageNum = getTotalUnReadNum();
+            this.totalUnreadMessageNumChanged(getTotalUnReadNum());
+        });
+    }
+
+    componentWillUnmount(){
+        this.listener.remove();
+    }
+
+    initSocket(){
         this.socket.emit("userLogin",uid);
         this.socket.on("connect" + uid,msg=>{
             let data = JSON.parse(msg),
@@ -167,12 +182,12 @@ export default class FriendChatListView extends Component {
 
                     }
                     BadgeElement={
-                        <Text style={{color: '#FFFFFF'}}>{totalUnReadMessageNum}</Text>
+                        <Text style={{color: '#FFFFFF'}}>{params.totalUnReadMessageNum}</Text>
                     }
                     IconBadgeStyle={
                         {width: 20, height: 20, backgroundColor: 'red'}
                     }
-                    Hidden={!totalUnReadMessageNum>0}
+                    Hidden={!params.totalUnReadMessageNum>0}
                 />,
 
 
@@ -183,6 +198,9 @@ export default class FriendChatListView extends Component {
     };
 
     totalUnreadMessageNumChanged(num){
+        // this.setState({
+        //     totalUnReadMessageNum:num
+        // });
         this.props.navigation.setParams({totalUnReadMessageNum:num});
     }
 
@@ -225,13 +243,12 @@ export default class FriendChatListView extends Component {
             userData = "",
             time = "",
             status = 0,
-            readStatus = (currentOnSelectId === from)?0:1;
+            readStatus = 1;
         if (data["time"]){
             time = this.unixTime(data["time"]);
         }
         if (data["meetId"]!==undefined){
             meetingId = data["meetId"];
-            readStatus = (currentOnSelectId === meetingId)?0:1;
         }else if (data["activityId"]!==undefined){
             meetingId = data["activityId"];
         }
@@ -241,10 +258,8 @@ export default class FriendChatListView extends Component {
         if (data["userData"]!==undefined){
             userData = JSON.stringify(data["userData"]);
         }
-        if (readStatus === 1){
-            totalUnReadMessageNum ++;
-            this.totalUnreadMessageNumChanged(totalUnReadMessageNum);
-        }
+        totalUnReadMessageNum ++;
+        this.totalUnreadMessageNumChanged(totalUnReadMessageNum);
         let sqlStr = "",
             sqlParams = [];
         if (time === ""){
@@ -310,27 +325,6 @@ export default class FriendChatListView extends Component {
         )
     }
 
-    //type = 1为私聊
-    //type = 2群聊
-    updateUnReadNum(type,targetId){
-        let updateSql = "";
-        if (type === 1){
-            updateSql = "update db"+uid+" set hasRead = 0 where hasRead = 1 and fromId = '" + targetId + "'"
-        }else{
-            updateSql = "update db"+uid+" set hasRead = 0 where hasRead = 1 and meetingId = '" + targetId + "'"
-        }
-        db.transaction(
-            tx => {
-                tx.executeSql(updateSql,[]
-                );
-            },
-            (error) => console.log("update chat error :" + error),
-            () => function () {
-                console.log("update Success");
-            }
-        );
-    }
-
     async upDateAvatar(id){
         await getUserDataFromDatabase(id,
             (userData) => {
@@ -379,9 +373,9 @@ export default class FriendChatListView extends Component {
                         }
                         onPress={() => {
                                  if (messages.type === 1){
-                                     this.updateUnReadNum(1,messages.id);
-                                     totalUnReadMessageNum = totalUnReadMessageNum - getLength(messages.id);
-                                     this.totalUnreadMessageNumChanged(totalUnReadMessageNum);
+                                     updateUnReadNum(1,messages.id);
+                                     // totalUnReadMessageNum = totalUnReadMessageNum - getLength(messages.id);
+                                     // this.totalUnreadMessageNumChanged(totalUnReadMessageNum);
                                      this.props.navigation.navigate('PrivateChatPage', {
                                          avatar:messages.imageURL,
                                          name:messages.personName,
@@ -389,9 +383,9 @@ export default class FriendChatListView extends Component {
                                          myId:uid
                                      });
                                  }else{
-                                     this.updateUnReadNum(2,messages.id);
-                                     totalUnReadMessageNum = totalUnReadMessageNum - getLength(messages.id);
-                                     this.totalUnreadMessageNumChanged(totalUnReadMessageNum);
+                                     updateUnReadNum(2,messages.id);
+                                     // totalUnReadMessageNum = totalUnReadMessageNum - getLength(messages.id);
+                                     // this.totalUnreadMessageNumChanged(totalUnReadMessageNum);
                                      this.props.navigation.navigate('GroupChatPage', {
                                          avatar:messages.imageURL,
                                          name:messages.personName,

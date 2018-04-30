@@ -18,6 +18,7 @@ import Colors from "../../constants/Colors";
 import IconBadge from '../../modules/react-native-icon-badge';
 import {Ionicons} from '@expo/vector-icons';
 import {writeInAsyncStorage, getFromAsyncStorage} from "../../modules/CommonUtility";
+import {} from '../../modules/ChatStack';
 
 const db = SQLite.openDatabase('db.db');
 const SCREEN_WIDTH = Dimensions.get('window').width;

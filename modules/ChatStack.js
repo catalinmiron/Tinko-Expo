@@ -1,8 +1,18 @@
-let dataStore = [],
+import Expo, { SQLite } from 'expo';
+const db = SQLite.openDatabase('db.db');
+import {
+    DeviceEventEmitter
+} from 'react-native';
+
+let uid,
+    dataStore = [],
     personalInfo = {};
 
+export const setUid = (id) => {
+    uid = id;
+};
+
 export const appendChatData = (type,id,msg,hasRead) =>{
-        console.log("进来了。。。");
         let arr = [];
         for (let i = 0;i<dataStore.length;i++){
             arr.push(dataStore[i].id);
@@ -50,7 +60,6 @@ export const appendChatData = (type,id,msg,hasRead) =>{
             }
             dataStore.unshift(rtnData);
         }
-        console.log("?????????=========?????????",dataStore);
         return dataStore;
 };
 
@@ -85,8 +94,47 @@ export const getLength = (id) => {
                 return eleLength;
             }
         }
+        //假设是一个新的聊天
+        return 0;
+};
+
+export const getTotalUnReadNum = () => {
+    let number = 0;
+    for (element in dataStore){
+        let ele = dataStore[element];
+        number += dataStore[element].length;
+    }
+    return number;
 };
 
 export const getData = () => {
     return dataStore;
+};
+
+
+//type = 1为私聊
+//type = 2群聊
+export const updateUnReadNum = (type,targetId) => {
+    let updateSql = "";
+    if (type === 1){
+        updateSql = "update db"+uid+" set hasRead = 0 where hasRead = 1 and fromId = '" + targetId + "'"
+    }else{
+        updateSql = "update db"+uid+" set hasRead = 0 where hasRead = 1 and meetingId = '" + targetId + "'"
+    }
+    db.transaction(
+        tx => {
+            tx.executeSql(updateSql,[]
+            );
+        },
+        (error) => console.log("update chat error :" + error),
+        () => function () {
+            console.log("update Success");
+        }
+    );
+};
+
+export const unReadNumNeedsUpdates = (id) =>{
+    DeviceEventEmitter.emit('updateUnReadNum',{
+        id:id
+    });
 };
