@@ -32,7 +32,7 @@ let friendList = [],
     lastUpdateArr = [],
     personalInfo = {},
     alreadyInList = [],
-    currentOnSelectId,
+    currentOnSelectId = "",
     totalUnReadMessageNum = 0,
     getPrivateHistory = false,
     getMeetsHistory = false;
@@ -55,15 +55,18 @@ export default class FriendChatListView extends Component {
         this.initSocket();
         this.listener =DeviceEventEmitter.addListener('updateUnReadNum',(param)=>{
             getLength(param.id);
-            // console.log("获取到了");
-            // console.log(getTotalUnReadNum());
+            currentOnSelectId = "";
             totalUnReadMessageNum = getTotalUnReadNum();
             this.totalUnreadMessageNumChanged(getTotalUnReadNum());
+        });
+        this.selectListener =DeviceEventEmitter.addListener('updateCurrentOnSelectUser',(param)=>{
+            currentOnSelectId = param.id;
         });
     }
 
     componentWillUnmount(){
         this.listener.remove();
+        this.selectListener.remove();
     }
 
     initSocket(){
@@ -243,12 +246,13 @@ export default class FriendChatListView extends Component {
             userData = "",
             time = "",
             status = 0,
-            readStatus = 1;
+            readStatus = (currentOnSelectId === from)?0:1;
         if (data["time"]){
             time = this.unixTime(data["time"]);
         }
         if (data["meetId"]!==undefined){
             meetingId = data["meetId"];
+            readStatus = (currentOnSelectId === meetingId)?0:1;
         }else if (data["activityId"]!==undefined){
             meetingId = data["activityId"];
         }
@@ -258,8 +262,10 @@ export default class FriendChatListView extends Component {
         if (data["userData"]!==undefined){
             userData = JSON.stringify(data["userData"]);
         }
-        totalUnReadMessageNum ++;
-        this.totalUnreadMessageNumChanged(totalUnReadMessageNum);
+        if (readStatus === 1){
+            totalUnReadMessageNum ++;
+            this.totalUnreadMessageNumChanged(totalUnReadMessageNum);
+        }
         let sqlStr = "",
             sqlParams = [];
         if (time === ""){
@@ -372,6 +378,7 @@ export default class FriendChatListView extends Component {
                             { value: messages.length, textStyle: { color: 'orange' }, containerStyle: { marginTop: -20 } }
                         }
                         onPress={() => {
+                            currentOnSelectId = messages.id;
                                  if (messages.type === 1){
                                      updateUnReadNum(1,messages.id);
                                      // totalUnReadMessageNum = totalUnReadMessageNum - getLength(messages.id);
@@ -393,7 +400,6 @@ export default class FriendChatListView extends Component {
                                          myId:uid
                                      })
                                  }
-                                 currentOnSelectId = messages.id;
                             }
                         }
                     />
