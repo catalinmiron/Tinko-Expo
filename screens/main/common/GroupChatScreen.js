@@ -7,7 +7,7 @@ import {
 import {getUserDataFromDatabase,getMeetTitle} from "../../../modules/CommonUtility";
 import {SQLite } from 'expo';
 const db = SQLite.openDatabase('db.db');
-import {unReadNumNeedsUpdates} from "../../../modules/ChatStack";
+import {unReadNumNeedsUpdates,updateLastMessage} from "../../../modules/ChatStack";
 import { GiftedChat, Actions, Bubble, SystemMessage } from 'react-native-gifted-chat';
 import SocketIOClient from 'socket.io-client';
 import {ifIphoneX} from "react-native-iphone-x-helper";
@@ -229,6 +229,7 @@ export default class PrivateChatScreen extends Component {
 
     onSend(messages = []) {
         let text = messages[0].text;
+        updateLastMessage(MeetId,text);
         this.socket.emit("groupChat",uid,MeetId,text);
         this.setState(previousState => ({
             messages: GiftedChat.append(previousState.messages, messages[0]),
