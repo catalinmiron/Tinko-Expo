@@ -568,14 +568,21 @@ export default class TinkoDetailScreen extends React.Component {
                             {_.chunk(participatingUsersData, 3).map((chunk, chunkIndex) => (
                                 <View style={{ flexDirection: 'row', justifyContent: 'space-around', marginBottom: 10 }} key={chunkIndex}>
                                     {chunk.map(userData => (
-                                        <Avatar
-                                            large
-                                            rounded
-                                            source={userData.photoURL ? { uri: userData.photoURL } : null}
-                                            title='TK'
-                                            key={userData.uid}
-                                            onPress={() => this.props.screenProps.showThisUser(userData.uid, this.props.navigation)}
-                                        />
+                                        <View style = {{width:75}}>
+                                            <Avatar
+                                                large
+                                                rounded
+                                                source={userData.photoURL ? { uri: userData.photoURL } : null}
+                                                title='TK'
+                                                key={userData.uid}
+                                                onPress={() => this.props.screenProps.showThisUser(userData.uid, this.props.navigation)}
+                                            />
+                                            <Text
+                                                numberOfLines={2}
+                                                style={{marginTop:3,color:'#626567'}}
+                                            >{userData.username}</Text>
+                                        </View>
+
                                     ))}
                                 </View>
                             ))}

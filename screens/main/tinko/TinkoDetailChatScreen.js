@@ -248,34 +248,6 @@ export default class TinkoDetailChatScreen extends React.Component {
         });
     }
 
-    componentWillMount() {
-        //this.getGroupChatContents();
-        // this.setState({
-        //     messages: [
-        //         {
-        //             _id: 1,
-        //             text: 'Hello developer',
-        //             createdAt: new Date(),
-        //             user: {
-        //                 _id: Math.random()*100000,
-        //                 name: 'React Native',
-        //                 avatar: 'https://graph.facebook.com/111708632968603/picture?type=normal',
-        //             },
-        //         },
-        //         {
-        //             _id: 2,
-        //             text: 'LOL will you come over tonight',
-        //             createdAt: new Date(),
-        //             user: {
-        //                 _id: Math.random()*100000,
-        //                 name: 'React Native',
-        //                 avatar: 'https://graph.facebook.com/111708632968603/picture?type=normal',
-        //             },
-        //         },
-        //     ],
-        // })
-    }
-
 
     renderMessage(props) {
         const { currentMessage: { text: currText } } = props;

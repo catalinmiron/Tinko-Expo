@@ -178,7 +178,7 @@ const styles = StyleSheet.create({
     slackMessageText: {
         marginLeft: 0,
         marginRight: 0,
-        fontFamily:'regular'
+        fontFamily:'regular',
     },
     container: {
         flex: 1,
@@ -191,7 +191,8 @@ const styles = StyleSheet.create({
     },
     username: {
         fontWeight: 'bold',
-        fontFamily:'regular'
+        fontFamily:'regular',
+        color:'#626567'
     },
     time: {
         textAlign: 'left',

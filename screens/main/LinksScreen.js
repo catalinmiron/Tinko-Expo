@@ -464,8 +464,10 @@ export default class FriendChatListView extends Component {
                         key={messages.id}
                         title={messages.personName}
                         titleProps={{numberOfLines:1}}
+                        titleStyle={{fontFamily:'regular'}}
                         subtitle={messages.msg}
                         subtitleProps={{numberOfLines:1}}
+                        subtitleStyle={{fontFamily:'regular', color:'#626567'}}
                         onPress={() => {
                                  if (messages.type === 1){
                                      this.updateUnReadNum(1,messages.id);

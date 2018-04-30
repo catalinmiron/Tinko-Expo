@@ -28,7 +28,6 @@ export default class PrivateChatScreen extends Component {
         thisUser:{_id: 1},
         isLoadingEarlier:false,
         hasCache:false,
-        viewLoading:true,
     };
 
     constructor(props){
@@ -70,6 +69,7 @@ export default class PrivateChatScreen extends Component {
             }
         });
     }
+
 
     getFromDB(uid,pid){
         // ORDER BY id DESC limit 10
@@ -123,7 +123,6 @@ export default class PrivateChatScreen extends Component {
                 hasCache:false
             });
         }
-        this.setState({viewLoading:false});
     }
 
     getHistoryChatContents(){
@@ -270,7 +269,7 @@ export default class PrivateChatScreen extends Component {
                 />
                 <GiftedChat
                     messages={this.state.messages}
-                    
+
                     user={this.state.thisUser}
                     onSend={messages => this.SendMSG(messages)}
 
@@ -293,7 +292,11 @@ export default class PrivateChatScreen extends Component {
                         //     this.giftedChatRef.onInputTextChanged('');
                         // },
                         // returnKeyType:'send',
-                        multiline: !this.state.viewLoading
+                        // blurOnSubmit:false,
+                        // onLayout:(event)=> {
+                        //     console.log(event.nativeEvent.layout);
+                        //     console.log(this.giftedChatRef.textInput._getText());
+                        // }
                     }}
                 />
                 <View style={{...ifIphoneX({height:34, backgroundColor:'white'}, {})}}/>
