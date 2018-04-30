@@ -23,7 +23,7 @@ export default class PrivateChatScreen extends Component {
     static navigationOptions = {header:null};
 
     componentWillUnmount(){
-        unReadNumNeedsUpdates(MeetId);
+        unReadNumNeedsUpdates(MeetId,1);
     }
 
     state = {

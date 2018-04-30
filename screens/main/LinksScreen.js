@@ -21,7 +21,17 @@ import GroupChatScreen from './common/GroupChatScreen';
 import Colors from "../../constants/Colors";
 import TinkoScreen from "./TinkoScreen";
 import {getMeetTitle, getUserDataFromDatabase} from "../../modules/CommonUtility";
-import {appendChatData,updateUserInfo,updateMeets,getLength,getData,updateUnReadNum,setUid,getTotalUnReadNum} from "../../modules/ChatStack";
+import {
+    appendChatData,
+    updateUserInfo,
+    updateMeets,
+    getLength,
+    getData,
+    updateUnReadNum,
+    setUid,
+    getTotalUnReadNum,
+    unReadNumNeedsUpdates
+} from "../../modules/ChatStack";
 
 
 import {quitMeet} from "../../modules/SocketClient";
@@ -62,11 +72,20 @@ export default class FriendChatListView extends Component {
         this.selectListener =DeviceEventEmitter.addListener('updateCurrentOnSelectUser',(param)=>{
             currentOnSelectId = param.id;
         });
+        this.avatarListener =DeviceEventEmitter.addListener('avatarUpdate',(param)=>{
+            currentOnSelectId = param.id;
+            if (param.type === 0){
+                this.upDateAvatar(param.id);
+            }else{                            
+                this.getMeetsName(param.id);
+            }
+        });
     }
 
     componentWillUnmount(){
         this.listener.remove();
         this.selectListener.remove();
+        this.avatarListener.remove();
     }
 
     initSocket(){
@@ -116,6 +135,7 @@ export default class FriendChatListView extends Component {
                                 };
                             this.insertChatSql(uid,sqlObj);
                             appendChatData(type,dataArr.meetId,dataArr.msg,true);
+                            unReadNumNeedsUpdates(dataArr.meetId,1);
                         }
                         this.setState({
                             messages:getData()
@@ -130,11 +150,14 @@ export default class FriendChatListView extends Component {
                 if (parseInt(type) === 0){
                     //系统
                     appendChatData(type,data.activityId,data.message,true);
+                    unReadNumNeedsUpdates(data.activityId,1);
                 }else if (parseInt(type)===1){
                     //私聊
                     appendChatData(type,data.from,data.message,true);
+                    unReadNumNeedsUpdates(data.from,0);
                 }else{
                     appendChatData(type,data.activityId,data.message,true);
+                    unReadNumNeedsUpdates(data.activityId,1);
                 }
                 this.setState({
                     messages:getData()
@@ -333,6 +356,7 @@ export default class FriendChatListView extends Component {
     }
 
     async upDateAvatar(id){
+        console.log("updateAvatar:",id);
         await getUserDataFromDatabase(id,
             (userData) => {
                 updateUserInfo(userData);
@@ -342,7 +366,7 @@ export default class FriendChatListView extends Component {
 
             },
             (error) => {
-                console.log(error);
+                console.log("error");
             });
     }
 

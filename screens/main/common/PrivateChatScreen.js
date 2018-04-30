@@ -72,7 +72,7 @@ export default class PrivateChatScreen extends Component {
     }
 
     componentWillUnmount(){
-        unReadNumNeedsUpdates(pid);
+        unReadNumNeedsUpdates(pid,0);
     }
 
     getFromDB(uid,pid){

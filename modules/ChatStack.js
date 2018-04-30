@@ -46,7 +46,8 @@ export const appendChatData = (type,id,msg,hasRead) =>{
                     msg:msg,
                     imageURL:imageURL,
                     personName:personName
-                }
+                };
+                unReadNumNeedsUpdates(id,0);
             }else{
                 //群聊
                 rtnData = {
@@ -56,7 +57,8 @@ export const appendChatData = (type,id,msg,hasRead) =>{
                     msg:msg,
                     imageURL:"http://larissayuan.com/home/img/prisma.png",
                     personName :id,
-                }
+                };
+                unReadNumNeedsUpdates(id,1);
             }
             dataStore.unshift(rtnData);
         }
@@ -143,8 +145,13 @@ export const updateUnReadNum = (type,targetId) => {
     );
 };
 
-export const unReadNumNeedsUpdates = (id) =>{
+//1 group 0 private
+export const unReadNumNeedsUpdates = (id,type) =>{
     DeviceEventEmitter.emit('updateUnReadNum',{
         id:id
     });
+    DeviceEventEmitter.emit('avatarUpdate',{
+        id:id,
+        type:type
+    })
 };
