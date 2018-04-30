@@ -1,9 +1,10 @@
 import React, {
     Component
 } from 'react'
-import {Text, Image, AsyncStorage} from 'react-native';
+import {Text, Image, AsyncStorage, DeviceEventEmitter} from 'react-native';
 import {Button, Header, Avatar, Overlay, Input} from 'react-native-elements'
 import {getUserData} from "../../../modules/CommonUtility";
+import {getLength,updateUnReadNum} from "../../../modules/ChatStack";
 import {sendFriendRequest} from "../../../modules/SocketClient";
 
 import {
@@ -202,12 +203,17 @@ export default class UserDetailScreen extends Component{
                             <Button
                                 title='Message'
                                 onPress={() => {
+                                    getLength(this.state.userData.uid);
+                                    DeviceEventEmitter.emit('updateCurrentOnSelectUser',{
+                                        id:this.state.userData.uid
+                                    });
+                                    updateUnReadNum(1,this.state.userData.uid);
                                     this.state.navigation.navigate('PrivateChatPage', {
                                         avatar: userData.photoURL,
                                         name:userData.username,
                                         personId:userData.uid,
                                         myId:userUid
-                                    })
+                                    });
                                     this.setState({isVisible:false})
                                 }}
                             />

@@ -2,15 +2,16 @@ import React, {
     Component
 } from 'react';
 import {
-    AsyncStorage, View  ,StyleSheet,Text
+    AsyncStorage, View  ,StyleSheet,Text,DeviceEventEmitter
 } from 'react-native';
 import {getUserDetail} from "../../../modules/UserAPI";
-import {SQLite } from 'expo';
+import { SQLite } from 'expo';
 const db = SQLite.openDatabase('db.db');
 import { GiftedChat } from 'react-native-gifted-chat';
 import SocketIOClient from 'socket.io-client';
 import {ifIphoneX} from "react-native-iphone-x-helper";
 import {Header} from "react-native-elements";
+import {unReadNumNeedsUpdates} from "../../../modules/ChatStack";
 
 let uid = "",
     pid = "",
@@ -70,6 +71,9 @@ export default class PrivateChatScreen extends Component {
         });
     }
 
+    componentWillUnmount(){
+        unReadNumNeedsUpdates(pid);
+    }
 
     getFromDB(uid,pid){
         // ORDER BY id DESC limit 10
@@ -162,6 +166,7 @@ export default class PrivateChatScreen extends Component {
             messages:messages
         })
     }
+
     appendSystemMessage(isCache,msg,time){
         let chatData = [{
             _id: Math.round(Math.random() * 10000),
@@ -217,12 +222,11 @@ export default class PrivateChatScreen extends Component {
 
     utcTime(time){
         //2018-04-17 2:19:51
-        console.log("time:",time);
         if (time !== undefined) {
             let timeArr = time.split(" "),
                 year = timeArr[0].split("-"),
                 hour = timeArr[1].split(":");
-            return new Date(Date.UTC(year[0], parseInt(year[1])-1, year[2], hour[0], hour[1], hour[2]))
+            return new Date(year[0], parseInt(year[1])-1, year[2], hour[0], hour[1], hour[2])
         }
     }
 

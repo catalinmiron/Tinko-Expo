@@ -2,12 +2,12 @@ import React, {
     Component
 } from 'react'
 import {
-    StyleSheet,View,WebView,ScrollView, Text
+    StyleSheet,View,WebView,ScrollView, Text,DeviceEventEmitter
 } from 'react-native'
 import { ListItem, Header } from 'react-native-elements'
 import Expo, { SQLite } from 'expo';
-import * as firebase from "firebase";
 const db = SQLite.openDatabase('db.db');
+import * as firebase from "firebase";
 import IconBadge from '../../modules/react-native-icon-badge'
 import {Ionicons} from '@expo/vector-icons'
 
@@ -21,130 +21,55 @@ import GroupChatScreen from './common/GroupChatScreen';
 import Colors from "../../constants/Colors";
 import TinkoScreen from "./TinkoScreen";
 import {getMeetTitle, getUserDataFromDatabase} from "../../modules/CommonUtility";
+import {appendChatData,updateUserInfo,updateMeets,getLength,getData,updateUnReadNum,setUid,getTotalUnReadNum} from "../../modules/ChatStack";
 
 
 import {quitMeet} from "../../modules/SocketClient";
 import {ifIphoneX} from "react-native-iphone-x-helper";
 
-let friendList = [];
-let uid = "";
-let lastUpdateArr = [],
+let friendList = [],
+    uid = "",
+    lastUpdateArr = [],
     personalInfo = {},
-    alreadyInList = [];
-
-let chatInfo = new Stack(),
-    currentOnSelectId,
-    totalUnReadMessageNum = 0;
-
-let getPrivateHistory = false,
+    alreadyInList = [],
+    currentOnSelectId = "",
+    totalUnReadMessageNum = 0,
+    getPrivateHistory = false,
     getMeetsHistory = false;
 
-
-
-function Stack() {
-    this.dataStore = [];
-    this.appendData = function (type,id,msg) {
-        console.log("type:"+type + " id:"+id + " msg:"+msg);
-        let arr = [];
-        for (let i = 0;i<this.dataStore.length;i++){
-            arr.push(this.dataStore[i].id);
-        }
-        let indexOf = arr.indexOf(id);
-        if (indexOf !== -1){
-            this.dataStore[indexOf].msg = msg;
-            let data = this.dataStore[indexOf];
-            this.dataStore.splice(indexOf,1);
-            this.dataStore.unshift(data);
-        }else{
-            let rtnData = {};
-            if (type === 1|| type === 3){
-                //私聊
-                let data = personalInfo[id];
-                let imageURL =  "http://larissayuan.com/home/img/prisma.png",
-                    personName = "Tinko好友";
-                if (data !== undefined){
-                    imageURL =  (data[0]!==undefined)?data[0]:"http://larissayuan.com/home/img/prisma.png";
-                    personName = (data[1]!==undefined)?data[1]:"Tinko好友";
-                }else{
-                    console.log("找不到头像");
-                }
-                rtnData = {
-                    id:id,
-                    type:1,
-                    msg:msg,
-                    imageURL:imageURL,
-                    personName:personName
-                }
-            }else{
-                //群聊
-                rtnData = {
-                    id:id,
-                    type:2,
-                    msg:msg,
-                    imageURL:"http://larissayuan.com/home/img/prisma.png",
-                    personName :id,
-                }
-            }
-            this.dataStore.unshift(rtnData);
-        }
-        return this.dataStore;
-    };
-    this.updateUserInfo = function (data) {
-        let uid = data.uid;
-        for (element in this.dataStore){
-            let ele = this.dataStore[element];
-            if (ele.id === uid){
-                ele.imageURL = data.photoURL;
-                ele.personName = data.username
-            }
-        }
-    };
-    this.updateMeets = function (data) {
-        let meetId = data.id;
-        for (element in this.dataStore){
-            let ele = this.dataStore[element];
-            if (ele.id === meetId){
-                ele.personName = data.name
-            }
-        }
-    };
-    this.getData = function () {
-        return this.dataStore;
-    }
-}
-
-class ChatPage extends Component{
-    static navigationOptions = ({navigation}) => ({
-        title: `${navigation.state.params.name}`,
-    });
-    render() {
-        const { params } = this.props.navigation.state;
-        let avatar = params.avatar,
-            personId = params.personId,
-            myId = params.myId,
-            name = params.name;
-        return (
-            <PrivateChatScreen avatar={avatar} personId={personId} myId = {myId} name={name}/>
-        )
-    }
-}
-
-
-
-
 export default class FriendChatListView extends Component {
+
     constructor(){
         super();
         let user = firebase.auth().currentUser;
         uid = user.uid;
-        // this.socket = SocketIOClient('https://shuaiyixu.xyz');
+        setUid(uid);
         this.socket = SocketIOClient('http://47.89.187.42:4000/');
         this.getAvatar();
         this.getDBData();
         this.state = {
             messages: [],
-            friendInfo:[]
+            friendInfo:[],
+            totalUnReadMessageNum:0
         };
+        this.initSocket();
+        this.listener =DeviceEventEmitter.addListener('updateUnReadNum',(param)=>{
+            getLength(param.id);
+            currentOnSelectId = "";
+            totalUnReadMessageNum = getTotalUnReadNum();
+            this.totalUnreadMessageNumChanged(getTotalUnReadNum());
+        });
+        this.selectListener =DeviceEventEmitter.addListener('updateCurrentOnSelectUser',(param)=>{
+            currentOnSelectId = param.id;
+        });
+    }
+
+    componentWillUnmount(){
+        this.listener.remove();
+        this.selectListener.remove();
+    }
+
+    initSocket(){
         this.socket.emit("userLogin",uid);
         this.socket.on("connect" + uid,msg=>{
             let data = JSON.parse(msg),
@@ -163,7 +88,7 @@ export default class FriendChatListView extends Component {
                             };
                         if (dataArr!==""){
                             this.insertChatSql(uid,sqlObj);
-                            chatInfo.appendData(type,dataArr.fromId,dataArr.msg);
+                            appendChatData(type,dataArr.fromId,dataArr.msg,true);
                             if (!personalInfo[dataArr.fromId]){
                                 this.upDateAvatar(dataArr.fromId);
                             }
@@ -171,29 +96,31 @@ export default class FriendChatListView extends Component {
                     }
 
                     this.setState({
-                        messages:chatInfo.getData()
+                        messages:getData()
                     });
                 }
             }else if (type === 4 && !getMeetsHistory){
                 getMeetsHistory = true;
-                if (data.message.length!==0){
-                    let unReadDataArr = data.message;
-                    for (let i in unReadDataArr){
-                        let dataArr =  unReadDataArr[i],
-                            sqlObj = {
-                                type :2,
-                                from : dataArr.fromId,
-                                message : dataArr.msg,
-                                time : dataArr.time,
-                                meetId:dataArr.meetId,
-                                meetUserData:dataArr.data
-                            };
-                        this.insertChatSql(uid,sqlObj);
-                        chatInfo.appendData(type,dataArr.meetId,dataArr.msg);
+                if (data.message.length){
+                    if (data.message.length!==0){
+                        let unReadDataArr = data.message;
+                        for (let i in unReadDataArr){
+                            let dataArr =  unReadDataArr[i],
+                                sqlObj = {
+                                    type :2,
+                                    from : dataArr.fromId,
+                                    message : dataArr.msg,
+                                    time : dataArr.time,
+                                    meetId:dataArr.meetId,
+                                    meetUserData:dataArr.data
+                                };
+                            this.insertChatSql(uid,sqlObj);
+                            appendChatData(type,dataArr.meetId,dataArr.msg,true);
+                        }
+                        this.setState({
+                            messages:getData()
+                        });
                     }
-                    this.setState({
-                        messages:chatInfo.getData()
-                    });
                 }
             }else{
                 console.log(data.message);
@@ -202,36 +129,35 @@ export default class FriendChatListView extends Component {
                 this.insertChatSql(uid,data);
                 if (parseInt(type) === 0){
                     //系统
-                    chatInfo.appendData(type,data.activityId,data.message);
+                    appendChatData(type,data.activityId,data.message,true);
                 }else if (parseInt(type)===1){
                     //私聊
-                    chatInfo.appendData(type,data.from,data.message);
+                    appendChatData(type,data.from,data.message,true);
                 }else{
-                    chatInfo.appendData(type,data.activityId,data.message);
+                    appendChatData(type,data.activityId,data.message,true);
                 }
                 this.setState({
-                    messages:chatInfo.getData()
+                    messages:getData()
                 });
             }
+            this.totalUnreadMessageNumChanged(totalUnReadMessageNum);
         });
         this.socket.on("mySendBox"+uid,msg=>{
             let data = JSON.parse(msg);
-            console.log("get data:",data);
             let type = data.type;
             if (parseInt(type) === 0){
                 //系统
-                chatInfo.appendData(type,data.activityId,data.message);
+                appendChatData(type,data.activityId,data.message);
             }else if (parseInt(type)===1){
                 //私聊
-                chatInfo.appendData(type,data.toId,data.msg);
+                appendChatData(type,data.toId,data.msg);
             }else if (parseInt(type) === 999){
-                chatInfo.appendData(1,data.requester,data.msg);
-                this.upDateAvatar(data.requester);
+                appendChatData(1,data.requester,data.msg);
             }else{
-                chatInfo.appendData(type,data.activityId,data.message);
+                appendChatData(type,data.activityId,data.message);
             }
             this.setState({
-                messages:chatInfo.getData()
+                messages:getData()
             });
         })
     }
@@ -239,9 +165,6 @@ export default class FriendChatListView extends Component {
 
     static navigationOptions = ({ navigation }) => {
         const params = navigation.state.params || {};
-
-        const {totalUnReadMessageNum} = params;
-        console.log('navigationOptions', totalUnReadMessageNum);
         return {
 
             title: 'Message',
@@ -263,12 +186,12 @@ export default class FriendChatListView extends Component {
 
                     }
                     BadgeElement={
-                        <Text style={{color: '#FFFFFF'}}>{totalUnReadMessageNum}</Text>
+                        <Text style={{color: '#FFFFFF'}}>{params.totalUnReadMessageNum}</Text>
                     }
                     IconBadgeStyle={
                         {width: 20, height: 20, backgroundColor: 'red'}
                     }
-                    Hidden={!totalUnReadMessageNum>0}
+                    Hidden={!params.totalUnReadMessageNum>0}
                 />,
 
 
@@ -279,7 +202,9 @@ export default class FriendChatListView extends Component {
     };
 
     totalUnreadMessageNumChanged(num){
-        console.log(num);
+        // this.setState({
+        //     totalUnReadMessageNum:num
+        // });
         this.props.navigation.setParams({totalUnReadMessageNum:num});
     }
 
@@ -370,14 +295,23 @@ export default class FriendChatListView extends Component {
                         if (dataArr[i].hasRead === 1){
                             totalUnReadMessageNum ++;
                         }
+                        let hasRead = (dataArr[i].hasRead === 1);
                         if (type === 1){
-                            chatInfo.appendData(type,dataArr[i].fromId,dataArr[i]['msg']);
+                            if (hasRead){
+                                appendChatData(type,dataArr[i].fromId,dataArr[i]['msg'],hasRead);
+                            }else{
+                                appendChatData(type,dataArr[i].fromId,dataArr[i]['msg']);
+                            }
                         }else{
-                            chatInfo.appendData(type,dataArr[i].meetingId,dataArr[i]['msg']);
+                            if (hasRead){
+                                appendChatData(type,dataArr[i].meetingId,dataArr[i]['msg'],hasRead);
+                            }else{
+                                appendChatData(type,dataArr[i].meetingId,dataArr[i]['msg']);
+                            }
                         }
                     }
                     this.totalUnreadMessageNumChanged(totalUnReadMessageNum);
-                    let chat = chatInfo.getData();
+                    let chat = getData();
                     for (element in chat){
                         let ele = chat[element];
                         if (ele.imageURL === "http://larissayuan.com/home/img/prisma.png"&&(ele.type === 1||ele.type ===3)){
@@ -387,7 +321,7 @@ export default class FriendChatListView extends Component {
                         }
                     }
                     this.setState({
-                        messages:chatInfo.getData()
+                        messages:getData()
                     });
                 });
             },
@@ -398,39 +332,14 @@ export default class FriendChatListView extends Component {
         )
     }
 
-    //type = 1为私聊
-    //type = 2群聊
-    updateUnReadNum(type,targetId){
-        let updateSql = "";
-        if (type === 1){
-            updateSql = "update db"+uid+" set hasRead = 0 where hasRead = 1 and fromId = '" + targetId + "'"
-        }else{
-            updateSql = "update db"+uid+" set hasRead = 0 where hasRead = 1 and meetingId = '" + targetId + "'"
-        }
-        db.transaction(
-            tx => {
-                tx.executeSql(updateSql,[], (_, { rowsAffected }) => {
-                        //被修改了的数量
-                        totalUnReadMessageNum = (totalUnReadMessageNum - parseInt(rowsAffected));
-                        console.log(totalUnReadMessageNum);
-                        this.totalUnreadMessageNumChanged(totalUnReadMessageNum);
-                    }
-                );
-            },
-            (error) => console.log("update chat error :" + error),
-            () => function () {
-                console.log("update Success");
-            }
-        );
-    }
-
     async upDateAvatar(id){
         await getUserDataFromDatabase(id,
             (userData) => {
-                chatInfo.updateUserInfo(userData);
+                updateUserInfo(userData);
                 this.setState({
-                    messages:chatInfo.getData()
+                    messages:getData()
                 });
+
             },
             (error) => {
                 console.log(error);
@@ -440,12 +349,12 @@ export default class FriendChatListView extends Component {
     async getMeetsName(id){
         await getMeetTitle(id,
             (title)=>{
-                chatInfo.updateMeets({
+                updateMeets({
                     name:title,
                     id:id
                 });
                 this.setState({
-                    messages:chatInfo.getData()
+                    messages:getData()
                 });
             },
             (error) => {
@@ -468,9 +377,15 @@ export default class FriendChatListView extends Component {
                         subtitle={messages.msg}
                         subtitleProps={{numberOfLines:1}}
                         subtitleStyle={{fontFamily:'regular', color:'#626567'}}
+                        badge={
+                            { value: messages.length, textStyle: { color: 'orange' }, containerStyle: { marginTop: -20 } }
+                        }
                         onPress={() => {
+                            currentOnSelectId = messages.id;
                                  if (messages.type === 1){
-                                     this.updateUnReadNum(1,messages.id);
+                                     updateUnReadNum(1,messages.id);
+                                     // totalUnReadMessageNum = totalUnReadMessageNum - getLength(messages.id);
+                                     // this.totalUnreadMessageNumChanged(totalUnReadMessageNum);
                                      this.props.navigation.navigate('PrivateChatPage', {
                                          avatar:messages.imageURL,
                                          name:messages.personName,
@@ -478,7 +393,9 @@ export default class FriendChatListView extends Component {
                                          myId:uid
                                      });
                                  }else{
-                                     this.updateUnReadNum(2,messages.id);
+                                     updateUnReadNum(2,messages.id);
+                                     // totalUnReadMessageNum = totalUnReadMessageNum - getLength(messages.id);
+                                     // this.totalUnreadMessageNumChanged(totalUnReadMessageNum);
                                      this.props.navigation.navigate('GroupChatPage', {
                                          avatar:messages.imageURL,
                                          name:messages.personName,
@@ -486,7 +403,6 @@ export default class FriendChatListView extends Component {
                                          myId:uid
                                      })
                                  }
-                                 currentOnSelectId = messages.id;
                             }
                         }
                     />

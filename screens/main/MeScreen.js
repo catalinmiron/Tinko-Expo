@@ -1,7 +1,7 @@
 import React from 'react';
 import {
     View, Alert, TouchableWithoutFeedback, Image, ScrollView, SafeAreaView, StyleSheet, Text,
-    AsyncStorage, TouchableOpacity, Dimensions
+    AsyncStorage, TouchableOpacity, Dimensions,DeviceEventEmitter
 } from 'react-native';
 import { List, ListItem,Button } from 'react-native-elements';
 import Icon from 'react-native-vector-icons/FontAwesome';
@@ -18,6 +18,7 @@ import Colors from "../../constants/Colors";
 import IconBadge from '../../modules/react-native-icon-badge';
 import {Ionicons} from '@expo/vector-icons';
 import {writeInAsyncStorage, getFromAsyncStorage} from "../../modules/CommonUtility";
+import {} from '../../modules/ChatStack';
 
 const db = SQLite.openDatabase('db.db');
 const SCREEN_WIDTH = Dimensions.get('window').width;

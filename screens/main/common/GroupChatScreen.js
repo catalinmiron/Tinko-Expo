@@ -2,11 +2,12 @@ import React, {
     Component
 } from 'react';
 import {
-    AsyncStorage, View
+    View,DeviceEventEmitter
 } from 'react-native';
 import {getUserDataFromDatabase,getMeetTitle} from "../../../modules/CommonUtility";
 import {SQLite } from 'expo';
 const db = SQLite.openDatabase('db.db');
+import {unReadNumNeedsUpdates} from "../../../modules/ChatStack";
 import { GiftedChat, Actions, Bubble, SystemMessage } from 'react-native-gifted-chat';
 import SocketIOClient from 'socket.io-client';
 import {ifIphoneX} from "react-native-iphone-x-helper";
@@ -20,6 +21,10 @@ let uid = "",
 export default class PrivateChatScreen extends Component {
 
     static navigationOptions = {header:null};
+
+    componentWillUnmount(){
+        unReadNumNeedsUpdates(MeetId);
+    }
 
     state = {
         messages: [],
@@ -217,7 +222,7 @@ export default class PrivateChatScreen extends Component {
             let timeArr = time.split(" "),
                 year = timeArr[0].split("-"),
                 hour = timeArr[1].split(":"),
-                date = new Date(Date.UTC(parseInt(year[0]), parseInt(year[1])-1, parseInt(year[2]), hour[0], hour[1], hour[2]));
+                date = new Date(parseInt(year[0]), parseInt(year[1])-1, parseInt(year[2]), hour[0], hour[1], hour[2]);
             return date.toUTCString();
         }
     }
