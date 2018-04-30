@@ -11,7 +11,7 @@ import { GiftedChat } from 'react-native-gifted-chat';
 import SocketIOClient from 'socket.io-client';
 import {ifIphoneX} from "react-native-iphone-x-helper";
 import {Header} from "react-native-elements";
-import {unReadNumNeedsUpdates} from "../../../modules/ChatStack";
+import {unReadNumNeedsUpdates,updateLastMessage} from "../../../modules/ChatStack";
 
 let uid = "",
     pid = "",
@@ -235,6 +235,7 @@ export default class PrivateChatScreen extends Component {
         let code =  Date.parse( new Date())/1000;
         if (code !== timeSTP){
             timeSTP = code;
+            updateLastMessage(pid,text);
             db.transaction(
                 tx => {
                     tx.executeSql("INSERT INTO db"+uid+" (" +

@@ -107,6 +107,16 @@ export const getTotalUnReadNum = () => {
     return number;
 };
 
+export const updateLastMessage = (id,message) => {
+    for (element in dataStore){
+        let ele = dataStore[element];
+        if (ele.id === id){
+            dataStore[element].msg = message;
+        }
+    }
+};
+
+
 export const getData = () => {
     return dataStore;
 };
