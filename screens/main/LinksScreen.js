@@ -101,24 +101,26 @@ export default class FriendChatListView extends Component {
                 }
             }else if (type === 4 && !getMeetsHistory){
                 getMeetsHistory = true;
-                if (data.message.length!==0){
-                    let unReadDataArr = data.message;
-                    for (let i in unReadDataArr){
-                        let dataArr =  unReadDataArr[i],
-                            sqlObj = {
-                                type :2,
-                                from : dataArr.fromId,
-                                message : dataArr.msg,
-                                time : dataArr.time,
-                                meetId:dataArr.meetId,
-                                meetUserData:dataArr.data
-                            };
-                        this.insertChatSql(uid,sqlObj);
-                        appendChatData(type,dataArr.meetId,dataArr.msg,true);
+                if (data.message.length){
+                    if (data.message.length!==0){
+                        let unReadDataArr = data.message;
+                        for (let i in unReadDataArr){
+                            let dataArr =  unReadDataArr[i],
+                                sqlObj = {
+                                    type :2,
+                                    from : dataArr.fromId,
+                                    message : dataArr.msg,
+                                    time : dataArr.time,
+                                    meetId:dataArr.meetId,
+                                    meetUserData:dataArr.data
+                                };
+                            this.insertChatSql(uid,sqlObj);
+                            appendChatData(type,dataArr.meetId,dataArr.msg,true);
+                        }
+                        this.setState({
+                            messages:getData()
+                        });
                     }
-                    this.setState({
-                        messages:getData()
-                    });
                 }
             }else{
                 console.log(data.message);
@@ -142,7 +144,6 @@ export default class FriendChatListView extends Component {
         });
         this.socket.on("mySendBox"+uid,msg=>{
             let data = JSON.parse(msg);
-            console.log("get data:",data);
             let type = data.type;
             if (parseInt(type) === 0){
                 //系统

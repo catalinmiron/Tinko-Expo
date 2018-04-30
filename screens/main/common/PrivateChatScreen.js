@@ -228,7 +228,7 @@ export default class PrivateChatScreen extends Component {
             let timeArr = time.split(" "),
                 year = timeArr[0].split("-"),
                 hour = timeArr[1].split(":");
-            return new Date(Date.UTC(year[0], parseInt(year[1])-1, year[2], hour[0], hour[1], hour[2]))
+            return new Date(year[0], parseInt(year[1])-1, year[2], hour[0], hour[1], hour[2])
         }
     }
 
