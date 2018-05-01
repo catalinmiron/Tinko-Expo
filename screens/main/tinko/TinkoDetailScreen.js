@@ -9,7 +9,7 @@ import {MapView, SQLite} from 'expo';
 import { Ionicons, MaterialIcons, Entypo, MaterialCommunityIcons, Feather  } from '@expo/vector-icons';
 import { Avatar, Button, Header} from 'react-native-elements';
 import { ifIphoneX } from 'react-native-iphone-x-helper';
-import { getPostRequest } from "../../../modules/CommonUtility";
+import { getPostRequest,getListWhoParticipatedInMeetsByMeetId } from "../../../modules/CommonUtility";
 import { ActionSheetProvider, connectActionSheet } from '@expo/react-native-action-sheet';
 import SocketIOClient from "socket.io-client";
 import {quitMeet,joinMeet} from "../../../modules/SocketClient";
@@ -150,6 +150,7 @@ export default class TinkoDetailScreen extends React.Component {
 
     getMeetDataFromSql(){
         const{userUid, meetId} = this.state;
+        getListWhoParticipatedInMeetsByMeetId(meetId);
         db.transaction(
             tx => {
                 tx.executeSql(`select * from meet${userUid} WHERE meetId = '${meetId}'`, [], (_, { rows }) => {
