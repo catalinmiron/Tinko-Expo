@@ -132,7 +132,7 @@ export const getMeetTitleFromSql = async (meetId) => {
                         let data = rows._array;
                         let meetDataString = data[0].meetData;
                         let meetData = JSON.parse(meetDataString);
-                        resolve(meetData.title);
+                        resolve(meetData.title, meetData.tagsList[0]);
                     }
                 });
             },

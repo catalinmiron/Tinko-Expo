@@ -4,7 +4,7 @@ import React, {
 import {
     StyleSheet,View,WebView,ScrollView, Text,DeviceEventEmitter
 } from 'react-native'
-import { ListItem, Header } from 'react-native-elements'
+import { ListItem, Header, Avatar } from 'react-native-elements'
 import Expo, { SQLite } from 'expo';
 const db = SQLite.openDatabase('db.db');
 import * as firebase from "firebase";
@@ -20,7 +20,7 @@ import PrivateChatScreen from './common/PrivateChatScreen';
 import GroupChatScreen from './common/GroupChatScreen';
 import Colors from "../../constants/Colors";
 import TinkoScreen from "./TinkoScreen";
-import {getMeetTitle, getUserDataFromDatabase} from "../../modules/CommonUtility";
+import {getMeetInfo, getUserDataFromDatabase, getMeetAvatarUri} from "../../modules/CommonUtility";
 import {
     appendChatData,
     updateUserInfo,
@@ -371,10 +371,13 @@ export default class FriendChatListView extends Component {
     }
 
     async getMeetsName(id){
-        await getMeetTitle(id,
-            (title)=>{
+        await getMeetInfo(id,
+            (title, tagName)=>{
+            console.log(title, tagName);
+            let uri = getMeetAvatarUri(tagName);
                 updateMeets({
                     name:title,
+                    photoURL:uri,
                     id:id
                 });
                 this.setState({
@@ -393,7 +396,25 @@ export default class FriendChatListView extends Component {
                 let messages = this.state.messages[i];
                 friendList.push(
                     <ListItem
-                        leftAvatar={{ rounded: true, source: { uri: messages.imageURL } }}
+                        //leftAvatar={{ rounded: true, source: { uri: messages.imageURL } }}
+                        leftAvatar={
+                            <IconBadge
+                                MainElement={
+                                    <Avatar
+                                        medium
+                                        rounded
+                                        source={{uri:messages.imageURL}}
+                                    />
+                                }
+                                BadgeElement={
+                                    <Text style={{color: '#FFFFFF'}}>{messages.length}</Text>
+                                }
+                                IconBadgeStyle={
+                                    {width: 20, height: 20, backgroundColor: 'red'}
+                                }
+                                Hidden={!messages.length>0}
+                            />
+                        }
                         key={messages.id}
                         title={messages.personName}
                         titleProps={{numberOfLines:1}}
