@@ -268,16 +268,38 @@ export const getPostTimeString = (postTime) => {
 };
 
 export const logoutFromNotification = (uid) => {
-    fetch('http://47.89.187.42:4000/logout', {
-        method: 'POST',
-        headers: {
-            Accept: 'application/json',
-            'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-            uid: uid
-        }),
-    });
+    try{
+        fetch('http://47.89.187.42:4000/logout', {
+            method: 'POST',
+            headers: {
+                Accept: 'application/json',
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({
+                uid: uid
+            }),
+        });
+    }catch (e) {
+        console.log(e);
+    }
+};
+
+
+export const getListWhoParticipatedInMeetsByMeetId = (meetId) => {
+    try{
+        fetch('http://47.89.187.42:4000/getListWhoParticipatedInMeetsByMeetId', {
+            method: 'POST',
+            headers: {
+                Accept: 'application/json',
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({
+                meetId: meetId
+            }),
+        });
+    }catch (e) {
+        console.log(e);
+    }
 };
 
 export const getDurationString = (duration) => {
