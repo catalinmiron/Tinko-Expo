@@ -81,7 +81,8 @@ export const updateMeets = (data) => {
         for (element in dataStore){
             let ele = dataStore[element];
             if (ele.id === meetId){
-                ele.personName = data.name
+                ele.personName = data.name;
+                ele.imageURL = data.photoURL;
             }
         }
 };

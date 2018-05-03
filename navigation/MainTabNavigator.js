@@ -11,7 +11,6 @@ import TinkoTabNavigator from './TinkoTabNavigator';
 import CreateScreen from '../screens/main/CreateScreen';
 import GooglePlacesInputScreen from '../screens/main/create/GooglePlacesInput';
 import CreateNavigator from './CreateNavigator';
-import TinkoDetailScreen from "../screens/main/tinko/TinkoDetailScreen";
 import UserDetailScreen from '../screens/main/common/UserDetailOverlay';
 import MeScreen from "../screens/main/MeScreen";
 import PrivateChatScreen from '../screens/main/common/PrivateChatScreen';
@@ -25,6 +24,7 @@ import ParticipantsInviteScreen from "../screens/main/create/ParticipantsInviteS
 import ParticipantsManagementScreen from "../screens/main/create/ParticipantsManagementScreen";
 import AvatarUploadScreen from "../screens/main/settings/AvatarUploadScreen";
 import UpdateUsernameScreen from "../screens/main/settings/UpdateUsernameScreen";
+import TinkoDetailScreen from '../screens/main/tinko/TinkoDetailScreen';
 
 const MainTabNavigator = TabNavigator(
   {
@@ -133,7 +133,10 @@ const MainTabNavigatorWithDetailScreens = StackNavigator(
         },
         UpdateUsername:{
             screen:UpdateUsernameScreen
-        }
+        },
+        TheTinkoDetailScreen:{
+            screen: TinkoDetailScreen,
+        },
     },
     { headerMode: 'none' }
 );

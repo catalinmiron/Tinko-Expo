@@ -569,7 +569,9 @@ export default class TinkoDetailScreen extends React.Component {
                             {_.chunk(participatingUsersData, 3).map((chunk, chunkIndex) => (
                                 <View style={{ flexDirection: 'row', justifyContent: 'space-around', marginBottom: 10 }} key={chunkIndex}>
                                     {chunk.map(userData => (
-                                        <View style = {{width:75}}>
+                                        <View
+                                            key={userData.uid}
+                                            style = {{width:75}}>
                                             <Avatar
                                                 large
                                                 rounded
@@ -644,7 +646,13 @@ export default class TinkoDetailScreen extends React.Component {
             innerContainerStyles = {{ alignItems: 'flex-start'}}
             leftComponent={
                 <TouchableWithoutFeedback
-                    onPress={()=>this.props.navigation.navigate('TinkoDetailChat')}
+                    onPress={()=>{
+                        if(this.props.navigation.state.params.comeFromMessaging){
+                            this.props.navigation.goBack();
+                        }else{
+                            this.props.navigation.navigate('TinkoDetailChat');
+                        }
+                    }}
                     style={{flex:1}}>
                     <View style={{flexDirection:'row', height:50, alignItems:'center', }}>
                         <MaterialCommunityIcons name='pencil' size={20} color={'black'} backgroundColor={'transparent'}/>

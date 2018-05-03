@@ -155,9 +155,11 @@ export const getUserDataFromDatabase = async (uid, onComplete, onError) => {
 };
 
 
-export const getMeetTitle = async (meetId, onComplete, onError) => {
+export const getMeetInfo = async (meetId, onComplete, onError) => {
     await getMeetTitleFromSql(meetId)
-        .then((meetTitle) => onComplete(meetTitle))
+        .then((meetInfo) => {
+            onComplete(meetInfo.title, meetInfo.tagName);
+        })
         .catch(async () => {
             let docRef = firebase.firestore().collection("Meets").doc(meetId);
             await docRef.get().then(
@@ -166,7 +168,11 @@ export const getMeetTitle = async (meetId, onComplete, onError) => {
                         console.log("no data");
                         onError('no data');
                     }else{
-                        onComplete(doc.data().title);
+                        let meet = doc.data();
+                        let title = meet.title;
+                        let tagName = meet.tagsList[0];
+                        console.log('come from firebase', title, tagName);
+                        onComplete(title, tagName);
                     }
                 }
             ).catch(err => {
@@ -327,7 +333,7 @@ export const getImageSource = (tagName) => {
         case "#shopping":
             return require('../assets/images/tagsTheme/city.png');
         case "#movie":
-            return require('../assets/images/tagsTheme/city.png');
+            return require('../assets/images/tagsTheme/sky.jpg');
         case "#bar":
             return require('../assets/images/tagsTheme/leaves.jpg');
         case "#travel":
@@ -341,3 +347,29 @@ export const getImageSource = (tagName) => {
 
     }
 };
+
+export const getMeetAvatarUri = (tagName) => {
+    switch(tagName){
+        case "#party":
+            return 'https://firebasestorage.googleapis.com/v0/b/tinko-64673.appspot.com/o/System%2FMeetAvatar%2FStaindGlassavatar.jpg?alt=media&token=c0f51bf5-90f5-4139-abc8-f254af428a71';
+        case "#sports":
+            return 'https://firebasestorage.googleapis.com/v0/b/tinko-64673.appspot.com/o/System%2FMeetAvatar%2Flinesavatar.jpg?alt=media&token=7c62b1e0-25ac-4bb3-94c6-b80e733a6fc1';
+        case "#food":
+            return 'https://firebasestorage.googleapis.com/v0/b/tinko-64673.appspot.com/o/System%2FMeetAvatar%2Fyumaoavatar.jpg?alt=media&token=fe623811-bf97-4390-803a-1e79f848916a';
+        case "#shopping":
+            return 'https://firebasestorage.googleapis.com/v0/b/tinko-64673.appspot.com/o/System%2FMeetAvatar%2Fcityavatar.png?alt=media&token=d6ced46b-0673-4688-969b-f0781863810e';
+        case "#movie":
+            return 'https://firebasestorage.googleapis.com/v0/b/tinko-64673.appspot.com/o/System%2FMeetAvatar%2Fskyavatar.jpg?alt=media&token=fcc00315-6498-45ec-a1e6-3b8df8fb6d3a';
+        case "#bar":
+            return 'https://firebasestorage.googleapis.com/v0/b/tinko-64673.appspot.com/o/System%2FMeetAvatar%2Fleavesavatar.jpg?alt=media&token=5b48042a-3cca-4349-9273-1b378c75eb3e';
+        case "#travel":
+            return 'https://firebasestorage.googleapis.com/v0/b/tinko-64673.appspot.com/o/System%2FMeetAvatar%2Fhumianavatar.jpg?alt=media&token=fcdc91ca-a5bd-49e7-8093-364c3092bc67';
+        case "#study":
+            return 'https://firebasestorage.googleapis.com/v0/b/tinko-64673.appspot.com/o/System%2FMeetAvatar%2Fcloudavatar.jpg?alt=media&token=b56e43a4-7c60-4810-bc6b-f6682c69fe4a';
+        case "#esports":
+            return 'https://firebasestorage.googleapis.com/v0/b/tinko-64673.appspot.com/o/System%2FMeetAvatar%2Fhumianavatar.jpg?alt=media&token=fcdc91ca-a5bd-49e7-8093-364c3092bc67';
+        default:
+            return 'https://firebasestorage.googleapis.com/v0/b/tinko-64673.appspot.com/o/System%2FMeetAvatar%2FStaindGlassavatar.jpg?alt=media&token=c0f51bf5-90f5-4139-abc8-f254af428a71';
+
+    }
+}

@@ -40,7 +40,7 @@ import {getStartTimeString, getDurationString, getPostRequest} from "../../modul
 
 const SCREEN_WIDTH = Dimensions.get('window').width;
 const db = SQLite.openDatabase('db.db');
-const allTagsList = ['#party', '#sports', '#food', '#shopping', '#movie', '#bar', '#travel', '#study', 'esports'];
+const allTagsList = ['#party', '#sports', '#food', '#shopping', '#movie', '#bar', '#travel', '#study', '#esports'];
 
 import SocketIOClient from 'socket.io-client';
 
@@ -417,12 +417,13 @@ export default class CreateScreen extends React.Component {
                     console.log("Document written with ID: ", meetRef.id);
                     //this.updateUserParticipatingMeets(meetRef.id, userUid);
                     createMeet(userUid, meetRef.id);
+                    this.props.navigation.state.params.tinkoGetMeets();
                 })
                 .catch((error) => {
                     console.log("Error adding document: ", error);
                 });
 
-            this.props.navigation.state.params.tinkoGetMeets();
+
         }
         this.props.navigation.dispatch(NavigationActions.back());
     }

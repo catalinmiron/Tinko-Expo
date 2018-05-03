@@ -1,10 +1,8 @@
 import React, {
     Component
 } from 'react'
-import {
-    StyleSheet,View,WebView,ScrollView, Text,DeviceEventEmitter
-} from 'react-native'
-import { ListItem, Header } from 'react-native-elements'
+import {StyleSheet,View,WebView,ScrollView, Text,DeviceEventEmitter, Image} from 'react-native'
+import { ListItem, Header, Avatar } from 'react-native-elements'
 import Expo, { SQLite } from 'expo';
 const db = SQLite.openDatabase('db.db');
 import * as firebase from "firebase";
@@ -20,7 +18,7 @@ import PrivateChatScreen from './common/PrivateChatScreen';
 import GroupChatScreen from './common/GroupChatScreen';
 import Colors from "../../constants/Colors";
 import TinkoScreen from "./TinkoScreen";
-import {getMeetTitle, getUserDataFromDatabase} from "../../modules/CommonUtility";
+import {getMeetInfo, getUserDataFromDatabase, getMeetAvatarUri} from "../../modules/CommonUtility";
 import {
     appendChatData,
     updateUserInfo,
@@ -72,12 +70,12 @@ export default class FriendChatListView extends Component {
         this.selectListener =DeviceEventEmitter.addListener('updateCurrentOnSelectUser',(param)=>{
             currentOnSelectId = param.id;
         });
-        this.avatarListener =DeviceEventEmitter.addListener('avatarUpdate',(param)=>{
+        this.avatarListener = DeviceEventEmitter.addListener('avatarUpdate', async (param)=>{
             currentOnSelectId = param.id;
             if (param.type === 0){
-                this.upDateAvatar(param.id);
+                await this.upDateAvatar(param.id);
             }else{                            
-                this.getMeetsName(param.id);
+                await this.getMeetsName(param.id);
             }
         });
     }
@@ -371,10 +369,13 @@ export default class FriendChatListView extends Component {
     }
 
     async getMeetsName(id){
-        await getMeetTitle(id,
-            (title)=>{
+        await getMeetInfo(id,
+            (title, tagName)=>{
+            console.log(title, tagName);
+            let uri = getMeetAvatarUri(tagName);
                 updateMeets({
                     name:title,
+                    photoURL:uri,
                     id:id
                 });
                 this.setState({
@@ -393,17 +394,49 @@ export default class FriendChatListView extends Component {
                 let messages = this.state.messages[i];
                 friendList.push(
                     <ListItem
-                        leftAvatar={{ rounded: true, source: { uri: messages.imageURL } }}
+                        leftAvatar={
+                            <IconBadge
+                                MainElement={
+                                    messages.type===1 ?
+                                    <Avatar
+                                        medium
+                                        rounded
+                                        source={{uri:messages.imageURL}}
+                                    />
+                                        :
+
+                                    <Image
+                                    style={{width: 50,height: 50,borderRadius: 10}}
+                                    source={{uri:messages.imageURL}}/>
+
+
+                                }
+                                BadgeElement={
+                                    <Text style={{color: '#FFFFFF'}}>{messages.length}</Text>
+                                }
+                                IconBadgeStyle={
+                                    {width: 20, height: 20, backgroundColor: 'red'}
+                                }
+                                Hidden={!messages.length>0}
+                            />
+                        }
                         key={messages.id}
                         title={messages.personName}
                         titleProps={{numberOfLines:1}}
                         titleStyle={{fontFamily:'regular'}}
+                        // title={
+                        //     <View style={{flexDirection:'row',justifyContent:'space-between'}}>
+                        //         <Text style={{fontFamily:'regular', fontSize:25}} numberOfLines={1}>{messages.personName}</Text>
+                        //         <Text>3:22</Text>
+                        //     </View>
+                        // }
                         subtitle={messages.msg}
                         subtitleProps={{numberOfLines:1}}
                         subtitleStyle={{fontFamily:'regular', color:'#626567'}}
-                        badge={
-                            { value: messages.length, textStyle: { color: 'orange' }, containerStyle: { marginTop: -20 } }
-                        }
+                        rightSubtitle={'3:22'}
+                        // badge={
+                        //     { value: messages.length, textStyle: { color: 'orange' }, containerStyle: { marginTop: -20 } }
+                        // }
                         onPress={() => {
                             currentOnSelectId = messages.id;
                                  if (messages.type === 1){

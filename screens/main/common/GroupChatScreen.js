@@ -4,7 +4,7 @@ import React, {
 import {
     View,DeviceEventEmitter
 } from 'react-native';
-import {getUserDataFromDatabase,getMeetTitle} from "../../../modules/CommonUtility";
+import {getUserDataFromDatabase,getMeetInfo} from "../../../modules/CommonUtility";
 import {SQLite } from 'expo';
 const db = SQLite.openDatabase('db.db');
 import {unReadNumNeedsUpdates,updateLastMessage} from "../../../modules/ChatStack";
@@ -12,6 +12,7 @@ import { GiftedChat, Actions, Bubble, SystemMessage } from 'react-native-gifted-
 import SocketIOClient from 'socket.io-client';
 import {ifIphoneX} from "react-native-iphone-x-helper";
 import {Header} from "react-native-elements";
+import {MaterialIcons} from '@expo/vector-icons'
 
 let uid = "",
     MeetId = "",
@@ -124,6 +125,9 @@ export default class PrivateChatScreen extends Component {
                 <Header
                     leftComponent={{ icon: 'chevron-left', color: '#fff', onPress:()=>this.props.navigation.goBack()}}
                     centerComponent={{ text: this.state.meetTitle, style: { fontSize:18, fontFamily:'regular', color: '#fff' } }}
+                    rightComponent={<MaterialIcons name='details' size={26} color={'white'} backgroundColor={'transparent'}
+                                                   onPress={()=>this.props.navigation.navigate('TheTinkoDetailScreen',{meetId:MeetId, comeFromMessaging:true})}
+                    />}
                     outerContainerStyles={ifIphoneX({height:88})}
                 />
                 <GiftedChat
@@ -159,7 +163,7 @@ export default class PrivateChatScreen extends Component {
     }
 
     async getMeetTitle(meetId){
-        await getMeetTitle(meetId,
+        await getMeetInfo(meetId,
             (title)=>{
                 this.setState({meetTitle:title});
             },

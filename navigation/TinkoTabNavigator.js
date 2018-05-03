@@ -11,6 +11,8 @@ import TinkoDetailScreen from "../screens/main/tinko/TinkoDetailScreen";
 import LinksScreen from "../screens/main/LinksScreen";
 import Colors from "../constants/Colors";
 import IconBadge from '../modules/react-native-icon-badge'
+import ExpressPostOverlay from "../screens/main/create/ExpressPostOverlay";
+
 
 const TinkoTabNavigator = TabNavigator(
     {
@@ -158,23 +160,18 @@ export default class TinkoTabNavigatorScreen extends React.Component {
                     onNavigationStateChange={(prevState, newState) => this.onNavStateChnage(newState)}
                     screenProps={{getRef:this.getRef,...this.props}}
                 />
-                {/*<Swiper*/}
-                    {/*loop={false}*/}
-                    {/*showsPagination = {false}*/}
-                    {/*//scrollEnabled={this.state.scrollEnabled}*/}
-                {/*>*/}
-                    {/*<TinkoScreen screenProps={this.props}/>*/}
-                    {/*<DiscoverScreen screenProps={this.props}/>*/}
-                {/*</Swiper>*/}
 
                 <ActionButton buttonColor="#3498db">
-                    <ActionButton.Item buttonColor='#9b59b6' title="Express Post" onPress={() => console.log("notes tapped!")}>
+                    <ActionButton.Item buttonColor='#9b59b6' title="Express Post" onPress={() => this.expressPostOverlay.showExpressPostOverlay()}>
                         <Ionicons name="md-done-all" style={styles.actionButtonIcon} />
                     </ActionButton.Item>
                     <ActionButton.Item buttonColor='#1abc9c' title="Create a Tinko" onPress={() => this.props.navigation.navigate('Create',{tinkoGetMeets:this.tinkoRef.getMeets})}>
                         <Ionicons name="md-create" style={styles.actionButtonIcon} />
                     </ActionButton.Item>
                 </ActionButton>
+                <ExpressPostOverlay
+                    tinkoGetMeets={() => this.tinkoRef.getMeets()}
+                    onRef={ref => this.expressPostOverlay = ref}/>
             </View>
         );
     }
