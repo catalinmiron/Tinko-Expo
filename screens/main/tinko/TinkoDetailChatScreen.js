@@ -85,21 +85,23 @@ export default class TinkoDetailChatScreen extends React.Component {
         MeetId = this.props.navigation.state.params.meetId;
         this.socket.on("activity" + MeetId,(msg)=>{
             let data = JSON.parse(msg);
-            let user = data.userData;
+            console.log(data);
+            this.processMessageData([data],0);
             // this.getInfo();
-            this.setState(previousState => ({
-                messages: GiftedChat.append(previousState.messages,{
-                    _id: Math.floor(Math.random()*10000),
-                    text: data.msg,
-                    user: {
-                        _id: user.uid,
-                        name: user.username,
-                        avatar: user.photoURL,
-                    },
-                    sent: true,
-                    received: true,
-                }),
-            }))
+            //
+            // this.setState(previousState => ({
+            //     messages: GiftedChat.append(previousState.messages,{
+            //         _id: Math.floor(Math.random()*10000),
+            //         text: data.msg,
+            //         user: {
+            //             _id: user.uid,
+            //             name: user.username,
+            //             avatar: user.photoURL,
+            //         },
+            //         sent: true,
+            //         received: true,
+            //     }),
+            // }))
         });
         this.state = {
             meetId: this.props.navigation.state.params.meetId,
@@ -139,6 +141,8 @@ export default class TinkoDetailChatScreen extends React.Component {
             }
         });
     }
+
+
 
     getInfo(pid){
         if (waitingList.indexOf(pid) === -1){
@@ -242,6 +246,8 @@ export default class TinkoDetailChatScreen extends React.Component {
         }),Promise.resolve());
         if (type === 1){
             messages = this.state.messages.concat(messages);
+        } else{
+            messages = (messages).concat(this.state.messages);
         }
         this.setState({
             messages:messages
