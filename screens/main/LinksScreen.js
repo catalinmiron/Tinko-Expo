@@ -160,7 +160,11 @@ export default class FriendChatListView extends Component {
                     appendChatData(type,data.from,data.message,true);
                     // unReadNumNeedsUpdates(data.from,0);
                 }else{
-                    appendChatData(type,data.activityId,data.message,true);
+                    if (data.from!==uid){
+                        appendChatData(type,data.activityId,data.message,true);
+                    }else{
+                        appendChatData(type,data.activityId,data.message);
+                    }
                     // unReadNumNeedsUpdates(data.activityId,1);
                 }
                 this.setState({
