@@ -70,17 +70,30 @@ export default class PrivateChatScreen extends Component {
                 (userData) => {
                     let message = {};
                     if (e.status === 0){
-                        message = {
-                            _id: Math.floor(Math.random()*10000),
-                            text: e.msg,
-                            user: {
-                                _id: userData.uid,
-                                name: userData.username,
-                                avatar: userData.photoURL,
-                            },
-                            createdAt:(e.time)?e.time:this.utcTime(e.timeStamp),
-                            sent: (e.status === 0)
-                        };
+                        if (userData.uid!==uid){
+                            message = {
+                                _id: Math.floor(Math.random()*10000),
+                                text: e.msg,
+                                user: {
+                                    _id: userData.uid,
+                                    name: userData.username,
+                                    avatar: userData.photoURL,
+                                },
+                                createdAt:(e.time)?e.time:this.utcTime(e.timeStamp),
+                                sent: (e.status === 0)
+                            };
+                        }else{
+                            message = {
+                                _id: Math.round(Math.random() * 10000),
+                                text: e.msg,
+                                createdAt: (e.time)?e.time:this.utcTime(e.timeStamp),
+                                user: {
+                                    _id: 1,
+                                    name: 'Developer',
+                                }
+                            };
+
+                        }
                     }else{
                         if (e.type!==0){
                             message = {
