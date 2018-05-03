@@ -28,7 +28,8 @@ import {
     updateUnReadNum,
     setUid,
     getTotalUnReadNum,
-    unReadNumNeedsUpdates
+    unReadNumNeedsUpdates,
+    currentOnSelectUser
 } from "../../modules/ChatStack";
 
 
@@ -91,6 +92,7 @@ export default class FriendChatListView extends Component {
         this.socket.on("connect" + uid,msg=>{
             let data = JSON.parse(msg),
                 type = data.type;
+            //历史记录
             if (type === 3 && !getPrivateHistory){
                 getPrivateHistory = true;
                 if (data.message){
@@ -116,6 +118,7 @@ export default class FriendChatListView extends Component {
                         messages:getData()
                     });
                 }
+                //历史记录
             }else if (type === 4 && !getMeetsHistory){
                 getMeetsHistory = true;
                 if (data.message.length){
@@ -140,22 +143,25 @@ export default class FriendChatListView extends Component {
                         });
                     }
                 }
+            }else if (type === 5){
+                console.log(data);
             }else{
-                console.log(data.message);
+                console.log(data);
             }
+            //正常的聊天
             if (type !== 3 && type !== 4){
                 this.insertChatSql(uid,data);
                 if (parseInt(type) === 0){
                     //系统
                     appendChatData(type,data.activityId,data.message,true);
-                    unReadNumNeedsUpdates(data.activityId,1);
+                    // unReadNumNeedsUpdates(data.activityId,1);
                 }else if (parseInt(type)===1){
                     //私聊
                     appendChatData(type,data.from,data.message,true);
-                    unReadNumNeedsUpdates(data.from,0);
+                    // unReadNumNeedsUpdates(data.from,0);
                 }else{
                     appendChatData(type,data.activityId,data.message,true);
-                    unReadNumNeedsUpdates(data.activityId,1);
+                    // unReadNumNeedsUpdates(data.activityId,1);
                 }
                 this.setState({
                     messages:getData()
@@ -314,7 +320,9 @@ export default class FriendChatListView extends Component {
                     for (let i = 0;i < dataArr.length ;i++){
                         let type = dataArr[i].type;
                         if (dataArr[i].hasRead === 1){
-                            totalUnReadMessageNum ++;
+                            if (dataArr[i].meetingId !== ""&&dataArr[i].fromId !== uid){
+                                totalUnReadMessageNum ++;
+                            }
                         }
                         let hasRead = (dataArr[i].hasRead === 1);
                         if (type === 1){
@@ -441,6 +449,7 @@ export default class FriendChatListView extends Component {
                             currentOnSelectId = messages.id;
                                  if (messages.type === 1){
                                      updateUnReadNum(1,messages.id);
+                                     currentOnSelectUser(messages.id);
                                      // totalUnReadMessageNum = totalUnReadMessageNum - getLength(messages.id);
                                      // this.totalUnreadMessageNumChanged(totalUnReadMessageNum);
                                      this.props.navigation.navigate('PrivateChatPage', {
@@ -451,6 +460,7 @@ export default class FriendChatListView extends Component {
                                      });
                                  }else{
                                      updateUnReadNum(2,messages.id);
+                                     currentOnSelectUser(messages.id);
                                      // totalUnReadMessageNum = totalUnReadMessageNum - getLength(messages.id);
                                      // this.totalUnreadMessageNumChanged(totalUnReadMessageNum);
                                      this.props.navigation.navigate('GroupChatPage', {

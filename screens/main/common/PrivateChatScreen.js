@@ -11,7 +11,7 @@ import { GiftedChat } from 'react-native-gifted-chat';
 import SocketIOClient from 'socket.io-client';
 import {ifIphoneX} from "react-native-iphone-x-helper";
 import {Header} from "react-native-elements";
-import {unReadNumNeedsUpdates,updateLastMessage} from "../../../modules/ChatStack";
+import {unReadNumNeedsUpdates,updateLastMessage,currentOnSelectUser} from "../../../modules/ChatStack";
 
 let uid = "",
     pid = "",
@@ -72,6 +72,8 @@ export default class PrivateChatScreen extends Component {
     }
 
     componentWillUnmount(){
+
+        currentOnSelectUser("");
         unReadNumNeedsUpdates(pid,0);
     }
 

@@ -88,6 +88,8 @@ export default class RootNavigator extends React.Component {
           if (data.type!==999&&data.type!==1){
               console.log("data is here:",data);
               this.insertChatSql(uid,data,0);
+          }else{
+              console.log("新的群聊消息:",data);
           }
       });
       this.socket.on("systemListener"+uid,msg=>{

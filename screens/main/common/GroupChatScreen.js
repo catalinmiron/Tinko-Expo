@@ -7,7 +7,7 @@ import {
 import {getUserDataFromDatabase,getMeetInfo} from "../../../modules/CommonUtility";
 import {SQLite } from 'expo';
 const db = SQLite.openDatabase('db.db');
-import {unReadNumNeedsUpdates,updateLastMessage} from "../../../modules/ChatStack";
+import {currentOnSelectUser, unReadNumNeedsUpdates, updateLastMessage} from "../../../modules/ChatStack";
 import { GiftedChat, Actions, Bubble, SystemMessage } from 'react-native-gifted-chat';
 import SocketIOClient from 'socket.io-client';
 import {ifIphoneX} from "react-native-iphone-x-helper";
@@ -24,6 +24,8 @@ export default class PrivateChatScreen extends Component {
     static navigationOptions = {header:null};
 
     componentWillUnmount(){
+
+        currentOnSelectUser("");
         unReadNumNeedsUpdates(MeetId,1);
     }
 

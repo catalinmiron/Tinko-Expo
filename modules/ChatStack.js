@@ -5,11 +5,16 @@ import {
 } from 'react-native';
 
 let uid,
+    currentOnSelect,
     dataStore = [],
     personalInfo = {};
 
 export const setUid = (id) => {
     uid = id;
+};
+
+export const currentOnSelectUser = (id) => {
+    currentOnSelect = id
 };
 
 export const appendChatData = (type,id,msg,hasRead) =>{
@@ -19,14 +24,20 @@ export const appendChatData = (type,id,msg,hasRead) =>{
         }
         let indexOf = arr.indexOf(id);
         if (indexOf !== -1){
-            dataStore[indexOf].msg = msg;
+            let d = dataStore[indexOf];
+            d.msg = msg;
             if (hasRead){
-                dataStore[indexOf].length = dataStore[indexOf].length+1;
+                d.length = d.length+1;
             }
-            let data = dataStore[indexOf];
+            if (currentOnSelect === id){
+                d.length = 0;
+            }
+            let data = d;
             dataStore.splice(indexOf,1);
             dataStore.unshift(data);
         }else{
+            //这里是新建
+            console.log("进入了新建");
             let rtnData = {};
             if (type === 1|| type === 3){
                 //私聊
