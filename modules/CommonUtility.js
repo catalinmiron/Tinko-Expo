@@ -157,7 +157,9 @@ export const getUserDataFromDatabase = async (uid, onComplete, onError) => {
 
 export const getMeetInfo = async (meetId, onComplete, onError) => {
     await getMeetTitleFromSql(meetId)
-        .then((meetTitle, tagName) => onComplete(meetTitle, tagName))
+        .then((meetInfo) => {
+            onComplete(meetInfo.title, meetInfo.tagName);
+        })
         .catch(async () => {
             let docRef = firebase.firestore().collection("Meets").doc(meetId);
             await docRef.get().then(
@@ -169,6 +171,7 @@ export const getMeetInfo = async (meetId, onComplete, onError) => {
                         let meet = doc.data();
                         let title = meet.title;
                         let tagName = meet.tagsList[0];
+                        console.log('come from firebase', title, tagName);
                         onComplete(title, tagName);
                     }
                 }

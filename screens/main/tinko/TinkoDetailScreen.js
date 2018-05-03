@@ -569,7 +569,9 @@ export default class TinkoDetailScreen extends React.Component {
                             {_.chunk(participatingUsersData, 3).map((chunk, chunkIndex) => (
                                 <View style={{ flexDirection: 'row', justifyContent: 'space-around', marginBottom: 10 }} key={chunkIndex}>
                                     {chunk.map(userData => (
-                                        <View style = {{width:75}}>
+                                        <View
+                                            key={userData.uid}
+                                            style = {{width:75}}>
                                             <Avatar
                                                 large
                                                 rounded
