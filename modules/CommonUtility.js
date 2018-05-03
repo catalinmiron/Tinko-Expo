@@ -372,4 +372,31 @@ export const getMeetAvatarUri = (tagName) => {
             return 'https://firebasestorage.googleapis.com/v0/b/tinko-64673.appspot.com/o/System%2FMeetAvatar%2FStaindGlassavatar.jpg?alt=media&token=c0f51bf5-90f5-4139-abc8-f254af428a71';
 
     }
+};
+
+
+export const getTagName = (tagName) => {
+    switch(tagName){
+        case "#party":
+            return 'Party';
+        case "#sports":
+            return 'Sports';
+        case "#food":
+            return 'Food';
+        case "#shopping":
+            return 'Shopping';
+        case "#movie":
+            return 'Movie';
+        case "#bar":
+            return 'Bar';
+        case "#travel":
+            return 'Travel';
+        case "#study":
+            return 'Study';
+        case "#esports":
+            return 'ESports';
+        default:
+            return 'Meet Me';
+
+    }
 }
