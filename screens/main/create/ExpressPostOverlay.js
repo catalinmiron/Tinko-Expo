@@ -1,7 +1,7 @@
 import React, {
     Component
 } from 'react'
-import {Text, Image, AsyncStorage, DeviceEventEmitter, Platform, Alert, TouchableOpacity} from 'react-native';
+import {Text, Image, AsyncStorage, DeviceEventEmitter, Platform, Alert, TouchableOpacity, ActivityIndicator} from 'react-native';
 import {Button, Header, Avatar, Overlay, Input} from 'react-native-elements'
 import {getMeetAvatarUri, getUserData} from "../../../modules/CommonUtility";
 import {getLength,updateUnReadNum} from "../../../modules/ChatStack";
@@ -32,7 +32,8 @@ export default class ExpressPostOverlay extends Component{
             placeAddress:'',
             placeCoordinate:'',
             placeId:'',
-            selectedFriendsList:[]
+            selectedFriendsList:[],
+            activityIndicatorVisible:false,
         };
         if (Platform.OS === 'android' && !Constants.isDevice) {
             // this.setState({
@@ -159,42 +160,48 @@ export default class ExpressPostOverlay extends Component{
     render() {
         const {isVisible} = this.state;
         return (
-            <Overlay
-                height={400}
-                borderRadius={25}
-                isVisible={isVisible}
-                overlayBackgroundColor='rgba(255, 255, 255, 0.9)'
-            >
+            <View>
+                <Overlay
+                    height={400}
+                    borderRadius={25}
+                    isVisible={isVisible}
+                    overlayBackgroundColor='rgba(255, 255, 255, 0.9)'
+                >
 
-                <View>
-                    {_.chunk(allTagsList, 3).map((chunk, chunkIndex) => (
-                        <View style={{ flexDirection: 'row', justifyContent: 'space-around', marginBottom: 10 }} key={chunkIndex}>
-                            {chunk.map(tagName => (
-                                <TouchableOpacity
-                                    onPress={() => this.createExpressMeet(tagName)}
-                                    key={tagName}
-                                    style = {{width:75}}>
-                                    <Avatar
-                                        large
-                                        rounded
-                                        source={{ uri: getMeetAvatarUri(tagName) }}
-                                        title='TK'
-                                    />
-                                    <Text
-                                        style={{marginTop:3,color:'#626567', textAlign: 'center'}}
-                                    >{tagName}</Text>
-                                </TouchableOpacity>
+                    <View>
+                        {_.chunk(allTagsList, 3).map((chunk, chunkIndex) => (
+                            <View style={{ flexDirection: 'row', justifyContent: 'space-around', marginBottom: 10 }} key={chunkIndex}>
+                                {chunk.map(tagName => (
+                                    <TouchableOpacity
+                                        onPress={() => this.createExpressMeet(tagName)}
+                                        key={tagName}
+                                        style = {{width:75}}>
+                                        <Avatar
+                                            large
+                                            rounded
+                                            source={{ uri: getMeetAvatarUri(tagName) }}
+                                            title='TK'
+                                        />
+                                        <Text
+                                            style={{marginTop:3,color:'#626567', textAlign: 'center'}}
+                                        >{tagName}</Text>
+                                    </TouchableOpacity>
 
-                            ))}
-                        </View>
-                    ))}
-                    <Button
-                        containerStyle={{marginTop:15}}
-                        title='dismiss'
-                        onPress={()=> this.setState({isVisible:false})}
-                    />
-                </View>
-            </Overlay>
+                                ))}
+                            </View>
+                        ))}
+                        <Button
+                            containerStyle={{marginTop:15}}
+                            title='dismiss'
+                            onPress={()=> this.setState({isVisible:false})}
+                        />
+                    </View>
+                </Overlay>
+                {isVisible &&
+                <ActivityIndicator size='large' color = '#0000ff'/>
+                }
+            </View>
+
         )
     }
 }
