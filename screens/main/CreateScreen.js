@@ -692,9 +692,9 @@ export default class CreateScreen extends React.Component {
 
                         <ListItem
                             containerStyle={[styles.listStyle, {marginTop:30}]}
-                            title={placeName}
+                            title={placeName ? placeName : ' '}
                             titleStyle={styles.titleStyle}
-                            subtitle={area}
+                            subtitle={area ? area : ' '}
                             onPress={() => this.props.navigation.navigate('GooglePlacesAutocomplete', {setPlaceDetail: this.setPlaceDetail})}
                             chevron
                             chevronColor={'black'}
