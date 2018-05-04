@@ -19,7 +19,7 @@ import PrivateChatScreen from './common/PrivateChatScreen';
 import GroupChatScreen from './common/GroupChatScreen';
 import Colors from "../../constants/Colors";
 import TinkoScreen from "./TinkoScreen";
-import {getMeetInfo, getUserDataFromDatabase, getMeetAvatarUri,getListTime} from "../../modules/CommonUtility";
+import {getMeetInfo, getUserDataFromDatabase, getMeetAvatarUri,getListTime,getCurrentTime} from "../../modules/CommonUtility";
 import {
     appendChatData,
     updateUserInfo,
@@ -30,7 +30,7 @@ import {
     setUid,
     getTotalUnReadNum,
     unReadNumNeedsUpdates,
-    currentOnSelectUser
+    currentOnSelectUser,
 } from "../../modules/ChatStack";
 
 
@@ -50,6 +50,44 @@ let friendList = [],
 
 export default class FriendChatListView extends Component {
 
+    static navigationOptions = ({ navigation }) => {
+        const params = navigation.state.params || {};
+        return {
+
+            title: 'Message',
+
+            tabBarIcon: ({tintColor, focused}) =>
+                <IconBadge
+                    MainElement={
+                        <View style={{
+                            height: 36, width: 36, alignItems: 'center',
+                            justifyContent: 'center',
+                        }}>
+                            <Ionicons
+                                name={focused ? 'ios-chatbubbles' : 'ios-chatbubbles-outline'}
+                                size={30}
+                                style={{marginBottom: -3}}
+                                color={focused ? Colors.tabIconSelected : Colors.tabIconDefault}
+                            />
+                        </View>
+
+                    }
+                    BadgeElement={
+                        <Text style={{color: '#FFFFFF'}}>{params.totalUnReadMessageNum}</Text>
+                    }
+                    IconBadgeStyle={
+                        {width: 20, height: 20, backgroundColor: 'red'}
+                    }
+                    Hidden={!params.totalUnReadMessageNum>0}
+                />,
+
+
+            // headerTitle: (<Text>Message</Text>),
+            header:null
+        }
+
+    };
+
     constructor(){
         super();
         let user = firebase.auth().currentUser;
@@ -67,8 +105,6 @@ export default class FriendChatListView extends Component {
         this.listener =DeviceEventEmitter.addListener('updateUnReadNum',(param)=>{
             getLength(param.id);
             currentOnSelectId = "";
-            totalUnReadMessageNum = getTotalUnReadNum();
-            this.totalUnreadMessageNumChanged(getTotalUnReadNum());
         });
         this.selectListener =DeviceEventEmitter.addListener('updateCurrentOnSelectUser',(param)=>{
             currentOnSelectId = param.id;
@@ -81,12 +117,31 @@ export default class FriendChatListView extends Component {
                 await this.getMeetsName(param.id);
             }
         });
+        this.updateBadgeListener =DeviceEventEmitter.addListener('updateBadge',(param)=>{
+            //total need update(  
+            totalUnReadMessageNum = getTotalUnReadNum();
+            this.setState({
+                totalUnReadMessageNum:totalUnReadMessageNum
+            });
+            this.totalUnreadMessageNumChanged(param.num);
+        });
+
+        //updateBadge
+
+        setInterval(() => {
+            this.totalUnreadMessageNumChanged(totalUnReadMessageNum);
+        },500);
+    }
+
+    componentDidMount(){
+        this.totalUnreadMessageNumChanged(totalUnReadMessageNum);
     }
 
     componentWillUnmount(){
         this.listener.remove();
         this.selectListener.remove();
         this.avatarListener.remove();
+        this.updateBadgeListener.remove();
     }
 
     initSocket(){
@@ -156,39 +211,36 @@ export default class FriendChatListView extends Component {
                 this.insertChatSql(uid,data);
                 if (parseInt(type) === 0){
                     //系统
-                    appendChatData(this.getCurrentTime(),type,data.activityId,data.message,true);
-                    // unReadNumNeedsUpdates(data.activityId,1);
+                    appendChatData(getCurrentTime(),type,data.activityId,data.message,true);
                 }else if (parseInt(type)===1){
                     //私聊
-                    appendChatData(this.getCurrentTime(),type,data.from,data.message,true);
-                    // unReadNumNeedsUpdates(data.from,0);
+                    appendChatData(getCurrentTime(),type,data.from,data.message,true);
                 }else{
                     if (data.from!==uid){
-                        appendChatData(this.getCurrentTime(),type,data.activityId,data.message,true);
+                        appendChatData(getCurrentTime(),type,data.activityId,data.message,true);
                     }else{
-                        appendChatData(this.getCurrentTime(),type,data.activityId,data.message);
+                        appendChatData(getCurrentTime(),type,data.activityId,data.message);
                     }
-                    // unReadNumNeedsUpdates(data.activityId,1);
                 }
                 this.setState({
                     messages:getData()
                 });
             }
-            this.totalUnreadMessageNumChanged(totalUnReadMessageNum);
+          //  this.totalUnreadMessageNumChanged(totalUnReadMessageNum);
         });
         this.socket.on("mySendBox"+uid,msg=>{
             let data = JSON.parse(msg);
             let type = data.type;
             if (parseInt(type) === 0){
                 //系统
-                appendChatData(this.getCurrentTime(),type,data.activityId,data.message);
+                appendChatData(getCurrentTime(),type,data.activityId,data.message);
             }else if (parseInt(type)===1){
                 //私聊
-                appendChatData(this.getCurrentTime(),type,data.toId,data.msg);
+                appendChatData(getCurrentTime(),type,data.toId,data.msg);
             }else if (parseInt(type) === 999){
-                appendChatData(this.getCurrentTime(),1,data.requester,data.msg);
+                appendChatData(getCurrentTime(),1,data.requester,data.msg);
             }else{
-                appendChatData(this.getCurrentTime(),type,data.activityId,data.message);
+                appendChatData(getCurrentTime(),type,data.activityId,data.message);
             }
             this.setState({
                 messages:getData()
@@ -197,49 +249,10 @@ export default class FriendChatListView extends Component {
     }
 
 
-    static navigationOptions = ({ navigation }) => {
-        const params = navigation.state.params || {};
-        return {
-
-            title: 'Message',
-
-            tabBarIcon: ({tintColor, focused}) =>
-                <IconBadge
-                    MainElement={
-                        <View style={{
-                            height: 36, width: 36, alignItems: 'center',
-                            justifyContent: 'center',
-                        }}>
-                            <Ionicons
-                                name={focused ? 'ios-chatbubbles' : 'ios-chatbubbles-outline'}
-                                size={30}
-                                style={{marginBottom: -3}}
-                                color={focused ? Colors.tabIconSelected : Colors.tabIconDefault}
-                            />
-                        </View>
-
-                    }
-                    BadgeElement={
-                        <Text style={{color: '#FFFFFF'}}>{params.totalUnReadMessageNum}</Text>
-                    }
-                    IconBadgeStyle={
-                        {width: 20, height: 20, backgroundColor: 'red'}
-                    }
-                    Hidden={!params.totalUnReadMessageNum>0}
-                />,
-
-
-            // headerTitle: (<Text>Message</Text>),
-            header:null
-        }
-
-    };
-
     totalUnreadMessageNumChanged(num){
-        // this.setState({
-        //     totalUnReadMessageNum:num
-        // });
-        this.props.navigation.setParams({totalUnReadMessageNum:num});
+        if (this.props.navigation){
+            this.props.navigation.setParams({totalUnReadMessageNum:num});
+        }
     }
 
 
@@ -254,25 +267,6 @@ export default class FriendChatListView extends Component {
         s = date.getSeconds();
         return (Y+M+D+h+m+s);
     };
-
-    // getTime(timeStamp) {
-    //     let date = new Date(timeStamp);
-    //     console.log("===========",timeStamp);
-    //     Y = date.getFullYear() + '-';
-    //     M = (date.getMonth()+1 < 10 ? '0'+(date.getMonth()+1) : date.getMonth()+1) + '-';
-    //     D = date.getDate() + ' ';
-    //     h = date.getHours() + ':';
-    //     m = date.getMinutes() + ':';
-    //     s = date.getSeconds();
-    //     return (h+m);
-    // }
-
-    getCurrentTime() {
-        let d = new Date(),
-            hour = d.getHours(),
-            minutes = d.getMinutes();
-        return (hour+":"+minutes);
-    }
 
     getAvatar(){
         db.transaction(
@@ -359,12 +353,16 @@ export default class FriendChatListView extends Component {
                             }else{
                                 appendChatData(getListTime(dataArr[i].timeStamp),type,dataArr[i].fromId,dataArr[i]['msg']);
                             }
+
+                            updateUnReadNum(1,dataArr[i].fromId);
                         }else{
                             if (hasRead){
                                 appendChatData(getListTime(dataArr[i].timeStamp),type,dataArr[i].meetingId,dataArr[i]['msg'],hasRead);
                             }else{
                                 appendChatData(getListTime(dataArr[i].timeStamp),type,dataArr[i].meetingId,dataArr[i]['msg']);
                             }
+
+                            updateUnReadNum(2,dataArr[i].meetingId);
                         }
                     }
                     this.totalUnreadMessageNumChanged(totalUnReadMessageNum);

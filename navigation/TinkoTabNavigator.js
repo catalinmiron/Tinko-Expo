@@ -108,6 +108,10 @@ export default class TinkoTabNavigatorScreen extends React.Component {
         });
     }
 
+    componentWillUnmount(){
+        console.log("????? here");
+    }
+
     // showBadge(){
     //     this.props.navigation.setParams({
     //         badgeHidden:false
