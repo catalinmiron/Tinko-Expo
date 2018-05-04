@@ -12,12 +12,12 @@ import ReactNative, {
     TextInput,
     Dimensions,
     Switch,
-    SafeAreaView
+    SafeAreaView,
+    Text
 } from 'react-native';
 import {
     Input,
     Button,
-    Text,
     Card,
     ButtonGroup,
     Tile,
@@ -521,9 +521,7 @@ export default class CreateScreen extends React.Component {
                             onChangeText={(title) => this.setState({title})}
                             value={title}
                             inputStyle={{
-                                //textAlign:'center',
                                 color: 'black',
-                                //fontWeight: 'bold',
                                 fontFamily:'bold',
                                 fontSize:30,
                                 height:titleHeight,
@@ -543,10 +541,7 @@ export default class CreateScreen extends React.Component {
                             blurOnSubmit={true}
                             placeholderTextColor="black"
                             onContentSizeChange={(event) => {
-                                //console.log(event.nativeEvent.contentSize.height);
-                                if(event.nativeEvent.contentSize.height<400){
-                                    this.setState({ titleHeight: event.nativeEvent.contentSize.height })
-                                }
+                                this.setState({ titleHeight: event.nativeEvent.contentSize.height });
 
                             }}
 
@@ -560,7 +555,6 @@ export default class CreateScreen extends React.Component {
                                 name="ios-close-circle-outline" size={24} color="#BDC3C7" backgroundColor="transparent"
                                 onPress = {() => {
                                     this.setState({tagsList:[],tagsString:''});
-                                    //console.log(this.tagsButtonRefs);
                                     this.tagsButtonRefs.forEach((tag) => {
                                         tag.setSelectedFalse();
                                     });
@@ -584,20 +578,11 @@ export default class CreateScreen extends React.Component {
                                     title={tagTitle}
                                     onPress={this.onTagButtonPressed.bind(this)}/>
                             ))}
-                            {/*<CustomButton style={{flex:1}} title="#party" onPress={this.onTagButtonPressed.bind(this)}/>*/}
-                            {/*<CustomButton style={{flex:1}} title="#sports" onPress={this.onTagButtonPressed.bind(this)}/>*/}
-                            {/*<CustomButton style={{flex:1}} title="#food" onPress={this.onTagButtonPressed.bind(this)}/>*/}
-                            {/*<CustomButton style={{flex:1}} title="#shopping" onPress={this.onTagButtonPressed.bind(this)}/>*/}
-                            {/*<CustomButton style={{flex:1}} title="#movie" onPress={this.onTagButtonPressed.bind(this)}/>*/}
-                            {/*<CustomButton style={{flex:1}} title="#bar" onPress={this.onTagButtonPressed.bind(this)}/>*/}
-                            {/*<CustomButton style={{flex:1}} title="#travel" onPress={this.onTagButtonPressed.bind(this)}/>*/}
-                            {/*<CustomButton style={{flex:1}} title="#study" onPress={this.onTagButtonPressed.bind(this)}/>*/}
-                            {/*<CustomButton style={{flex:1}} title="#esports" onPress={this.onTagButtonPressed.bind(this)}/>*/}
+
                         </ScrollView>
 
                     <View style={{width:'90%'}}>
                         <Input
-                            // ref={ref => this.tagInputRef = ref}
                             onChangeText={(tagInputString) => this.setState({tagInputString})}
                             value={tagInputString}
                             placeholder="#..."
@@ -617,7 +602,6 @@ export default class CreateScreen extends React.Component {
 
                         <ListItem
                             containerStyle={[styles.listStyle, {marginTop:30}]}
-                            //contentContainerStyle={{justifyContent:'space-between'}}
                             rightContentContainerStyle={{flex:2}}
                             title='Starts:'
                             titleStyle={styles.titleStyle}
@@ -750,10 +734,6 @@ export default class CreateScreen extends React.Component {
 
 
                         <Input
-                            // onFocus={(event) => {
-                            //     // `bind` the function if you're using ES6 classes
-                            //     this._scrollToInput()
-                            // }}
                             multiline = {true}
                             onChangeText={(description) => this.setState({description})}
                             value={description}
@@ -763,19 +743,13 @@ export default class CreateScreen extends React.Component {
                             autoCapitalize={'sentences'}
                             autoCorrect={true}
                             returnKeyType="done"
-                            //ref={ input => this.description = input }
                             inputStyle={{
-                                //textAlign:'center',
                                 color: 'black',
-                                //fontWeight: 'bold',
                                 fontFamily:'regular',
                                 fontSize:20,
                                 height:descriptionHeight,
                                 marginTop:30,
                             }}
-                            // onSubmitEditing={() => {
-                            //     Keyboard.dismiss()
-                            // }}
                             blurOnSubmit={true}
                             onContentSizeChange={(event) => {
                                 this.setState({ descriptionHeight: event.nativeEvent.contentSize.height })

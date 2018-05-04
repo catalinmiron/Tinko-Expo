@@ -283,23 +283,6 @@ export default class FriendChatListView extends Component {
         return (hour+":"+minutes);
     }
 
-    getAvatar(){
-        db.transaction(
-            tx => {
-                tx.executeSql('select * from friend_list'+uid, [], (_, { rows }) => {
-                    let dataArr =  rows['_array'];
-                    for (let i = 0;i<dataArr.length;i++){
-                        personalInfo[dataArr[i].userId] = [dataArr[i].avatarUrl,dataArr[i].username];
-                    }
-                    this.setState({
-                        friendInfo:personalInfo
-                    });
-                });
-            },
-            null,
-            null
-        );
-    }
 
     insertChatSql(uid,data){
         let type = data["type"],
@@ -363,9 +346,9 @@ export default class FriendChatListView extends Component {
                     'isSystem int DEFAULT 0,'+
                     'timeStamp DATETIME DEFAULT CURRENT_TIMESTAMP);');
             },
-            (error) => console.log("db insert:" + error),
+            (error) => console.log("db create:" + error),
             () => {
-                console.log('db insert complete');
+                console.log('db create complete');
                 this.getDBData();
             }
         );
