@@ -30,7 +30,6 @@ async function getToken() {
     }
     let value = await Expo.Notifications.getExpoPushTokenAsync();
     //这个是我们的token需要传给服务器
-    console.log("==========",value);
     fetch('http://47.89.187.42:4000/login', {
         method: 'POST',
         headers: {
@@ -74,7 +73,7 @@ export default class RootNavigator extends React.Component {
       this.setState({userUid:uid});
       // 测试时才用drop
       //this.dropMeetTable(uid);
-      //this.dropChatTable(uid);
+      this.dropChatTable(uid);
       //this.dropFriendsTable(uid);
       //this.initFriendsTable(uid);
       this.initChatTable(uid);
@@ -250,7 +249,8 @@ export default class RootNavigator extends React.Component {
                     'meetUserData text,'+
                     'hasRead int DEFAULT 1,' +
                     'isSystem int DEFAULT 0,'+
-                    'timeStamp DATETIME DEFAULT CURRENT_TIMESTAMP);');
+                    'timeStamp DATE DEFAULT (datetime(\'now\',\'localtime\'))' +
+                    ');');
             },
             (error) => console.log("db insert:" + error),
             () => {

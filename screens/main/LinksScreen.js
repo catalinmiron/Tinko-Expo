@@ -6,6 +6,7 @@ import { ListItem, Header, Avatar } from 'react-native-elements'
 import Expo, { SQLite } from 'expo';
 const db = SQLite.openDatabase('db.db');
 import * as firebase from "firebase";
+import moment from "moment";
 import IconBadge from '../../modules/react-native-icon-badge'
 import {Ionicons} from '@expo/vector-icons'
 
@@ -18,7 +19,7 @@ import PrivateChatScreen from './common/PrivateChatScreen';
 import GroupChatScreen from './common/GroupChatScreen';
 import Colors from "../../constants/Colors";
 import TinkoScreen from "./TinkoScreen";
-import {getMeetInfo, getUserDataFromDatabase, getMeetAvatarUri} from "../../modules/CommonUtility";
+import {getMeetInfo, getUserDataFromDatabase, getMeetAvatarUri,getListTime} from "../../modules/CommonUtility";
 import {
     appendChatData,
     updateUserInfo,
@@ -44,7 +45,8 @@ let friendList = [],
     currentOnSelectId = "",
     totalUnReadMessageNum = 0,
     getPrivateHistory = false,
-    getMeetsHistory = false;
+    getMeetsHistory = false,
+    format = 'YYYY-MM-DD HH:mm:ss';
 
 export default class FriendChatListView extends Component {
 
@@ -95,6 +97,7 @@ export default class FriendChatListView extends Component {
                 type = data.type;
             //历史记录
             if (type === 3 && !getPrivateHistory){
+                console.log("hst:",data);
                 getPrivateHistory = true;
                 if (data.message){
                     let unReadDataArr = data.message;
@@ -108,7 +111,7 @@ export default class FriendChatListView extends Component {
                             };
                         if (dataArr!==""){
                             this.insertChatSql(uid,sqlObj);
-                            appendChatData(type,dataArr.fromId,dataArr.msg,true);
+                            appendChatData(getListTime(moment(dataArr.time, format).format(format)),type,dataArr.fromId,dataArr.msg,true);
                             if (!personalInfo[dataArr.fromId]){
                                 this.upDateAvatar(dataArr.fromId);
                             }
@@ -136,7 +139,7 @@ export default class FriendChatListView extends Component {
                                     meetUserData:dataArr.data
                                 };
                             this.insertChatSql(uid,sqlObj);
-                            appendChatData(type,dataArr.meetId,dataArr.msg,true);
+                            appendChatData(getListTime(moment(dataArr.time, format).format(format)),type,dataArr.meetId,dataArr.msg,true);
                             unReadNumNeedsUpdates(dataArr.meetId,1);
                         }
                         this.setState({
@@ -154,17 +157,17 @@ export default class FriendChatListView extends Component {
                 this.insertChatSql(uid,data);
                 if (parseInt(type) === 0){
                     //系统
-                    appendChatData(type,data.activityId,data.message,true);
+                    appendChatData(this.getCurrentTime(),type,data.activityId,data.message,true);
                     // unReadNumNeedsUpdates(data.activityId,1);
                 }else if (parseInt(type)===1){
                     //私聊
-                    appendChatData(type,data.from,data.message,true);
+                    appendChatData(this.getCurrentTime(),type,data.from,data.message,true);
                     // unReadNumNeedsUpdates(data.from,0);
                 }else{
                     if (data.from!==uid){
-                        appendChatData(type,data.activityId,data.message,true);
+                        appendChatData(this.getCurrentTime(),type,data.activityId,data.message,true);
                     }else{
-                        appendChatData(type,data.activityId,data.message);
+                        appendChatData(this.getCurrentTime(),type,data.activityId,data.message);
                     }
                     // unReadNumNeedsUpdates(data.activityId,1);
                 }
@@ -179,14 +182,14 @@ export default class FriendChatListView extends Component {
             let type = data.type;
             if (parseInt(type) === 0){
                 //系统
-                appendChatData(type,data.activityId,data.message);
+                appendChatData(this.getCurrentTime(),type,data.activityId,data.message);
             }else if (parseInt(type)===1){
                 //私聊
-                appendChatData(type,data.toId,data.msg);
+                appendChatData(this.getCurrentTime(),type,data.toId,data.msg);
             }else if (parseInt(type) === 999){
-                appendChatData(1,data.requester,data.msg);
+                appendChatData(this.getCurrentTime(),1,data.requester,data.msg);
             }else{
-                appendChatData(type,data.activityId,data.message);
+                appendChatData(this.getCurrentTime(),type,data.activityId,data.message);
             }
             this.setState({
                 messages:getData()
@@ -252,6 +255,7 @@ export default class FriendChatListView extends Component {
         s = date.getSeconds();
         return (Y+M+D+h+m+s);
     };
+
     //
     // getAvatar(){
     //     db.transaction(
@@ -271,6 +275,32 @@ export default class FriendChatListView extends Component {
     //     );
     // }
 
+
+    getCurrentTime() {
+        let d = new Date(),
+            hour = d.getHours(),
+            minutes = d.getMinutes();
+        return (hour+":"+minutes);
+    }
+
+    getAvatar(){
+        db.transaction(
+            tx => {
+                tx.executeSql('select * from friend_list'+uid, [], (_, { rows }) => {
+                    let dataArr =  rows['_array'];
+                    for (let i = 0;i<dataArr.length;i++){
+                        personalInfo[dataArr[i].userId] = [dataArr[i].avatarUrl,dataArr[i].username];
+                    }
+                    this.setState({
+                        friendInfo:personalInfo
+                    });
+                });
+            },
+            null,
+            null
+        );
+    }
+
     insertChatSql(uid,data){
         let type = data["type"],
             message = data["message"],
@@ -281,6 +311,7 @@ export default class FriendChatListView extends Component {
             status = 0,
             readStatus = (currentOnSelectId === from)?0:1;
         if (data["time"]){
+            console.log("=============??????======",data["time"]);
             time = this.unixTime(data["time"]);
         }
         if (data["meetId"]!==undefined){
@@ -346,6 +377,7 @@ export default class FriendChatListView extends Component {
             tx => {
                 tx.executeSql('select * from db'+uid, [], (_, { rows }) => {
                     let dataArr =  rows['_array'];
+                    console.log("===",dataArr);
                     for (let i = 0;i < dataArr.length ;i++){
                         let type = dataArr[i].type;
                         if (dataArr[i].hasRead === 1){
@@ -356,15 +388,15 @@ export default class FriendChatListView extends Component {
                         let hasRead = (dataArr[i].hasRead === 1);
                         if (type === 1){
                             if (hasRead){
-                                appendChatData(type,dataArr[i].fromId,dataArr[i]['msg'],hasRead);
+                                appendChatData(getListTime(dataArr[i].timeStamp),type,dataArr[i].fromId,dataArr[i]['msg'],hasRead);
                             }else{
-                                appendChatData(type,dataArr[i].fromId,dataArr[i]['msg']);
+                                appendChatData(getListTime(dataArr[i].timeStamp),type,dataArr[i].fromId,dataArr[i]['msg']);
                             }
                         }else{
                             if (hasRead){
-                                appendChatData(type,dataArr[i].meetingId,dataArr[i]['msg'],hasRead);
+                                appendChatData(getListTime(dataArr[i].timeStamp),type,dataArr[i].meetingId,dataArr[i]['msg'],hasRead);
                             }else{
-                                appendChatData(type,dataArr[i].meetingId,dataArr[i]['msg']);
+                                appendChatData(getListTime(dataArr[i].timeStamp),type,dataArr[i].meetingId,dataArr[i]['msg']);
                             }
                         }
                     }
@@ -470,7 +502,7 @@ export default class FriendChatListView extends Component {
                         subtitle={messages.msg}
                         subtitleProps={{numberOfLines:1}}
                         subtitleStyle={{fontFamily:'regular', color:'#626567'}}
-                        rightSubtitle={'3:22'}
+                        rightSubtitle={messages.time}
                         // badge={
                         //     { value: messages.length, textStyle: { color: 'orange' }, containerStyle: { marginTop: -20 } }
                         // }
