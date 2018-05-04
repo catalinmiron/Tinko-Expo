@@ -1,6 +1,7 @@
 import Task from 'data.task';
 import firebase from "firebase";
-import 'firebase/firestore'
+import 'firebase/firestore';
+import moment from 'moment';
 import {Alert, AsyncStorage} from "react-native";
 import {getUserDataFromSql, insertFriendSql, getMeetTitleFromSql} from "./SqliteClient";
 
@@ -284,6 +285,38 @@ export const logoutFromNotification = (uid) => {
         });
     }catch (e) {
         console.log(e);
+    }
+};
+
+export const getYMDhmsTime = (timeStamp) =>{
+    let date = new Date(timeStamp);
+    Y = date.getFullYear() + '-';
+    M = (date.getMonth()+1 < 10 ? '0'+(date.getMonth()+1) : date.getMonth()+1) + '-';
+    D = date.getDate() + ' ';
+    h = date.getHours() + ':';
+    m = date.getMinutes() + ':';
+    s = date.getSeconds();
+    return (Y+M+D+h+m+s);
+};
+
+export const getListTime = (time) => {
+    let today = moment(),
+        thisTime = moment(time, "YYYY-MM-DD hh:mm:ss");
+    let timeArr = time.split(" "),
+        YMD = timeArr[0].split("-"),
+        hms = timeArr[1].split(":"),
+        mY = YMD[0],
+        mM = YMD[1],
+        mD = YMD[2],
+        mh = hms[0],
+        mm = hms[1],
+        ms = hms[2];
+    if (thisTime.isSame(moment(),"day")){
+        return (mh+":"+mm);
+    }else if (thisTime.isSame(moment(),"week")){
+        return (thisTime.format("dddd"));
+    }else{
+        return (thisTime.format("MM/DD/YYYY"));
     }
 };
 

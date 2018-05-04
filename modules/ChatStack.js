@@ -17,7 +17,7 @@ export const currentOnSelectUser = (id) => {
     currentOnSelect = id
 };
 
-export const appendChatData = (type,id,msg,hasRead) =>{
+export const appendChatData = (time,type,id,msg,hasRead) =>{
         let arr = [];
         for (let i = 0;i<dataStore.length;i++){
             arr.push(dataStore[i].id);
@@ -32,12 +32,12 @@ export const appendChatData = (type,id,msg,hasRead) =>{
             if (currentOnSelect === id){
                 d.length = 0;
             }
+            d.time = time;
             let data = d;
             dataStore.splice(indexOf,1);
             dataStore.unshift(data);
         }else{
             //这里是新建
-            console.log("进入了新建");
             let rtnData = {};
             if (type === 1|| type === 3){
                 //私聊
@@ -55,6 +55,7 @@ export const appendChatData = (type,id,msg,hasRead) =>{
                     type:1,
                     length:(hasRead)?1:0,
                     msg:msg,
+                    time:time,
                     imageURL:imageURL,
                     personName:personName
                 };
@@ -66,6 +67,7 @@ export const appendChatData = (type,id,msg,hasRead) =>{
                     type:2,
                     length:(hasRead)?1:0,
                     msg:msg,
+                    time:time,
                     imageURL:"http://larissayuan.com/home/img/prisma.png",
                     personName :id,
                 };
