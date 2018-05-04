@@ -108,7 +108,7 @@ export default class TinkoDetailChatScreen extends React.Component {
             messages: [],
             thisUser:{_id:-1},
             userUid:userUid,
-            loadEarlier: true,
+            loadEarlier: false,
             isLoadingEarlier:false,
             lastMeetId:-1,
             limit:16,
@@ -204,6 +204,8 @@ export default class TinkoDetailChatScreen extends React.Component {
                     this.processMessageData(data,1);
                     if(data.length<limit){
                         this.setState({loadEarlier:false, });
+                    } else {
+                        this.setState({loadEarlier:true, });
                     }
                     let lastId;
                     if(data.length!==0){

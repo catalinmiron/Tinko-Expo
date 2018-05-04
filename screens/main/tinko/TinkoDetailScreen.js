@@ -319,8 +319,8 @@ export default class TinkoDetailScreen extends React.Component {
             fetch(`https://maps.googleapis.com/maps/api/place/details/json?placeid=${placeId}&key=AIzaSyCw_VwOF6hmY5yri8OpqOr9sCzTTT7JKiU`)
                 .then((response) => response.json())
                 .then((responseJson) => {
-                    console.log(responseJson);
-                    console.log('getPlacePhotos')
+                    console.log('getPlacePhotos',responseJson);
+                    console.log('getPlacePhotos');
                     let photos = responseJson.result.photos;
                     if(!photos){
                         photos=[];
@@ -496,6 +496,7 @@ export default class TinkoDetailScreen extends React.Component {
                                     source={getImageSource(tagsList[0])}/>
                             }
                         </ScrollView>
+
                         {/*<Swiper*/}
                             {/*//loop*/}
                             {/*showsPagination = {false}*/}
