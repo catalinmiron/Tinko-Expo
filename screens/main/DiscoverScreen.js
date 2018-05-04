@@ -89,13 +89,12 @@ export default class DiscoverScreen extends Component {
     _getLocationAsync = async () => {
         let { status } = await Permissions.askAsync(Permissions.LOCATION);
         if (status !== 'granted') {
-            this.setState({
-                errorMessage: 'Permission to access location was denied',
-            });
+            Alert.alert('Error', 'Please grant Location Permission to use this feature.')
         }
-
+        console.log('before location await');
+        //Location.setApiKey('AIzaSyCw_VwOF6hmY5yri8OpqOr9sCzTTT7JKiU');
         let location = await Location.getCurrentPositionAsync({});
-        //console.log(location);
+        console.log(location);
         let locationDic={
             lat:location.coords.latitude,
             lng: location.coords.longitude,
@@ -230,27 +229,27 @@ export default class DiscoverScreen extends Component {
                             }
                         }}
                     >
-                        {meets.map(meet => (
+                        {meets.map((meet,i) => (
                             <MapView.Marker
                                 coordinate={meet.LatLng}
                                 title={meet.title}
                                 description={meet.startTime}
                                 key={meet.key}
                                 identifier={meet.key}
-                                onSelect={(e) => {
-                                    //console.log(e.nativeEvent);
-                                    let id = e.nativeEvent.id;
-                                    //console.log(id);
+                                onPress={()=>{
                                     this.setState((state) => {
                                         let meets = state.meets;
-                                        let index = _.findIndex(meets, {key: id});
                                         let originalMeet = meets[0];
-                                        meets.splice(0, 1, meets[index]);
-                                        meets.splice(index, 1, originalMeet);
+                                        meets.splice(0, 1, meets[i]);
+                                        meets.splice(i, 1, originalMeet);
                                         return {meets};
                                     })
                                 }}
-                            />
+                                onCalloutPress={()=>{
+                                    this.props.screenProps.navigation.navigate('TinkoDetail', {meetId:meet.key})
+                                }}
+                            >
+                            </MapView.Marker>
                         ))}
                     </MapView>
                     :
@@ -284,7 +283,7 @@ export default class DiscoverScreen extends Component {
                         this.circle = ref;
                     }}
                     {...this._panResponder.panHandlers}
-                    style = {{position:'absolute', zIndex:100}} >
+                    style = {{position:'absolute', zIndex:100 }} >
                     <ScrollView
                         style={{flex:1}}
                         scrollEnabled={false}

@@ -1,7 +1,7 @@
 import React, {
     Component
 } from 'react'
-import {StyleSheet,View,WebView,ScrollView, Text,DeviceEventEmitter, Image} from 'react-native'
+import {StyleSheet, View, WebView, ScrollView, Text, DeviceEventEmitter, Image, Alert} from 'react-native'
 import { ListItem, Header, Avatar } from 'react-native-elements'
 import Expo, { SQLite } from 'expo';
 const db = SQLite.openDatabase('db.db');
@@ -94,8 +94,9 @@ export default class FriendChatListView extends Component {
         uid = user.uid;
         setUid(uid);
         this.socket = SocketIOClient('http://47.89.187.42:4000/');
-        this.getAvatar();
-        this.getDBData();
+        //this.getAvatar();
+        //this.getDBData();
+        this.initChatTableAndGetDBData();
         this.state = {
             messages: [],
             friendInfo:[],
@@ -268,23 +269,6 @@ export default class FriendChatListView extends Component {
         return (Y+M+D+h+m+s);
     };
 
-    getAvatar(){
-        db.transaction(
-            tx => {
-                tx.executeSql('select * from friend_list'+uid, [], (_, { rows }) => {
-                    let dataArr =  rows['_array'];
-                    for (let i = 0;i<dataArr.length;i++){
-                        personalInfo[dataArr[i].userId] = [dataArr[i].avatarUrl,dataArr[i].username];
-                    }
-                    this.setState({
-                        friendInfo:personalInfo
-                    });
-                });
-            },
-            null,
-            null
-        );
-    }
 
     insertChatSql(uid,data){
         let type = data["type"],
@@ -296,7 +280,6 @@ export default class FriendChatListView extends Component {
             status = 0,
             readStatus = (currentOnSelectId === from)?0:1;
         if (data["time"]){
-            console.log("=============??????======",data["time"]);
             time = this.unixTime(data["time"]);
         }
         if (data["meetId"]!==undefined){
@@ -333,6 +316,30 @@ export default class FriendChatListView extends Component {
         );
     }
 
+    initChatTableAndGetDBData(uid){
+        db.transaction(
+            tx => {
+                tx.executeSql('create table if not exists db'+ uid +' (' +
+                    'id integer primary key not null , ' +
+                    'fromId text, msg text , ' +
+                    'status int, ' +
+                    'type int,' +
+                    'meetingId text, '+
+                    'sendCode int DEFAULT 0,'+
+                    'meetUserData text,'+
+                    'hasRead int DEFAULT 1,' +
+                    'isSystem int DEFAULT 0,'+
+                    'timeStamp DATETIME DEFAULT CURRENT_TIMESTAMP);');
+            },
+            (error) => console.log("db create:" + error),
+            () => {
+                console.log('db create complete');
+                this.getDBData();
+            }
+        );
+    }
+
+    //status -1带表自己发送的
     getDBData(){
         db.transaction(
             tx => {
@@ -498,6 +505,13 @@ export default class FriendChatListView extends Component {
                                  }
                             }
                         }
+                        onLongPress={()=>{
+                            Alert.alert("Delete this row?", '',
+                                [
+                                    {text: 'Cancel', onPress: () => console.log('Cancel Pressed'), style: 'cancel'},
+                                    {text: 'Delete', onPress: () => console.log('Delete this fucking shit'), style:"destructive"},
+                                ]);
+                        }}
                     />
                 )
             }

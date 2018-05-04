@@ -48,7 +48,7 @@ export default class TinkoDetailScreen extends React.Component {
                         onPress = {threeDots}/>
                 </View>
                 ),
-            headerStyle:{ position: 'absolute', backgroundColor: 'transparent', zIndex: 100, top: 0, left: 0, right: 0, borderBottomWidth: 0,borderBottomColor: 'transparent',}
+            headerStyle:{ position: 'absolute', backgroundColor: 'transparent', zIndex: 100, top: 0, left: 0, right: 0, borderBottomWidth: 0,borderBottomColor: 'transparent',elevation:0}
         };
     };
 
@@ -319,8 +319,8 @@ export default class TinkoDetailScreen extends React.Component {
             fetch(`https://maps.googleapis.com/maps/api/place/details/json?placeid=${placeId}&key=AIzaSyCw_VwOF6hmY5yri8OpqOr9sCzTTT7JKiU`)
                 .then((response) => response.json())
                 .then((responseJson) => {
-                    console.log(responseJson);
-                    console.log('getPlacePhotos')
+                    console.log('getPlacePhotos',responseJson);
+                    console.log('getPlacePhotos');
                     let photos = responseJson.result.photos;
                     if(!photos){
                         photos=[];
@@ -475,39 +475,19 @@ export default class TinkoDetailScreen extends React.Component {
         return (
             <View style={styles.container}>
                 <ScrollView>
+
                     <View style={{height:SCREEN_WIDTH/2}}>
-                        <ScrollView
-                            horizontal={true}
-                            showsHorizontalScrollIndicator={false}
-                        >
-                            {_.size(placePhotos) > 0 ?
-                                placePhotos.map((l, i) =>(
-                                    <Image
-                                        resizeMethod={'auto'}
-                                        style={{width:SCREEN_WIDTH, height:SCREEN_WIDTH/2}}
-                                        key = {l.photo_reference}
-                                        source={{uri:`https://maps.googleapis.com/maps/api/place/photo?maxwidth=${SCREEN_WIDTH}&photoreference=${l.photo_reference}&key=AIzaSyCw_VwOF6hmY5yri8OpqOr9sCzTTT7JKiU`}}/>
-                                ))
-                                :
-                                <Image
-                                    resizeMethod={'auto'}
-                                    style={{width:SCREEN_WIDTH, height:SCREEN_WIDTH/2}}
-                                    key = {'placePhoto'}
-                                    source={getImageSource(tagsList[0])}/>
-                            }
-                        </ScrollView>
-                        {/*<Swiper*/}
-                            {/*//loop*/}
-                            {/*showsPagination = {false}*/}
+
+                        {/*<ScrollView*/}
+                            {/*horizontal={true}*/}
+                            {/*showsHorizontalScrollIndicator={false}*/}
                         {/*>*/}
-
-
                             {/*{_.size(placePhotos) > 0 ?*/}
                                 {/*placePhotos.map((l, i) =>(*/}
                                     {/*<Image*/}
                                         {/*resizeMethod={'auto'}*/}
                                         {/*style={{width:SCREEN_WIDTH, height:SCREEN_WIDTH/2}}*/}
-                                        {/*key = {l.photo_reference}*/}
+                                        {/*key = {i}*/}
                                         {/*source={{uri:`https://maps.googleapis.com/maps/api/place/photo?maxwidth=${SCREEN_WIDTH}&photoreference=${l.photo_reference}&key=AIzaSyCw_VwOF6hmY5yri8OpqOr9sCzTTT7JKiU`}}/>*/}
                                 {/*))*/}
                                 {/*:*/}
@@ -517,7 +497,39 @@ export default class TinkoDetailScreen extends React.Component {
                                     {/*key = {'placePhoto'}*/}
                                     {/*source={getImageSource(tagsList[0])}/>*/}
                             {/*}*/}
-                        {/*</Swiper>*/}
+                        {/*</ScrollView>*/}
+
+                        {placePhotosLoadingDone?
+                            <Swiper
+                                //loop
+                                showsPagination = {false}
+                            >
+
+
+                                {_.size(placePhotos) > 0 ?
+                                    placePhotos.map((l, i) =>(
+                                        <Image
+                                            resizeMethod={'auto'}
+                                            style={{width:SCREEN_WIDTH, height:SCREEN_WIDTH/2}}
+                                            key = {i}
+                                            source={{uri:`https://maps.googleapis.com/maps/api/place/photo?maxwidth=${Math.ceil(SCREEN_WIDTH)}&photoreference=${l.photo_reference}&key=AIzaSyCw_VwOF6hmY5yri8OpqOr9sCzTTT7JKiU`}}/>
+                                    ))
+                                    :
+                                    <Image
+                                        resizeMethod={'auto'}
+                                        style={{width:SCREEN_WIDTH, height:SCREEN_WIDTH/2}}
+                                        key = {'placePhoto'}
+                                        source={getImageSource(tagsList[0])}/>
+                                }
+                            </Swiper>
+                            :
+                            <Image
+                                resizeMethod={'auto'}
+                                style={{width:SCREEN_WIDTH, height:SCREEN_WIDTH/2}}
+                                source={require('../../../assets/images/placeholder-big.jpg')}/>
+                        }
+
+
                     </View>
 
                     <View style={{flexDirection: 'row', alignItems:'center', position:'absolute', marginTop:SCREEN_WIDTH/2-60, right:0}}>
