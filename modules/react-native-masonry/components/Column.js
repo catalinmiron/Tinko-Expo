@@ -1,5 +1,5 @@
 import React, { Component } from 'react';
-import { View, Image, TouchableHighlight, FlatList } from 'react-native';
+import { View, Image, TouchableHighlight, FlatList, Platform } from 'react-native';
 import styles from '../styles/main';
 import PropTypes from 'prop-types';
 import Brick from './Brick';
@@ -129,11 +129,17 @@ export default class Column extends Component {
 				  },
 				  styles.masonry__column
 			  ]}>
-				<View style={{...ifIphoneX({
+                {Platform.OS === 'ios' &&
+                <View style={{...ifIphoneX({
                         height: this.props.headerHeight+30,
                     }, {
                         height: this.props.headerHeight,
                     })}}/>
+                }
+                {Platform.OS === 'android' &&
+                <View style={{height:this.props.headerHeight+20}}/>
+                }
+
 			  <FlatList
 				scrollEnabled={false}
 				key={this.props.columnKey}
