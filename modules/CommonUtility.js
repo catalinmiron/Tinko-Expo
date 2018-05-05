@@ -312,12 +312,23 @@ export const getListTime = (time) => {
         mm = hms[1],
         ms = hms[2];
     if (thisTime.isSame(moment(),"day")){
+        if (mm<10){
+            mm = "0"+mm;
+        }
+        if (mh<10){
+            mm = "0"+mh;
+        }
         return (mh+":"+mm);
     }else if (thisTime.isSame(moment(),"week")){
         return (thisTime.format("dddd"));
     }else{
         return (thisTime.format("MM/DD/YYYY"));
     }
+};
+
+export const getCurrentTime = () => {
+    let today = moment();
+    return today.format("hh:mm");
 };
 
 

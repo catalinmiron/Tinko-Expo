@@ -75,7 +75,14 @@ export const appendChatData = (time,type,id,msg,hasRead) =>{
             }
             dataStore.unshift(rtnData);
         }
+        updateTotalUnReadNum();
         return dataStore;
+};
+
+export const updateTotalUnReadNum = () => {
+    DeviceEventEmitter.emit('updateBadge',{
+        num:getTotalUnReadNum()
+    });
 };
 
 export const updateUserInfo = (data) => {
@@ -167,5 +174,6 @@ export const unReadNumNeedsUpdates = (id,type) =>{
     DeviceEventEmitter.emit('avatarUpdate',{
         id:id,
         type:type
-    })
+    });
+    updateTotalUnReadNum();
 };
