@@ -171,7 +171,13 @@ export const getMeetInfo = async (meetId, onComplete, onError) => {
                     }else{
                         let meet = doc.data();
                         let title = meet.title;
-                        let tagName = meet.tagsList[0];
+                        let tagsList = meet.tagsList;
+                        let tagName;
+                        if(tagsList){
+                            tagName=tagsList[0];
+                        } else{
+                            tagName = 'default';
+                        }
                         console.log('come from firebase', title, tagName);
                         onComplete(title, tagName);
                     }
