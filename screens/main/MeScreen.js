@@ -17,7 +17,7 @@ import {SQLite} from "expo";
 import Colors from "../../constants/Colors";
 import IconBadge from '../../modules/react-native-icon-badge';
 import {Ionicons} from '@expo/vector-icons';
-import {writeInAsyncStorage, getFromAsyncStorage} from "../../modules/CommonUtility";
+import {writeInAsyncStorage, getFromAsyncStorage, firestoreDB} from "../../modules/CommonUtility";
 import {} from '../../modules/ChatStack';
 
 const db = SQLite.openDatabase('db.db');
@@ -94,7 +94,7 @@ export default class Me extends React.Component {
 
     getThisUserData(){
         const {userUid} = this.state;
-        let firestoreDb = firebase.firestore();
+        let firestoreDb = firestoreDB();
         let userRef = firestoreDb.collection("Users").doc(userUid);
         userRef.get().then((userDoc) => {
             if (userDoc.exists) {
@@ -118,7 +118,7 @@ export default class Me extends React.Component {
 
     processFriendsList(uid){
         //好友信息
-        let firebaseDb = firebase.firestore();
+        let firebaseDb = firestoreDB();
         let docRef = firebaseDb.collection("Users").doc(uid).collection("Friends_List");
         docRef.onSnapshot(async (snapshot) => {
             let usersData = [];

@@ -3,7 +3,7 @@ import React, {
 } from 'react'
 import {Text, Image, AsyncStorage, DeviceEventEmitter} from 'react-native';
 import {Button, Header, Avatar, Overlay, Input} from 'react-native-elements'
-import {getUserData} from "../../../modules/CommonUtility";
+import {firestoreDB} from "../../../modules/CommonUtility";
 import {getLength,updateUnReadNum} from "../../../modules/ChatStack";
 import {sendFriendRequest} from "../../../modules/SocketClient";
 
@@ -114,7 +114,7 @@ export default class UserDetailScreen extends Component{
     }
 
     getUserDataFromFirebase(uid, isFriends=false){
-        let firestoreDb = firebase.firestore();
+        let firestoreDb = firestoreDB();
         var userRef = firestoreDb.collection("Users").doc(uid);
         userRef.get().then((userDoc) => {
             if (userDoc.exists) {

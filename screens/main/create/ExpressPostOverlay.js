@@ -6,7 +6,7 @@ import {
     Dimensions
 } from 'react-native';
 import {Button, Header, Avatar, Overlay, Input} from 'react-native-elements'
-import {getMeetAvatarUri, getTagName} from "../../../modules/CommonUtility";
+import {firestoreDB, getMeetAvatarUri, getTagName} from "../../../modules/CommonUtility";
 import {getLength,updateUnReadNum} from "../../../modules/ChatStack";
 import {createMeet, sendFriendRequest} from "../../../modules/SocketClient";
 
@@ -164,7 +164,7 @@ export default class ExpressPostOverlay extends Component{
             status: true,
         };
 
-        firebase.firestore().collection("Meets").add(docData)
+        firestoreDB().collection("Meets").add(docData)
             .then((meetRef) => {
                 console.log("Document written with ID: ", meetRef.id);
                 createMeet(userUid, meetRef.id);

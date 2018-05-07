@@ -7,7 +7,7 @@ import {Ionicons} from '@expo/vector-icons';
 import {acceptFriendRequest} from "../../../modules/SocketClient";
 import Socket from "../../../modules/SocketModule";
 import SocketIOClient from "socket.io-client";
-import {getPostRequest} from "../../../modules/CommonUtility";
+import {firestoreDB, getPostRequest} from "../../../modules/CommonUtility";
 import {ifIphoneX} from "react-native-iphone-x-helper";
 
 export default class NewFriendsScreen extends Component {
@@ -56,7 +56,7 @@ export default class NewFriendsScreen extends Component {
 
     searchFromFirestore(code){
         const {searchText} = this.state;
-        let firestoreDb = firebase.firestore();
+        let firestoreDb = firestoreDB();
         let usersRef = firestoreDb.collection('Users');
         let query = usersRef.where(code, '==', searchText);
         query.get().then((querySnapshot) => {

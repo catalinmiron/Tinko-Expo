@@ -4,7 +4,7 @@ import {View, Alert, TouchableWithoutFeedback, Image, ScrollView, Text, StyleShe
 import firebase from 'firebase';
 import 'firebase/firestore';
 import Swiper from 'react-native-swiper';
-import { getStartTimeString,  getDurationString, getUserData, getImageSource, getUserDataFromDatabase } from "../../../modules/CommonUtility";
+import { getStartTimeString,  getDurationString, getUserData, getImageSource, getUserDataFromDatabase, firestoreDB } from "../../../modules/CommonUtility";
 import {MapView, SQLite} from 'expo';
 import { Ionicons, MaterialIcons, Entypo, MaterialCommunityIcons, Feather  } from '@expo/vector-icons';
 import { Avatar, Button, Header} from 'react-native-elements';
@@ -195,7 +195,7 @@ export default class TinkoDetailScreen extends React.Component {
 
     setMeetDataListener(){
         const { meetId, userUid } = this.state;
-        let firestoreDb = firebase.firestore();
+        let firestoreDb = firestoreDB();
         var meetRef = firestoreDb.collection("Meets").doc(meetId);
         var unsubscribe = meetRef.onSnapshot((meetDoc) => {
             if (meetDoc.exists) {
@@ -223,16 +223,16 @@ export default class TinkoDetailScreen extends React.Component {
             creatorUid = meet.creator,
             description = meet.description,
             duration = meet.duration,
-            endTime = meet.endTime,
+            endTime = meet.endTime.toDate(),
             maxNo = meet.maxNo,
             participatingUsersList = meet.participatingUsersArray,
             placeAddress = meet.place.address,
             placeName = meet.place.name,
             placeCoordinate = meet.place.coordinate,
             placeId = meet.place.placeId,
-            postTime = meet.postTime,
+            postTime = meet.postTime.toDate(),
             selectedFriendsList = Object.keys(meet.selectedFriendsList),
-            startTime = meet.startTime,
+            startTime = meet.startTime.toDate(),
             status = meet.status,
             title = meet.title;
         let tagsList;
@@ -362,7 +362,7 @@ export default class TinkoDetailScreen extends React.Component {
         const { userUid, meetId, meet,participatingUsersList } = this.state;
         participatingUsersList.push(userUid);
         let timeStatusDic = meet.participatingUsersList[meet.creator];
-        let meetRef = firebase.firestore().collection("Meets").doc(meetId);
+        let meetRef = firestoreDB().collection("Meets").doc(meetId);
         meetRef.update({
             [`participatingUsersList.${userUid}`]:timeStatusDic,
             participatingUsersArray:participatingUsersList
@@ -386,7 +386,7 @@ export default class TinkoDetailScreen extends React.Component {
     onQuitMeetButtonPressed(){
         const { userUid, meetId,participatingUsersList } = this.state;
         _.pull(participatingUsersList,userUid);
-        let meetRef = firebase.firestore().collection("Meets").doc(meetId);
+        let meetRef = firestoreDB().collection("Meets").doc(meetId);
         meetRef.update({
             [`participatingUsersList.${userUid}`]:firebase.firestore.FieldValue.delete(),
             participatingUsersArray:participatingUsersList

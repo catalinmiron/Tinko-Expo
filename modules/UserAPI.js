@@ -1,5 +1,6 @@
 import {SQLite} from "expo";
 import * as firebase from "firebase";
+import {firestoreDB} from "./CommonUtility";
 const db = SQLite.openDatabase('db.db');
 
 require("firebase/firestore");
@@ -48,7 +49,7 @@ function requestUserData(uid,pid){
 }
 
 function getFromFireBase(id) {
-    let docRef = firebase.firestore().collection("Users").doc(id);
+    let docRef = firestoreDB().collection("Users").doc(id);
     return new Promise(resolve => {
         let getDoc = docRef.get().then(
             doc =>{
