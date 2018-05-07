@@ -279,7 +279,7 @@ export const getPostTimeString = (postTime) => {
 
 export const logoutFromNotification = (uid) => {
     try{
-        fetch('http://47.89.187.42:4000/logout', {
+        fetch('https://shuaiyixu.xyz/logout', {
             method: 'POST',
             headers: {
                 Accept: 'application/json',
@@ -308,6 +308,7 @@ export const getYMDhmsTime = (timeStamp) =>{
 export const getListTime = (time) => {
     let today = moment(),
         thisTime = moment(time, "YYYY-MM-DD hh:mm:ss");
+    console.log(thisTime);
     let timeArr = time.split(" "),
         YMD = timeArr[0].split("-"),
         hms = timeArr[1].split(":"),
@@ -319,10 +320,10 @@ export const getListTime = (time) => {
         ms = hms[2];
     if (thisTime.isSame(moment(),"day")){
         if (mm<10){
-            mm = "0"+mm;
+            mm = "0"+parseInt(mm);
         }
         if (mh<10){
-            mm = "0"+mh;
+            mm = "0"+parseInt(mm);
         }
         return (mh+":"+mm);
     }else if (thisTime.isSame(moment(),"week")){
@@ -334,13 +335,13 @@ export const getListTime = (time) => {
 
 export const getCurrentTime = () => {
     let today = moment();
-    return today.format("hh:mm");
+    return today.format("HH:mm");
 };
 
 
 export const getListWhoParticipatedInMeetsByMeetId = (meetId) => {
     try{
-        fetch('http://47.89.187.42:4000/getListWhoParticipatedInMeetsByMeetId', {
+        fetch('https://shuaiyixu.xyz/getListWhoParticipatedInMeetsByMeetId', {
             method: 'POST',
             headers: {
                 Accept: 'application/json',

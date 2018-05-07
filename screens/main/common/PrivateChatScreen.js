@@ -40,9 +40,12 @@ export default class PrivateChatScreen extends Component {
         pid = dataStore.personId;
         userAvatar =  dataStore.avatar;
         userName = dataStore.name;
+    }
+
+    componentDidMount(){
         this.getFromDB(uid,pid);
-        // this.socket = SocketIOClient('https://shuaiyixu.xyz');
-        this.socket = SocketIOClient('http://47.89.187.42:4000/');
+        this.socket = SocketIOClient('https://shuaiyixu.xyz');
+        // this.socket = SocketIOClient('http://47.89.187.42:4000/');
         this.socket.on("connect" + uid,(msg)=>{
             let data = JSON.parse(msg),
                 type = data.type;
@@ -51,7 +54,7 @@ export default class PrivateChatScreen extends Component {
                     this.appendFriendMessage(false,data.message,Date.parse(new Date()))
                 }
             }
-            
+
         });
         this.socket.on("mySendBox"+uid,msg=>{
             let data = JSON.parse(msg);
@@ -72,7 +75,6 @@ export default class PrivateChatScreen extends Component {
     }
 
     componentWillUnmount(){
-
         currentOnSelectUser("");
         unReadNumNeedsUpdates(pid,0);
     }
