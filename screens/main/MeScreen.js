@@ -1,7 +1,7 @@
 import React from 'react';
 import {
     View, Alert, TouchableWithoutFeedback, Image, ScrollView, SafeAreaView, StyleSheet, Text,
-    AsyncStorage, TouchableOpacity, Dimensions,DeviceEventEmitter
+    AsyncStorage, TouchableOpacity, Dimensions,DeviceEventEmitter, Platform
 } from 'react-native';
 import { List, ListItem,Button } from 'react-native-elements';
 import Icon from 'react-native-vector-icons/FontAwesome';
@@ -220,7 +220,7 @@ export default class Me extends React.Component {
                 <ScrollView style={{backgroundColor: "white", height: "100%" ,width: "100%"}}>
                     <Ionicons
                         onPress={() => this.props.navigation.navigate('Setting',{getThisUserData:this.getThisUserData.bind(this)})}
-                        style={{position:'absolute',zIndex:100,top:20, right:SCREEN_WIDTH*0.05}}
+                        style={{position:'absolute',zIndex:100,top:Platform.OS === 'android' ? 40 : 20, right:SCREEN_WIDTH*0.05}}
                         name={'ios-settings'}
                         size={30}
                         color={'black'}
@@ -228,7 +228,7 @@ export default class Me extends React.Component {
                     />
                     <View style={styles.outerDiv}>
                         <Image
-                            style={{width: 130,height: 130,marginTop:20,borderRadius: 25}}
+                            style={{width: 130,height: 130,marginTop:Platform.OS === 'android' ? 40 : 20,borderRadius: 25}}
                             source={{uri:userData.photoURL}}/>
                         <Text style={{marginTop:5,fontSize:22,color:"rgb(54,53,59)",fontWeight:"bold"}}>{userData.username}</Text>
                     </View>
