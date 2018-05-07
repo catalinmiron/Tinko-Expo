@@ -279,7 +279,7 @@ export const getPostTimeString = (postTime) => {
 
 export const logoutFromNotification = (uid) => {
     try{
-        fetch('http://47.89.187.42:4000/logout', {
+        fetch('https://shuaiyixu.xyz/logout', {
             method: 'POST',
             headers: {
                 Accept: 'application/json',
@@ -341,7 +341,7 @@ export const getCurrentTime = () => {
 
 export const getListWhoParticipatedInMeetsByMeetId = (meetId) => {
     try{
-        fetch('http://47.89.187.42:4000/getListWhoParticipatedInMeetsByMeetId', {
+        fetch('https://shuaiyixu.xyz/getListWhoParticipatedInMeetsByMeetId', {
             method: 'POST',
             headers: {
                 Accept: 'application/json',

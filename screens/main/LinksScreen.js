@@ -93,7 +93,7 @@ export default class FriendChatListView extends Component {
         let user = firebase.auth().currentUser;
         uid = user.uid;
         setUid(uid);
-        this.socket = SocketIOClient('http://47.89.187.42:4000/');
+        this.socket = SocketIOClient('https://shuaiyixu.xyz/');
         //this.getAvatar();
         //this.getDBData();
         this.initChatTableAndGetDBData();

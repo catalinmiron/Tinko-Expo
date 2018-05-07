@@ -97,7 +97,7 @@ export default class TinkoDetailChatScreen extends React.Component {
 
     componentDidMount(){
         this.getGroupChatContents();
-        this.socket = SocketIOClient('http://47.89.187.42:4000/');
+        this.socket = SocketIOClient('https://shuaiyixu.xyz/');
         this.socket.on("activity" + MeetId,(msg)=>{
             let data = JSON.parse(msg);
             console.log(data);
