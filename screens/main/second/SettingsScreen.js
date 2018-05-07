@@ -83,7 +83,7 @@ export default class SettingsScreen extends React.Component {
                     chevronColor={'black'}
                     rightElement={
                         <Avatar
-                            medium
+                            size='medium'
                             source={{uri: userData.photoURL}}
                         />
                     }

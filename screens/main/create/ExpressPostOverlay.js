@@ -182,10 +182,11 @@ export default class ExpressPostOverlay extends Component{
         const {isVisible, activityIndicatorVisible} = this.state;
         return (
             <Overlay
-                height={400}
+                height={370}
                 borderRadius={25}
                 isVisible={isVisible}
                 overlayBackgroundColor='rgba(255, 255, 255, 0.9)'
+                onBackdropPress={()=>this.setState({isVisible:false})}
             >
 
                 <View>
@@ -197,7 +198,7 @@ export default class ExpressPostOverlay extends Component{
                                     key={tagName}
                                     style = {{width:75}}>
                                     <Avatar
-                                        large
+                                        size='large'
                                         rounded
                                         source={{ uri: getMeetAvatarUri(tagName) }}
                                         title='TK'
@@ -210,11 +211,6 @@ export default class ExpressPostOverlay extends Component{
                             ))}
                         </View>
                     ))}
-                    <Button
-                        containerStyle={{marginTop:15}}
-                        title='dismiss'
-                        onPress={()=> this.setState({isVisible:false})}
-                    />
                     {activityIndicatorVisible &&
                     <ActivityIndicator style={{position:'absolute', marginTop:'50%', marginLeft:SCREEN_WIDTH/2-60}} size='large' color = '#0000ff'/>
                     }

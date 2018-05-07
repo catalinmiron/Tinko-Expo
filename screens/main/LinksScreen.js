@@ -440,7 +440,7 @@ export default class FriendChatListView extends Component {
                                 MainElement={
                                     messages.type===1 ?
                                     <Avatar
-                                        medium
+                                        size='medium'
                                         rounded
                                         source={{uri:messages.imageURL}}
                                     />

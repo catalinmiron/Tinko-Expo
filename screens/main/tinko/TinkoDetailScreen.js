@@ -585,7 +585,7 @@ export default class TinkoDetailScreen extends React.Component {
                                             key={userData.uid}
                                             style = {{width:75}}>
                                             <Avatar
-                                                large
+                                                size='large'
                                                 rounded
                                                 source={userData.photoURL ? { uri: userData.photoURL } : null}
                                                 title='TK'
