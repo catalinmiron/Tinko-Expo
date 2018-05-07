@@ -2,7 +2,7 @@ import React, {
     Component
 } from 'react';
 import {
-    AsyncStorage, View  ,StyleSheet,Text,DeviceEventEmitter
+    AsyncStorage, View, StyleSheet, Text, DeviceEventEmitter, KeyboardAvoidingView, Platform
 } from 'react-native';
 import {getUserDetail} from "../../../modules/UserAPI";
 import { SQLite } from 'expo';
@@ -12,6 +12,7 @@ import SocketIOClient from 'socket.io-client';
 import {ifIphoneX} from "react-native-iphone-x-helper";
 import {Header} from "react-native-elements";
 import {unReadNumNeedsUpdates,updateLastMessage,currentOnSelectUser} from "../../../modules/ChatStack";
+import KeyboardSpacer from 'react-native-keyboard-spacer';
 
 let uid = "",
     pid = "",
@@ -276,6 +277,7 @@ export default class PrivateChatScreen extends Component {
                     centerComponent={{ text: userName, style: { fontSize:18, fontFamily:'regular', color: '#fff' } }}
                     outerContainerStyles={ifIphoneX({height:88})}
                 />
+
                 <GiftedChat
                     messages={this.state.messages}
 
@@ -308,6 +310,7 @@ export default class PrivateChatScreen extends Component {
                         // }
                     }}
                 />
+                {Platform.OS === 'android' && <KeyboardSpacer/>}
                 <View style={{...ifIphoneX({height:34, backgroundColor:'white'}, {})}}/>
             </View>
         )

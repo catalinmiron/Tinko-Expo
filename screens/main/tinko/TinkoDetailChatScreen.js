@@ -8,6 +8,7 @@ import firebase from "firebase/index";
 import {Header} from "react-native-elements";
 import { ifIphoneX } from 'react-native-iphone-x-helper';
 import SocketIOClient from 'socket.io-client';
+import KeyboardSpacer from "react-native-keyboard-spacer";
 
 let MeetId = "",
     uid = "",
@@ -306,6 +307,7 @@ export default class TinkoDetailChatScreen extends React.Component {
                     //textInputProps={{height:54}}
                 />
 
+                {Platform.OS === 'android' && <KeyboardSpacer/>}
 
                 <View style={{...ifIphoneX({height:SafeAreaInsets, backgroundColor:'white'}, {})}}/>
             </View>
