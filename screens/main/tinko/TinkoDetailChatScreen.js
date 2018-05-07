@@ -81,28 +81,7 @@ export default class TinkoDetailChatScreen extends React.Component {
         let user = firebase.auth().currentUser;
         let userUid = user.uid;
         uid = user.uid;
-        this.socket = SocketIOClient('http://47.89.187.42:4000/');
         MeetId = this.props.navigation.state.params.meetId;
-        this.socket.on("activity" + MeetId,(msg)=>{
-            let data = JSON.parse(msg);
-            console.log(data);
-            this.processMessageData([data],0);
-            // this.getInfo();
-            //
-            // this.setState(previousState => ({
-            //     messages: GiftedChat.append(previousState.messages,{
-            //         _id: Math.floor(Math.random()*10000),
-            //         text: data.msg,
-            //         user: {
-            //             _id: user.uid,
-            //             name: user.username,
-            //             avatar: user.photoURL,
-            //         },
-            //         sent: true,
-            //         received: true,
-            //     }),
-            // }))
-        });
         this.state = {
             meetId: this.props.navigation.state.params.meetId,
             messages: [],
@@ -114,6 +93,16 @@ export default class TinkoDetailChatScreen extends React.Component {
             limit:16,
             SafeAreaInsets:34,
         };
+    }
+
+    componentDidMount(){
+        this.getGroupChatContents();
+        this.socket = SocketIOClient('http://47.89.187.42:4000/');
+        this.socket.on("activity" + MeetId,(msg)=>{
+            let data = JSON.parse(msg);
+            console.log(data);
+            this.processMessageData([data],0);
+        });
         getFromAsyncStorage('ThisUser').then((userData) => {
             if(userData) {
                 let thisUser = {
@@ -144,6 +133,8 @@ export default class TinkoDetailChatScreen extends React.Component {
 
 
 
+
+
     getInfo(pid){
         if (waitingList.indexOf(pid) === -1){
             waitingList.push(pid);
@@ -169,11 +160,11 @@ export default class TinkoDetailChatScreen extends React.Component {
         }
     }
 
-    componentDidMount(){
-        this.getGroupChatContents();
-        // this.keyboardDidShowListener = Keyboard.addListener('keyboardWillShow', this._keyboardDidShow());
-        // this.keyboardDidHideListener = Keyboard.addListener('keyboardWillHide', this._keyboardDidHide());
-    }
+    // componentDidMount(){
+    //     this.getGroupChatContents();
+    //     // this.keyboardDidShowListener = Keyboard.addListener('keyboardWillShow', this._keyboardDidShow());
+    //     // this.keyboardDidHideListener = Keyboard.addListener('keyboardWillHide', this._keyboardDidHide());
+    // }
 
 
     componentWillUnmount () {
@@ -190,7 +181,7 @@ export default class TinkoDetailChatScreen extends React.Component {
             limit:limit
         };
         try {
-            fetch('http://47.89.187.42:4000/getChatHistory', {
+            fetch('https://shuaiyixu.xyz/getChatHistory', {
                 method: 'POST',
                 headers: {
                     Accept: 'application/json',
@@ -214,11 +205,12 @@ export default class TinkoDetailChatScreen extends React.Component {
                     this.setState({isLoadingEarlier:false, lastMeetId:lastId});
                 })
                 .catch((error) => {
+                    console.log("报错了");
                     console.error(error);
                 });
         } catch (error) {
+            console.log("报错了");
             console.error(error);
-
         }
     }
 

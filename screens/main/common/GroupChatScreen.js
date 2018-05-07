@@ -24,7 +24,6 @@ export default class PrivateChatScreen extends Component {
     static navigationOptions = {header:null};
 
     componentWillUnmount(){
-
         currentOnSelectUser("");
         unReadNumNeedsUpdates(MeetId,1);
     }
