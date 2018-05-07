@@ -6,7 +6,7 @@ import { MapView, Constants, Location, Permissions, GestureHandler  } from 'expo
 import GeoFire from 'geofire';
 import firebase from 'firebase';
 import 'firebase/firestore';
-import {getStartTimeString, getPostTimeString, getImageSource} from "../../modules/CommonUtility";
+import {getStartTimeString, getPostTimeString, getImageSource, firestoreDB} from "../../modules/CommonUtility";
 import { Header } from 'react-navigation';
 
 const SCREEN_HEIGHT = Dimensions.get('window').height;
@@ -119,7 +119,7 @@ export default class DiscoverScreen extends Component {
 
         onKeyEnteredRegistration = geoQuery.on("key_entered", function(key, location, distance) {
             //console.log(key + " entered query at " + location + " (" + distance + " km from center)");
-            let firestoreDb  = firebase.firestore();
+            let firestoreDb  = firestoreDB();
             let meetRef = firestoreDb.collection("Meets").doc(key);
             meetRef.get().then((meetDoc) => {
                 if (meetDoc.exists) {
@@ -143,8 +143,8 @@ export default class DiscoverScreen extends Component {
                                     longitude: location[1],
                                 },
                                 title: meet.title,
-                                startTime: getStartTimeString(meet.startTime),
-                                postTime: getPostTimeString(meet.postTime),
+                                startTime: getStartTimeString(meet.startTime.toDate()),
+                                postTime: getPostTimeString(meet.postTime.toDate()),
                                 placeName: meet.place.name,
                                 creator: {
                                     name: creator.username,

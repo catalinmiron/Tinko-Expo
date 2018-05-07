@@ -17,7 +17,7 @@ import uuid from 'uuid';
 import * as firebase from 'firebase';
 import {ifIphoneX} from "react-native-iphone-x-helper";
 import {Header} from "react-native-elements";
-import {getFromAsyncStorage} from "../../../modules/CommonUtility";
+import {firestoreDB, getFromAsyncStorage} from "../../../modules/CommonUtility";
 
 
 console.disableYellowBox = true;
@@ -165,7 +165,7 @@ export default class AvatarUploadScreen extends React.Component {
 
             if (!pickerResult.cancelled) {
                 uploadUrl = await uploadImageAsync(pickerResult.uri, userUid);
-                let userRef = firebase.firestore().collection('Users').doc(userUid);
+                let userRef = firestoreDB().collection('Users').doc(userUid);
                 userRef.update({photoURL:uploadUrl}).then(()=>{
                     this.setState({ image: uploadUrl });
                     this.props.navigation.state.params.getThisUserData();

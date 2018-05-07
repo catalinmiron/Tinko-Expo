@@ -36,7 +36,7 @@ import { EvilIcons, Ionicons } from '@expo/vector-icons';
 import {createMeet} from "../../modules/SocketClient";
 import {KeyboardAwareScrollView} from 'react-native-keyboard-aware-scroll-view';
 import { ActionSheetProvider, connectActionSheet } from '@expo/react-native-action-sheet';
-import {getStartTimeString, getDurationString, getPostRequest} from "../../modules/CommonUtility";
+import {getStartTimeString, getDurationString, getPostRequest, firestoreDB} from "../../modules/CommonUtility";
 
 const SCREEN_WIDTH = Dimensions.get('window').width;
 const db = SQLite.openDatabase('db.db');
@@ -393,7 +393,7 @@ export default class CreateScreen extends React.Component {
                 newAddedList:newAddedList,
             };
 
-            let docRef = firebase.firestore().collection("Meets").doc(meetId);
+            let docRef = firestoreDB().collection("Meets").doc(meetId);
             docRef.update(docData).then(() => {
                 getPostRequest('checkMeetStatus', bodyData,
                     () => {
@@ -412,7 +412,7 @@ export default class CreateScreen extends React.Component {
             docData.selectedFriendsList=selectedFriendsListObj;
             docData.status = true;
 
-            firebase.firestore().collection("Meets").add(docData)
+            firestoreDB().collection("Meets").add(docData)
                 .then((meetRef) => {
                     console.log("Document written with ID: ", meetRef.id);
                     //this.updateUserParticipatingMeets(meetRef.id, userUid);

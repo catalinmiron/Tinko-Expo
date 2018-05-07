@@ -12,6 +12,15 @@ export const currentUserUid = () => {
     }
 };
 
+export const firestoreDB = () => {
+    if(firebase){
+        const firestore = firebase.firestore();
+        const settings = {timestampsInSnapshots:true};
+        firestore.settings(settings);
+        return firestore;
+    }
+};
+
 export const writeInAsyncStorage = (code, data) => {
     let dataString = JSON.stringify(data);
     try {
@@ -67,7 +76,7 @@ export const getPostRequest = (code, bodyData, onComplete, onError) => {
 
 export const getUserData = (userUid) => {
     return new Task((reject, resolve) => {
-        let firestoreDb = firebase.firestore();
+        let firestoreDb = firestoreDB();
         var userRef = firestoreDb.collection("Users").doc(userUid);
         userRef.get().then((userDoc) => {
             if (userDoc.exists) {
@@ -92,7 +101,7 @@ export const getUserData = (userUid) => {
 };
 
 export const getUserDataFromFirebase = async (userUid, onComplete, onError) => {
-    let firestoreDb = firebase.firestore();
+    let firestoreDb = firestoreDB();
     var userRef = firestoreDb.collection("Users").doc(userUid);
     await userRef.get().then((userDoc) => {
         if (userDoc.exists) {
@@ -162,7 +171,7 @@ export const getMeetInfo = async (meetId, onComplete, onError) => {
             onComplete(meetInfo.title, meetInfo.tagName);
         })
         .catch(async () => {
-            let docRef = firebase.firestore().collection("Meets").doc(meetId);
+            let docRef = firestoreDB().collection("Meets").doc(meetId);
             await docRef.get().then(
                 doc =>{
                     if (!doc.exists){

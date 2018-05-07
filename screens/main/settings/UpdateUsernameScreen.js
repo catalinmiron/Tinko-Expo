@@ -3,6 +3,7 @@ import {Alert, View, StyleSheet, Text, Keyboard} from "react-native";
 import firebase from "firebase";
 import {Avatar, Header, ListItem, Button, Input} from 'react-native-elements';
 import {ifIphoneX} from "react-native-iphone-x-helper";
+import {firestoreDB} from "../../../modules/CommonUtility";
 
 export default class UpdateUsernameScreen extends React.Component {
     static navigationOptions = ({
@@ -24,7 +25,7 @@ export default class UpdateUsernameScreen extends React.Component {
     onSubmitButtonPressed(){
         this.setState({buttonRefreshing:true});
         const {userUid, username} = this.state;
-        let userRef = firebase.firestore().collection('Users').doc(userUid);
+        let userRef = firestoreDB().collection('Users').doc(userUid);
         userRef.update({username:username}).then(()=>{
             this.props.navigation.state.params.getThisUserData();
             this.props.navigation.state.params.setUsername(username);

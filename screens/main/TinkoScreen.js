@@ -10,7 +10,8 @@ import firebase from "firebase";
 import 'firebase/firestore';
 import { NavigationActions } from 'react-navigation';
 import { MaterialIcons } from '@expo/vector-icons';
-import { getStartTimeString, getPostTimeString, getPostRequest, getUserData,writeInAsyncStorage, getFromAsyncStorage, getUserDataFromDatabase } from "../../modules/CommonUtility";
+import { getStartTimeString, getPostTimeString, getPostRequest, getUserData,writeInAsyncStorage, getFromAsyncStorage, getUserDataFromDatabase, firestoreDB } from "../../modules/CommonUtility";
+import {getMeetTitleFromSql} from "../../modules/SqliteClient";
 const db = SQLite.openDatabase('db.db');
 
 const SCREEN_WIDTH = Dimensions.get('window').width;
@@ -90,6 +91,7 @@ export default class TinkoScreen extends Component {
         let meetDataString = JSON.stringify(meetData);
         db.transaction(
             tx => {
+                console.log('insertMeetData: ', meetData.title, meetData);
                 tx.executeSql(
                     `INSERT OR REPLACE INTO meet${this.state.userUid} (meetId, meetData,creatorData,placePhotoData, participatingUsersData) 
                         VALUES (?,?,
@@ -100,7 +102,14 @@ export default class TinkoScreen extends Component {
             }
             ,
             (error) => console.log("insertMeetData" + error),
-            () => console.log('insertMeetData complete')
+            () => {
+                console.log('insertMeetData complete');
+                // getMeetTitleFromSql(meetId).then((meetInfo)=>{
+                //     console.log(meetInfo)
+                // }).catch(()=>{
+                //     console.log('error of insertMeetData from getMeetTitle')
+                // })
+            }
         );
     }
 
@@ -122,7 +131,7 @@ export default class TinkoScreen extends Component {
         this.setState({refreshing:true});
         const { orderByPostTime } = this.state;
         //console.log(orderByPostTime);
-        const firestoreDb = firebase.firestore();
+        const firestoreDb = firestoreDB();
         var query;
         if(orderByPostTime){
             query = firestoreDb.collection("Meets").orderBy(`selectedFriendsList.${this.state.userUid}.postTime`,'desc').limit(10);
@@ -173,8 +182,8 @@ export default class TinkoScreen extends Component {
     }
 
     buildBrick(meet, meetId, user){
-        let startTimeString = getStartTimeString(meet.startTime);
-        let postTimeString = getPostTimeString(meet.postTime);
+        let startTimeString = getStartTimeString(meet.startTime.toDate());
+        let postTimeString = getPostTimeString(meet.postTime.toDate());
         return {
             data: {
                 meetId: meetId,
@@ -197,7 +206,7 @@ export default class TinkoScreen extends Component {
         //console.log('lastVisible', this.state.lastVisible);
         const {orderByPostTime, lastVisible} = this.state;
         if(lastVisible){
-            const firestoreDb = firebase.firestore();
+            const firestoreDb = firestoreDB();
             let query;
             if(orderByPostTime){
                 query = firestoreDb.collection("Meets").orderBy(`selectedFriendsList.${this.state.userUid}.postTime`,'desc').startAfter(lastVisible).limit(10);

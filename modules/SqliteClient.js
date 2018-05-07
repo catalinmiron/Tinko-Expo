@@ -132,17 +132,25 @@ export const getMeetTitleFromSql = async (meetId) => {
                         let data = rows._array;
                         let meetDataString = data[0].meetData;
                         let meetData = JSON.parse(meetDataString);
-                        let tagsList = meetData.tagsList;
-                        let tagName;
-                        if(tagsList){
-                            tagName = tagsList[0];
-                        } else {
-                            tagName='default';
+                        console.log('getMeetTitleFromSql, data, ', data);
+                        if(Object.keys(meetData).length !== 0){
+                            let tagsList = meetData.tagsList;
+                            let tagName;
+                            if(tagsList){
+                                tagName = tagsList[0];
+                            } else {
+                                tagName='default';
+                            }
+                            console.log('getMeetTitleFromSql, ', meetData.title, tagName);
+                            resolve({
+                                title:meetData.title,
+                                tagName:tagName,
+                            })
+                        }else{
+                            console.log('getMeetTitleFromSql data === {}');
+                            reject();
                         }
-                        resolve({
-                            title:meetData.title,
-                            tagName:tagName,
-                        })
+
                     }
                 });
             },

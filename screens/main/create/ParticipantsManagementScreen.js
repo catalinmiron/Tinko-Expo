@@ -25,7 +25,7 @@ import {
 } from 'react-native-elements';
 import Expo, { SQLite } from 'expo';
 import { NavigationActions } from 'react-navigation';
-import {getPostRequest, getUserData, getUserDataFromDatabase} from "../../../modules/CommonUtility";
+import {firestoreDB, getPostRequest, getUserData, getUserDataFromDatabase} from "../../../modules/CommonUtility";
 import {Ionicons} from '@expo/vector-icons'
 
 
@@ -124,7 +124,7 @@ export default class InvitationRangeScreen extends React.Component{
     deleteUser(userData){
         let participatingUsersList = this.props.navigation.state.params.participatingUsersList();
         _.pull(participatingUsersList,userData.uid);
-        let meetRef = firebase.firestore().collection("Meets").doc(this.state.meetId);
+        let meetRef = firestoreDB().collection("Meets").doc(this.state.meetId);
         meetRef.update({
             [`participatingUsersList.${userData.uid}`]:firebase.firestore.FieldValue.delete(),
             participatingUsersArray:participatingUsersList
