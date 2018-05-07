@@ -131,6 +131,9 @@ export default class TinkoDetailChatScreen extends React.Component {
         });
     }
 
+    componentWillUnmount(){
+        this.socket.removeListener("activity" + MeetId);
+    }
 
 
 
@@ -166,11 +169,6 @@ export default class TinkoDetailChatScreen extends React.Component {
     //     // this.keyboardDidHideListener = Keyboard.addListener('keyboardWillHide', this._keyboardDidHide());
     // }
 
-
-    componentWillUnmount () {
-        //this.keyboardDidShowListener.remove();
-        //this.keyboardDidHideListener.remove();
-    }
 
     getGroupChatContents() {
         this.setState({isLoadingEarlier:true});
