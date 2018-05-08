@@ -17,6 +17,19 @@ export const currentOnSelectUser = (id) => {
     currentOnSelect = id
 };
 
+export const removeChat = (id) => {
+        let arr = [];
+        for (let i = 0;i<dataStore.length;i++){
+            arr.push(dataStore[i].id);
+        }
+    let indexOf = arr.indexOf(id);
+    if (indexOf !== -1){
+        dataStore.splice(indexOf,1);
+        updateTotalUnReadNum();
+    }
+    return dataStore;
+};
+
 export const appendChatData = (time,type,id,msg,hasRead) =>{
         let arr = [];
         for (let i = 0;i<dataStore.length;i++){
