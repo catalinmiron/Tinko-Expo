@@ -31,6 +31,7 @@ import {
     getTotalUnReadNum,
     unReadNumNeedsUpdates,
     currentOnSelectUser,
+    removeChat
 } from "../../modules/ChatStack";
 
 
@@ -428,6 +429,13 @@ export default class FriendChatListView extends Component {
             });
     }
 
+    removeData(id){
+        removeChat(id);
+        this.setState({
+            messages:getData()
+        });
+    }
+
     render() {
         let friendList = [];
         if (this.state.messages.length!==0){
@@ -509,7 +517,7 @@ export default class FriendChatListView extends Component {
                             Alert.alert("Delete this row?", '',
                                 [
                                     {text: 'Cancel', onPress: () => console.log('Cancel Pressed'), style: 'cancel'},
-                                    {text: 'Delete', onPress: () => console.log('Delete this fucking shit'), style:"destructive"},
+                                    {text: 'Delete', onPress: () => this.removeData(messages.id), style:"destructive"},
                                 ]);
                         }}
                     />
@@ -529,6 +537,7 @@ export default class FriendChatListView extends Component {
             </View>
         )
     }
+
 }
 
 const styles = StyleSheet.create(
