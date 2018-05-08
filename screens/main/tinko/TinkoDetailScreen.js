@@ -13,6 +13,8 @@ import { getPostRequest,getListWhoParticipatedInMeetsByMeetId } from "../../../m
 import { ActionSheetProvider, connectActionSheet } from '@expo/react-native-action-sheet';
 import SocketIOClient from "socket.io-client";
 import {quitMeet,joinMeet} from "../../../modules/SocketClient";
+import { NavigationActions } from 'react-navigation';
+
 const db = SQLite.openDatabase('db.db');
 
 const SCREEN_WIDTH = Dimensions.get('window').width;
@@ -27,7 +29,10 @@ export default class TinkoDetailScreen extends React.Component {
         return {
             headerLeft:(<Ionicons.Button
                 name="ios-arrow-back" size={20} color="white" style={{marginLeft:26}} backgroundColor="transparent"
-                onPress={() => navigation.goBack(null)}/>),
+                onPress={() => {
+                    navigation.goBack(null);
+                    //navigation.dispatch(NavigationActions.back())
+                }}/>),
             headerRight:(
                 <View style={{flexDirection:'row'}}>
 
@@ -121,10 +126,7 @@ export default class TinkoDetailScreen extends React.Component {
 
 
     componentWillUnmount(){
-        const {unsubscribe} = this.state;
-        if(unsubscribe){
-            unsubscribe();
-        }
+        this.unsubscribe();
         this.updateMeetDataToSql();
 
     }
@@ -197,10 +199,11 @@ export default class TinkoDetailScreen extends React.Component {
         const { meetId, userUid } = this.state;
         let firestoreDb = firestoreDB();
         var meetRef = firestoreDb.collection("Meets").doc(meetId);
-        var unsubscribe = meetRef.onSnapshot((meetDoc) => {
+        this.unsubscribe = meetRef.onSnapshot((meetDoc) => {
             if (meetDoc.exists) {
                 //console.log("Document data:", meetDoc.data());
                 let meet = meetDoc.data();
+                console.log('I called processMeet');
                 this.processMeet(meet);
                 //console.log(this.state);
                 //this.marker.showCallout()
@@ -209,7 +212,6 @@ export default class TinkoDetailScreen extends React.Component {
                 Alert.alert('Sorry','This Tinko is not available anymore')
             }
         });
-        this.setState({unsubscribe});
     }
 
     processMeet(meet){
@@ -406,6 +408,32 @@ export default class TinkoDetailScreen extends React.Component {
         });
     }
 
+    onDismissMeetButtonPressed(){
+        const { userUid, meetId,participatingUsersList } = this.state;
+        let meetRef = firestoreDB().collection("Meets").doc(meetId);
+        meetRef.update({dismissed:true}).then(()=>{
+
+            let bodyData ={meetId:meetId};
+            //NEED CHANGE
+            quitMeet(userUid,meetId);
+            getPostRequest('checkMeetStatus', bodyData,
+                () => {
+                    this.props.navigation.goBack(null);
+                    // if(this.props.navigation.state.params.comeFromTinkoScreen){
+                    //     console.log('before getMeets called');
+                    //     this.props.navigation.state.params.getMeets();
+                    //     console.log('after getMeets called');
+                    // }
+                },
+                (error) => {
+                    console.log(error);
+                    Alert.alert('error', error);
+                });
+        }).catch((error)=>{
+            Alert.alert('Error', error);
+        });
+    }
+
     onOpenThreeDotsActionSheet = () => {
         const { identity } = this.state;
         var options;
@@ -451,6 +479,12 @@ export default class TinkoDetailScreen extends React.Component {
                         ]);
                 } else if(options[buttonIndex] === 'Edit') {
                     this.props.navigation.navigate('Create',{meet:this.state.meet, getParticipatingUsersList:this.getParticipatingUsersList.bind(this)});
+                } else if(options[buttonIndex] === 'Dismiss'){
+                    Alert.alert("Alert", "Are you sure to Dismiss the Group?",
+                        [
+                            {text: 'Cancel', onPress: () => console.log('Cancel Pressed'), style: 'cancel'},
+                            {text: 'Yes', onPress: () => this.onDismissMeetButtonPressed(), style:"destructive"},
+                        ]);
                 }
             }
         );

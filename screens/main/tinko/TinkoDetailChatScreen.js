@@ -74,7 +74,7 @@ export default class TinkoDetailChatScreen extends React.Component {
         this.getData = function () {
             return (this.dataStore);
         }
-    }                                                                               c
+    }
 
     constructor(props){
         super(props);
@@ -180,6 +180,7 @@ export default class TinkoDetailChatScreen extends React.Component {
             limit:limit
         };
         try {
+            console.log('before fetch');
             fetch('https://shuaiyixu.xyz/getChatHistory', {
                 method: 'POST',
                 headers: {
@@ -190,6 +191,7 @@ export default class TinkoDetailChatScreen extends React.Component {
             }).then((response) => response.json())
                 .then((responseJson) => {
                     let data = responseJson.data;
+                    console.log('after fetch', data);
                     let messages=[];
                     this.processMessageData(data,1);
                     if(data.length<limit){

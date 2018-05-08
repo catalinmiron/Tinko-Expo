@@ -91,7 +91,7 @@ export default class TinkoScreen extends Component {
         let meetDataString = JSON.stringify(meetData);
         db.transaction(
             tx => {
-                console.log('insertMeetData: ', meetData.title, meetData);
+                //console.log('insertMeetData: ', meetData.title, meetData);
                 tx.executeSql(
                     `INSERT OR REPLACE INTO meet${this.state.userUid} (meetId, meetData,creatorData,placePhotoData, participatingUsersData) 
                         VALUES (?,?,
@@ -128,6 +128,7 @@ export default class TinkoScreen extends Component {
     }
 
     async getMeets(){
+        console.log('getMeets called');
         this.setState({refreshing:true});
         const { orderByPostTime } = this.state;
         //console.log(orderByPostTime);
@@ -265,6 +266,7 @@ export default class TinkoScreen extends Component {
                     }}
                     onEndReachedThreshold={500}
                     navigation={this.props.screenProps.navigation}
+                    getMeets={()=>this.getMeets.bind(this)}
                     //renderFooter={()=>(<text>123</text>)}
                 />
 
