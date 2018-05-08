@@ -84,7 +84,7 @@ export default class FriendListView extends Component {
             friendList.push(
                 <ListItem
                     hideChevron
-                    leftAvatar={{ rounded: true, source: { uri: this.state.sqlRows[i].photoURL } }}
+                    leftAvatar={{ rounded: true, size:40, source: { uri: this.state.sqlRows[i].photoURL } }}
                     key={this.state.sqlRows[i].uid}
                     title={this.state.sqlRows[i].username}
                     onPress={() => this.goToDetailPage(this.state.sqlRows[i].uid)}

@@ -2,7 +2,7 @@ import React, {
     Component
 } from 'react';
 import {
-    View,DeviceEventEmitter
+    View,DeviceEventEmitter, Platform
 } from 'react-native';
 import {getUserDataFromDatabase,getMeetInfo} from "../../../modules/CommonUtility";
 import {SQLite } from 'expo';
@@ -13,6 +13,7 @@ import SocketIOClient from 'socket.io-client';
 import {ifIphoneX} from "react-native-iphone-x-helper";
 import {Header} from "react-native-elements";
 import {MaterialIcons} from '@expo/vector-icons'
+import KeyboardSpacer from "react-native-keyboard-spacer";
 
 let uid = "",
     MeetId = "",
@@ -172,6 +173,7 @@ export default class PrivateChatScreen extends Component {
                     }}
                     renderAvatarOnTop={true}
                 />
+                {Platform.OS === 'android' && <KeyboardSpacer/>}
                 <View style={{...ifIphoneX({height:34, backgroundColor:'white'}, {})}}/>
             </View>
         )

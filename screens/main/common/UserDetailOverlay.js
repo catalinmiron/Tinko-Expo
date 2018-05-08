@@ -170,7 +170,9 @@ export default class UserDetailScreen extends Component{
             <Overlay
                 height={300}
                 borderRadius={25}
-                isVisible={isVisible}>
+                isVisible={isVisible}
+                onBackdropPress={()=>this.setState({isVisible:false})}
+            >
                 {loading ?
                     <View/>
                     :
@@ -184,7 +186,7 @@ export default class UserDetailScreen extends Component{
 
                             </View>
                             <Avatar
-                                large
+                                size='large'
                                 rounded
                                 source={{uri: userData.photoURL}}
                                 //onPress={() => console.log("Works!")}
@@ -234,11 +236,6 @@ export default class UserDetailScreen extends Component{
                                 />
                             </View>
                         }
-                        <Button
-                            containerStyle={{marginTop:15}}
-                            title='dismiss'
-                            onPress={()=> this.setState({isVisible:false})}
-                        />
                     </View>
                 }
             </Overlay>
