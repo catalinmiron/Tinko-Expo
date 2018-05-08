@@ -109,7 +109,7 @@ export default class TinkoTabNavigatorScreen extends React.Component {
     }
 
     componentWillUnmount(){
-        console.log("????? here");
+        console.log("componentWillUnmount");
     }
 
     // showBadge(){

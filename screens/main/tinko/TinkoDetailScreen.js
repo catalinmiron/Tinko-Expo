@@ -59,7 +59,8 @@ export default class TinkoDetailScreen extends React.Component {
 
     constructor(props){
         super(props);
-        console.log(props);
+        //console.log(props);
+        console.log('called from constructor');
         let user = firebase.auth().currentUser;
         this.onJoinButtonPressed = this.onJoinButtonPressed.bind(this);
         this.renderActivityBar = this.renderActivityBar.bind(this);
@@ -184,7 +185,7 @@ export default class TinkoDetailScreen extends React.Component {
                             this.setState({participatingUsersData});
                         }
 
-                        this.processMeet(meet);
+                        this.processMeet(meet, false);
                     }else {
                         console.log('No this meet in sql');
                     }
@@ -204,7 +205,7 @@ export default class TinkoDetailScreen extends React.Component {
                 //console.log("Document data:", meetDoc.data());
                 let meet = meetDoc.data();
                 console.log('I called processMeet');
-                this.processMeet(meet);
+                this.processMeet(meet, true);
                 //console.log(this.state);
                 //this.marker.showCallout()
             } else {
@@ -214,10 +215,35 @@ export default class TinkoDetailScreen extends React.Component {
         });
     }
 
-    processMeet(meet){
+    processMeet(meet, fromFirebase){
         const {meetId,userUid}=this.state;
         meet['meetId'] = meetId;
         //console.log(meet);
+
+        const endTimeTS = meet.endTime;
+        const postTimeTS = meet.postTime;
+        const startTimeTS = meet.startTime;
+
+        console.log('processMeet',fromFirebase, postTimeTS, typeof(postTimeTS));
+
+        let endTime;
+        let postTime;
+        let startTime;
+
+        console.log('postTime seconds', postTimeTS.seconds);
+
+        if(fromFirebase){
+            endTime = endTimeTS.toDate();
+            postTime = postTimeTS.toDate();
+            startTime = startTimeTS.toDate();
+        } else{
+            const date = new Date(null);
+            endTime = new Date(endTimeTS.seconds*1000);
+            postTime = new Date(postTimeTS.seconds*1000);
+            startTime = new Date(startTimeTS.seconds*1000);
+        }
+        console.log('processMeet',fromFirebase, postTime, typeof(postTimeTS));
+
 
         let allFriends = meet.allFriends,
             allowParticipantsInvite = meet.allowParticipantsInvite,
@@ -225,16 +251,16 @@ export default class TinkoDetailScreen extends React.Component {
             creatorUid = meet.creator,
             description = meet.description,
             duration = meet.duration,
-            endTime = meet.endTime.toDate(),
+            //endTime = endTimeTS.toDate(),
             maxNo = meet.maxNo,
             participatingUsersList = meet.participatingUsersArray,
             placeAddress = meet.place.address,
             placeName = meet.place.name,
             placeCoordinate = meet.place.coordinate,
             placeId = meet.place.placeId,
-            postTime = meet.postTime.toDate(),
+            //postTime = meet.postTime.toDate(),
             selectedFriendsList = Object.keys(meet.selectedFriendsList),
-            startTime = meet.startTime.toDate(),
+            //startTime = meet.startTime.toDate(),
             status = meet.status,
             title = meet.title;
         let tagsList;
