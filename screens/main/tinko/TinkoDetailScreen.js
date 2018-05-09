@@ -12,7 +12,7 @@ import { ifIphoneX } from 'react-native-iphone-x-helper';
 import { getPostRequest,getListWhoParticipatedInMeetsByMeetId } from "../../../modules/CommonUtility";
 import { ActionSheetProvider, connectActionSheet } from '@expo/react-native-action-sheet';
 import SocketIOClient from "socket.io-client";
-import {quitMeet,joinMeet} from "../../../modules/SocketClient";
+import {quitMeet,joinMeet,dismissMeet} from "../../../modules/SocketClient";
 import { NavigationActions } from 'react-navigation';
 
 const db = SQLite.openDatabase('db.db');
@@ -450,7 +450,7 @@ export default class TinkoDetailScreen extends React.Component {
 
             let bodyData ={meetId:meetId};
             //NEED CHANGE
-            quitMeet(userUid,meetId);
+            dismissMeet(userUid,meetId);
             getPostRequest('checkMeetStatus', bodyData,
                 () => {
                     this.props.navigation.goBack(null);

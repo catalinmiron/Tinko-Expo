@@ -48,3 +48,9 @@ export const quitMeet = (uid,meetId) => {
 export const RemoveFromMeet = (uid,meetId) => {
     Socket.emit("Meets",uid,meetId,-2);
 };
+
+
+//删除活动
+export const dismissMeet = (uid,meetId) => {
+    Socket.emit("Meets",uid,meetId,3);
+};

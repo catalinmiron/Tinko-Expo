@@ -97,7 +97,7 @@ export default class FriendChatListView extends Component {
         this.socket = SocketIOClient('https://shuaiyixu.xyz/');
         //this.getAvatar();
         //this.getDBData();
-        this.initChatTableAndGetDBData();
+        this.initChatTableAndGetDBData(uid);
         this.state = {
             messages: [],
             friendInfo:[],
@@ -334,7 +334,7 @@ export default class FriendChatListView extends Component {
             },
             (error) => console.log("db create:" + error),
             () => {
-                console.log('db create complete');
+                console.log('db create complete db'+uid);
                 this.getDBData();
             }
         );
