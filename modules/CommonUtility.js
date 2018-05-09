@@ -359,7 +359,7 @@ export const getListWhoParticipatedInMeetsByMeetId = (meetId) => {
             body: JSON.stringify({
                 meetId: meetId
             }),
-        });
+        }).then((response) => console.log(response));
     }catch (e) {
         console.log(e);
     }

@@ -91,7 +91,7 @@ export default class TinkoDetailChatScreen extends React.Component {
             loadEarlier: false,
             isLoadingEarlier:false,
             lastMeetId:-1,
-            limit:16,
+            limit:1,
             SafeAreaInsets:34,
         };
     }
@@ -100,9 +100,12 @@ export default class TinkoDetailChatScreen extends React.Component {
         this.getGroupChatContents();
         this.socket = SocketIOClient('https://shuaiyixu.xyz/');
         this.socket.on("activity" + MeetId,(msg)=>{
-            let data = JSON.parse(msg);
-            console.log(data);
-            this.processMessageData([data],0);
+            try {
+                let data = JSON.parse(msg);
+                this.processMessageData([data],0);
+            } catch(e) {
+                console.log(e);
+            }
         });
         getFromAsyncStorage('ThisUser').then((userData) => {
             if(userData) {
