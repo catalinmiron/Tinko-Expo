@@ -122,9 +122,11 @@ export default class CreateScreen extends React.Component {
     }
 
     async componentDidMount() {
+        this.props.navigation.setParams({post:this.onPostButtonPressed.bind(this), cancel:this.onCancelButtonPressed.bind(this), editingMode:this.state.editingMode});
+
         if(this.state.editingMode){
             let meet = this.props.navigation.state.params.meet;
-            let startTime = meet.startTime;
+            let startTime = meet.startTime.toDate();
             let dateTime =  startTime.getFullYear() + '-' + (startTime.getMonth()+1) + '-' + startTime.getDate() + ' ' + startTime.getHours() + ':' + startTime.getMinutes();
             let durationString = getDurationString(meet.duration);
             let temp = durationString.split(' ');
@@ -209,7 +211,7 @@ export default class CreateScreen extends React.Component {
         }
 
 
-        this.props.navigation.setParams({post:this.onPostButtonPressed.bind(this), cancel:this.onCancelButtonPressed.bind(this), editingMode:this.state.editingMode});
+
     }
 
     getLocationAsync = async () => {

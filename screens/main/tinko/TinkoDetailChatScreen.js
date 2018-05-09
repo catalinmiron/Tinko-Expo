@@ -91,7 +91,7 @@ export default class TinkoDetailChatScreen extends React.Component {
             loadEarlier: false,
             isLoadingEarlier:false,
             lastMeetId:-1,
-            limit:1,
+            limit:15,
             SafeAreaInsets:34,
         };
     }
@@ -197,6 +197,11 @@ export default class TinkoDetailChatScreen extends React.Component {
                     console.log('after fetch', data);
                     let messages=[];
                     this.processMessageData(data,1);
+                    console.log(data);
+                    if(!data){
+                        return;
+                    }
+
                     if(data.length<limit){
                         this.setState({loadEarlier:false, });
                     } else {

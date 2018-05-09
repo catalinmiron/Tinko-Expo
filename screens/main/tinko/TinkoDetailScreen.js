@@ -218,6 +218,7 @@ export default class TinkoDetailScreen extends React.Component {
     processMeet(meet, fromFirebase){
 
         const {meetId,userUid}=this.state;
+
         meet['meetId'] = meetId;
         console.log('fromFirebase', fromFirebase, meet);
 
@@ -288,27 +289,42 @@ export default class TinkoDetailScreen extends React.Component {
 
         }
 
+        const {creatorData, placePhotos, participatingUsersData}=this.state;
         if(fromFirebase){
             //console.log('fromFirebase', meet);
             if(identity === 0 &&(!meet.status || meet.dismissed)){
-                Alert.alert('Whops','This Tinko is not available anymore');
-                return;
+                Alert.alert('Whops','This Tinko is not available anymore',
+                    [
+                        {text: 'OK', onPress: () => {
+                                this.props.navigation.goBack(null);
+                                if(this.props.navigation.state.params.comeFromTinkoScreen){
+                                    this.props.navigation.state.params.getMeets();
+                                }
+                            }},
+                    ],
+                    { cancelable: false });
             }
+
+            if(!placePhotos || placePhotos.length===0 || placeId !== this.state.placeId){
+                this.getPlacePhotos(placeId);
+            }
+
+            //this.getPlacePhotos(placeId);
+            this.updateParticipatingUsersData(participatingUsersList);
         }
 
-        const {creatorData, placePhotos, participatingUsersData} = this.state;
+
+
         if(!creatorData || creatorUid !== this.state.creatorUid){
             this.getCreatorData(creatorUid);
         }
-        if(!placePhotos || placeId !== this.state.placeId){
-            this.getPlacePhotos(placeId);
-        }
+
         // if(!participatingUsersData){
         //     this.updateParticipatingUsersData(participatingUsersList);
         // }
         // this.getCreatorData(creatorUid);
         // this.getPlacePhotos(placeId);
-        this.updateParticipatingUsersData(participatingUsersList);
+
 
         this.setState({
             meet,
@@ -530,11 +546,11 @@ export default class TinkoDetailScreen extends React.Component {
             creatorData, title, placePhotos, startTime, allowPeopleNearby, participatingUsersList,
             maxNo, description, duration, participatingUsersData, placeName, placeCoordinate, placeAddress, placeId, tagsList, showMap, meet } = this.state;
 
-        if(identity === 0 && (!meet.status || meet.dismissed)){
-            return(
-                <View style={styles.container}/>
-            );
-        }
+        // if(identity === 0 && (!meet.status || meet.dismissed)){
+        //     return(
+        //         <View style={styles.container}/>
+        //     );
+        // }
 
         let tagsString='';
         for(let i=0; i<tagsList.length; i++){
