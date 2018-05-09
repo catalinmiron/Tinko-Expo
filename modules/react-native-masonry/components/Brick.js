@@ -14,7 +14,7 @@ export default function Brick (props) {
             <TouchableOpacity
                 key='brick-footer'
                 style={styles.headerTop}
-                onPress={() => props.navigation.navigate('TinkoDetail', {meetId: data.meetId, getMeets: props.getMeets, comeFromTinkoScreen:true})}
+                onPress={() => props.navigateToDetail(data.meetId)}
             >
                 <Image
                     source={{uri: data.creator.photoURL}}
@@ -27,7 +27,7 @@ export default function Brick (props) {
             </TouchableOpacity>
 		  {image}
             <TouchableOpacity key='brick-header' style={styles.footer}
-                              onPress={() => props.navigation.navigate('TinkoDetail', {meetId: data.meetId, getMeets: props.getMeets, comeFromTinkoScreen:true})}>
+                              onPress={() => props.navigateToDetail(data.meetId)}>
                 <Text style={styles.footerTitle}>{data.title}</Text>
                 <Text style={styles.footerTime}>{data.startTime}</Text>
                 <Text style={styles.footerPlaceName}>{data.placeName}</Text>
@@ -77,7 +77,7 @@ export function _getTouchableUnit (props, gutter = 0) {
 	return (
 		<TouchableHighlight
           key={props.uri}
-          onPress={() => props.navigation.navigate('TinkoDetail', {meetId: props.data.meetId, getMeets: props.getMeets, comeFromTinkoScreen:true})}>
+          onPress={() => props.navigateToDetail(props.data.meetId)}>
           <View>
             { _getImageTag(props, gutter) }
           </View>

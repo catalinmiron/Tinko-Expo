@@ -29,7 +29,7 @@ const TinkoTabNavigator = TabNavigator(
         //tabBarOptions:{style:{height:0, bottom:-30}, showLabel:false, },
         tabBarComponent: () => null,
         //tabBarPosition: 'bottom',
-        animationEnabled: false,
+        animationEnabled: true,
         swipeEnabled: true,
         headerMode: 'none',
         headerVisible: false,
@@ -131,13 +131,19 @@ export default class TinkoTabNavigatorScreen extends React.Component {
                 <View style={{flexDirection:'row'}}>
                     <Text style={{color:'white', fontSize:22, fontFamily:'bold'}}>  TINKO </Text>
                     <Text  style={{color:'white', fontSize:20, fontFamily:'bold'}}> | </Text>
-                    <Text  style={{color:'white', fontSize:20, fontFamily:'regular'}}> Discover</Text>
+                    <Text
+                        style={{color:'white', fontSize:20, fontFamily:'regular'}}
+                        onPress={()=> this.tinkoRef.props.navigation.navigate('Discover')}
+                    > Discover</Text>
                 </View>
             );
         } else {
             return (
                 <View style={{flexDirection:'row'}}>
-                    <Text style={{color:'white', fontSize:22, fontFamily:'regular'}}>    TINKO </Text>
+                    <Text
+                        style={{color:'white', fontSize:22, fontFamily:'regular'}}
+                        onPress={()=>this.discoverRef.props.navigation.navigate('Tinko')}
+                    >    TINKO </Text>
                     <Text  style={{color:'white', fontSize:20, fontFamily:'bold'}}> | </Text>
                     <Text  style={{color:'white', fontSize:22, fontFamily:'bold'}}> Discover</Text>
                 </View>
@@ -153,7 +159,8 @@ export default class TinkoTabNavigatorScreen extends React.Component {
 
     }
 
-    getRef = ref => (this.tinkoRef = ref);
+    getTinkoRef = ref => (this.tinkoRef = ref);
+    getDiscoverRef = ref => (this.discoverRef = ref);
 
     render() {
         return (
@@ -162,7 +169,7 @@ export default class TinkoTabNavigatorScreen extends React.Component {
                 <TinkoTabNavigator
                     //onRef={ref => (this.tinkoNav = ref)}
                     onNavigationStateChange={(prevState, newState) => this.onNavStateChnage(newState)}
-                    screenProps={{getRef:this.getRef,...this.props}}
+                    screenProps={{getTinkoRef:this.getTinkoRef,getDiscoverRef:this.getDiscoverRef,...this.props}}
                 />
 
                 <ActionButton buttonColor="#3498db">

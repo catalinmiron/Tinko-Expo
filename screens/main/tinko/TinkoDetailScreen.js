@@ -29,10 +29,7 @@ export default class TinkoDetailScreen extends React.Component {
         return {
             headerLeft:(<Ionicons.Button
                 name="ios-arrow-back" size={20} color="white" style={{marginLeft:26}} backgroundColor="transparent"
-                onPress={() => {
-                    navigation.goBack(null);
-                    //navigation.dispatch(NavigationActions.back())
-                }}/>),
+                onPress={() => navigation.goBack(null)}/>),
             headerRight:(
                 <View style={{flexDirection:'row'}}>
 
@@ -113,6 +110,7 @@ export default class TinkoDetailScreen extends React.Component {
     }
 
     componentDidMount(){
+        console.log('componentDidMount called');
         this.getMeetDataFromSql();
         this.setMeetDataListener();
         this.props.navigation.setParams({threeDots:this.onOpenThreeDotsActionSheet.bind(this)});
@@ -134,10 +132,12 @@ export default class TinkoDetailScreen extends React.Component {
 
     updateMeetDataToSql(){
         const { meetId, meet, creatorData, placePhotos, participatingUsersData } = this.state;
+        //console.log(this.state);
         let meetDataString = JSON.stringify(meet);
         let creatorDataString = JSON.stringify(creatorData);
         let placePhotosDataString = JSON.stringify(placePhotos);
         let participatingUsersDataString = JSON.stringify(participatingUsersData);
+        //console.log('updateMeetDataToSql', meetDataString, creatorDataString, placePhotosDataString, participatingUsersDataString);
         db.transaction(
             tx => {
                 tx.executeSql(
@@ -158,7 +158,7 @@ export default class TinkoDetailScreen extends React.Component {
             tx => {
                 tx.executeSql(`select * from meet${userUid} WHERE meetId = '${meetId}'`, [], (_, { rows }) => {
                     let data =  rows['_array'];
-                    //console.log('sqlite meetData', data);
+                    console.log('sqlite meetData', data);
                     if(data.length > 0){
                         let meetDataString = data[0].meetData;
 
@@ -218,7 +218,7 @@ export default class TinkoDetailScreen extends React.Component {
     processMeet(meet, fromFirebase){
         const {meetId,userUid}=this.state;
         meet['meetId'] = meetId;
-        //console.log(meet);
+        console.log('fromFirebase', fromFirebase, meet);
 
         const endTimeTS = meet.endTime;
         const postTimeTS = meet.postTime;
@@ -435,7 +435,7 @@ export default class TinkoDetailScreen extends React.Component {
     }
 
     onDismissMeetButtonPressed(){
-        const { userUid, meetId,participatingUsersList } = this.state;
+        const { userUid, meetId } = this.state;
         let meetRef = firestoreDB().collection("Meets").doc(meetId);
         meetRef.update({dismissed:true}).then(()=>{
 
@@ -445,11 +445,11 @@ export default class TinkoDetailScreen extends React.Component {
             getPostRequest('checkMeetStatus', bodyData,
                 () => {
                     this.props.navigation.goBack(null);
-                    // if(this.props.navigation.state.params.comeFromTinkoScreen){
-                    //     console.log('before getMeets called');
-                    //     this.props.navigation.state.params.getMeets();
-                    //     console.log('after getMeets called');
-                    // }
+                    if(this.props.navigation.state.params.comeFromTinkoScreen){
+                        console.log('before getMeets called');
+                        this.props.navigation.state.params.getMeets();
+                        console.log('after getMeets called');
+                    }
                 },
                 (error) => {
                     console.log(error);
@@ -591,6 +591,18 @@ export default class TinkoDetailScreen extends React.Component {
 
 
                     </View>
+
+                    {/*<Button*/}
+                        {/*title={'goBack'}*/}
+                        {/*onPress={()=>{*/}
+                            {/*this.props.navigation.goBack(null);*/}
+                            {/*if(this.props.navigation.state.params.comeFromTinkoScreen){*/}
+                                {/*console.log('before getMeets called');*/}
+                                {/*this.props.navigation.state.params.getMeets();*/}
+                                {/*console.log('after getMeets called');*/}
+                            {/*}*/}
+                        {/*}}*/}
+                    {/*/>*/}
 
                     <View style={{flexDirection: 'row', alignItems:'center', position:'absolute', marginTop:SCREEN_WIDTH/2-60, right:0}}>
                         <Text

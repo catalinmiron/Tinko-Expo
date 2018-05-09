@@ -132,7 +132,7 @@ export const getMeetTitleFromSql = async (meetId) => {
                         let data = rows._array;
                         let meetDataString = data[0].meetData;
                         let meetData = JSON.parse(meetDataString);
-                        console.log('getMeetTitleFromSql, data, ', data);
+                        //console.log('getMeetTitleFromSql, data, ', data);
                         if(Object.keys(meetData).length !== 0){
                             let tagsList = meetData.tagsList;
                             let tagName;
@@ -141,7 +141,7 @@ export const getMeetTitleFromSql = async (meetId) => {
                             } else {
                                 tagName='default';
                             }
-                            console.log('getMeetTitleFromSql, ', meetData.title, tagName);
+                            //console.log('getMeetTitleFromSql, ', meetData.title, tagName);
                             resolve({
                                 title:meetData.title,
                                 tagName:tagName,
