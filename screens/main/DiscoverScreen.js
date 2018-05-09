@@ -84,6 +84,7 @@ export default class DiscoverScreen extends Component {
     componentDidMount() {
 
         this._updateNativeStyles();
+        this.props.screenProps.getDiscoverRef(this);
     }
 
     _getLocationAsync = async () => {

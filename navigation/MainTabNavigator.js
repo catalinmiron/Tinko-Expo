@@ -26,6 +26,7 @@ import AvatarUploadScreen from "../screens/main/settings/AvatarUploadScreen";
 import UpdateUsernameScreen from "../screens/main/settings/UpdateUsernameScreen";
 import TinkoDetailScreen from '../screens/main/tinko/TinkoDetailScreen';
 
+
 const MainTabNavigator = TabNavigator(
   {
     Home: {

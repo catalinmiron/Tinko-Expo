@@ -13,6 +13,8 @@ import { getPostRequest,getListWhoParticipatedInMeetsByMeetId } from "../../../m
 import { ActionSheetProvider, connectActionSheet } from '@expo/react-native-action-sheet';
 import SocketIOClient from "socket.io-client";
 import {quitMeet,joinMeet} from "../../../modules/SocketClient";
+import { NavigationActions } from 'react-navigation';
+
 const db = SQLite.openDatabase('db.db');
 
 const SCREEN_WIDTH = Dimensions.get('window').width;
@@ -54,7 +56,8 @@ export default class TinkoDetailScreen extends React.Component {
 
     constructor(props){
         super(props);
-        console.log(props);
+        //console.log(props);
+        console.log('called from constructor');
         let user = firebase.auth().currentUser;
         this.onJoinButtonPressed = this.onJoinButtonPressed.bind(this);
         this.renderActivityBar = this.renderActivityBar.bind(this);
@@ -107,6 +110,7 @@ export default class TinkoDetailScreen extends React.Component {
     }
 
     componentDidMount(){
+        console.log('componentDidMount called');
         this.getMeetDataFromSql();
         this.setMeetDataListener();
         this.props.navigation.setParams({threeDots:this.onOpenThreeDotsActionSheet.bind(this)});
@@ -121,20 +125,19 @@ export default class TinkoDetailScreen extends React.Component {
 
 
     componentWillUnmount(){
-        const {unsubscribe} = this.state;
-        if(unsubscribe){
-            unsubscribe();
-        }
+        this.unsubscribe();
         this.updateMeetDataToSql();
 
     }
 
     updateMeetDataToSql(){
         const { meetId, meet, creatorData, placePhotos, participatingUsersData } = this.state;
+        //console.log(this.state);
         let meetDataString = JSON.stringify(meet);
         let creatorDataString = JSON.stringify(creatorData);
         let placePhotosDataString = JSON.stringify(placePhotos);
         let participatingUsersDataString = JSON.stringify(participatingUsersData);
+        //console.log('updateMeetDataToSql', meetDataString, creatorDataString, placePhotosDataString, participatingUsersDataString);
         db.transaction(
             tx => {
                 tx.executeSql(
@@ -155,7 +158,7 @@ export default class TinkoDetailScreen extends React.Component {
             tx => {
                 tx.executeSql(`select * from meet${userUid} WHERE meetId = '${meetId}'`, [], (_, { rows }) => {
                     let data =  rows['_array'];
-                    //console.log('sqlite meetData', data);
+                    console.log('sqlite meetData', data);
                     if(data.length > 0){
                         let meetDataString = data[0].meetData;
 
@@ -182,7 +185,7 @@ export default class TinkoDetailScreen extends React.Component {
                             this.setState({participatingUsersData});
                         }
 
-                        this.processMeet(meet);
+                        this.processMeet(meet, false);
                     }else {
                         console.log('No this meet in sql');
                     }
@@ -197,11 +200,12 @@ export default class TinkoDetailScreen extends React.Component {
         const { meetId, userUid } = this.state;
         let firestoreDb = firestoreDB();
         var meetRef = firestoreDb.collection("Meets").doc(meetId);
-        var unsubscribe = meetRef.onSnapshot((meetDoc) => {
+        this.unsubscribe = meetRef.onSnapshot((meetDoc) => {
             if (meetDoc.exists) {
                 //console.log("Document data:", meetDoc.data());
                 let meet = meetDoc.data();
-                this.processMeet(meet);
+                console.log('I called processMeet');
+                this.processMeet(meet, true);
                 //console.log(this.state);
                 //this.marker.showCallout()
             } else {
@@ -209,13 +213,37 @@ export default class TinkoDetailScreen extends React.Component {
                 Alert.alert('Sorry','This Tinko is not available anymore')
             }
         });
-        this.setState({unsubscribe});
     }
 
-    processMeet(meet){
+    processMeet(meet, fromFirebase){
         const {meetId,userUid}=this.state;
         meet['meetId'] = meetId;
-        //console.log(meet);
+        console.log('fromFirebase', fromFirebase, meet);
+
+        const endTimeTS = meet.endTime;
+        const postTimeTS = meet.postTime;
+        const startTimeTS = meet.startTime;
+
+        console.log('processMeet',fromFirebase, postTimeTS, typeof(postTimeTS));
+
+        let endTime;
+        let postTime;
+        let startTime;
+
+        console.log('postTime seconds', postTimeTS.seconds);
+
+        if(fromFirebase){
+            endTime = endTimeTS.toDate();
+            postTime = postTimeTS.toDate();
+            startTime = startTimeTS.toDate();
+        } else{
+            const date = new Date(null);
+            endTime = new Date(endTimeTS.seconds*1000);
+            postTime = new Date(postTimeTS.seconds*1000);
+            startTime = new Date(startTimeTS.seconds*1000);
+        }
+        console.log('processMeet',fromFirebase, postTime, typeof(postTimeTS));
+
 
         let allFriends = meet.allFriends,
             allowParticipantsInvite = meet.allowParticipantsInvite,
@@ -223,16 +251,16 @@ export default class TinkoDetailScreen extends React.Component {
             creatorUid = meet.creator,
             description = meet.description,
             duration = meet.duration,
-            endTime = meet.endTime.toDate(),
+            //endTime = endTimeTS.toDate(),
             maxNo = meet.maxNo,
             participatingUsersList = meet.participatingUsersArray,
             placeAddress = meet.place.address,
             placeName = meet.place.name,
             placeCoordinate = meet.place.coordinate,
             placeId = meet.place.placeId,
-            postTime = meet.postTime.toDate(),
+            //postTime = meet.postTime.toDate(),
             selectedFriendsList = Object.keys(meet.selectedFriendsList),
-            startTime = meet.startTime.toDate(),
+            //startTime = meet.startTime.toDate(),
             status = meet.status,
             title = meet.title;
         let tagsList;
@@ -406,6 +434,32 @@ export default class TinkoDetailScreen extends React.Component {
         });
     }
 
+    onDismissMeetButtonPressed(){
+        const { userUid, meetId } = this.state;
+        let meetRef = firestoreDB().collection("Meets").doc(meetId);
+        meetRef.update({dismissed:true}).then(()=>{
+
+            let bodyData ={meetId:meetId};
+            //NEED CHANGE
+            quitMeet(userUid,meetId);
+            getPostRequest('checkMeetStatus', bodyData,
+                () => {
+                    this.props.navigation.goBack(null);
+                    if(this.props.navigation.state.params.comeFromTinkoScreen){
+                        console.log('before getMeets called');
+                        this.props.navigation.state.params.getMeets();
+                        console.log('after getMeets called');
+                    }
+                },
+                (error) => {
+                    console.log(error);
+                    Alert.alert('error', error);
+                });
+        }).catch((error)=>{
+            Alert.alert('Error', error);
+        });
+    }
+
     onOpenThreeDotsActionSheet = () => {
         const { identity } = this.state;
         var options;
@@ -451,6 +505,12 @@ export default class TinkoDetailScreen extends React.Component {
                         ]);
                 } else if(options[buttonIndex] === 'Edit') {
                     this.props.navigation.navigate('Create',{meet:this.state.meet, getParticipatingUsersList:this.getParticipatingUsersList.bind(this)});
+                } else if(options[buttonIndex] === 'Dismiss'){
+                    Alert.alert("Alert", "Are you sure to Dismiss the Group?",
+                        [
+                            {text: 'Cancel', onPress: () => console.log('Cancel Pressed'), style: 'cancel'},
+                            {text: 'Yes', onPress: () => this.onDismissMeetButtonPressed(), style:"destructive"},
+                        ]);
                 }
             }
         );
@@ -531,6 +591,18 @@ export default class TinkoDetailScreen extends React.Component {
 
 
                     </View>
+
+                    {/*<Button*/}
+                        {/*title={'goBack'}*/}
+                        {/*onPress={()=>{*/}
+                            {/*this.props.navigation.goBack(null);*/}
+                            {/*if(this.props.navigation.state.params.comeFromTinkoScreen){*/}
+                                {/*console.log('before getMeets called');*/}
+                                {/*this.props.navigation.state.params.getMeets();*/}
+                                {/*console.log('after getMeets called');*/}
+                            {/*}*/}
+                        {/*}}*/}
+                    {/*/>*/}
 
                     <View style={{flexDirection: 'row', alignItems:'center', position:'absolute', marginTop:SCREEN_WIDTH/2-60, right:0}}>
                         <Text

@@ -142,7 +142,7 @@ export default class Masonry extends Component {
 				enableEmptySections
 				renderRow={(data, sectionId, rowID) =>
 						   <Column
-                               navigation={this.props.navigation}
+                               navigateToDetail={this.props.navigateToDetail}
 							   headerHeight={this.props.headerHeight}
 								 data={data}
 								 columns={this.props.columns}

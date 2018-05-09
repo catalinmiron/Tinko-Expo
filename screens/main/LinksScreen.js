@@ -130,9 +130,9 @@ export default class FriendChatListView extends Component {
 
         //updateBadge
 
-        setInterval(() => {
-            this.totalUnreadMessageNumChanged(totalUnReadMessageNum);
-        },500);
+        // setInterval(() => {
+        //     this.totalUnreadMessageNumChanged(totalUnReadMessageNum);
+        // },500);
     }
 
     componentDidMount(){

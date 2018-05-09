@@ -29,6 +29,7 @@ export default class TinkoScreen extends Component {
         //console.log(props);
         let user = firebase.auth().currentUser;
         this.getMeets=this.getMeets.bind(this);
+        this.navigateToDetail=this.navigateToDetail.bind(this);
         this.state = {
             userUid:user.uid,
             meetsData: [],
@@ -51,7 +52,7 @@ export default class TinkoScreen extends Component {
 
         //this.getMeets();
         this.initFriendsTableAndGetMeets();
-        this.props.screenProps.getRef(this);
+        this.props.screenProps.getTinkoRef(this);
     }
 
     componentWillUnmount(){
@@ -91,7 +92,7 @@ export default class TinkoScreen extends Component {
         let meetDataString = JSON.stringify(meetData);
         db.transaction(
             tx => {
-                console.log('insertMeetData: ', meetData.title, meetData);
+                //console.log('insertMeetData: ', meetData.title, meetData);
                 tx.executeSql(
                     `INSERT OR REPLACE INTO meet${this.state.userUid} (meetId, meetData,creatorData,placePhotoData, participatingUsersData) 
                         VALUES (?,?,
@@ -128,6 +129,7 @@ export default class TinkoScreen extends Component {
     }
 
     async getMeets(){
+        console.log('getMeets called');
         this.setState({refreshing:true});
         const { orderByPostTime } = this.state;
         //console.log(orderByPostTime);
@@ -234,6 +236,10 @@ export default class TinkoScreen extends Component {
         }
     }
 
+    navigateToDetail(meetId){
+        this.props.screenProps.navigation.navigate('TinkoDetail',{meetId:meetId, getMeets: this.getMeets, comeFromTinkoScreen:true})
+    }
+
 
     render() {
 
@@ -264,7 +270,7 @@ export default class TinkoScreen extends Component {
                         this.handleOnEndReached();
                     }}
                     onEndReachedThreshold={500}
-                    navigation={this.props.screenProps.navigation}
+                    navigateToDetail={this.navigateToDetail}
                     //renderFooter={()=>(<text>123</text>)}
                 />
 
