@@ -216,6 +216,7 @@ export default class TinkoDetailScreen extends React.Component {
     }
 
     processMeet(meet, fromFirebase){
+
         const {meetId,userUid}=this.state;
         meet['meetId'] = meetId;
         console.log('fromFirebase', fromFirebase, meet);
@@ -285,6 +286,14 @@ export default class TinkoDetailScreen extends React.Component {
                 identity=0;//游客
             }
 
+        }
+
+        if(fromFirebase){
+            //console.log('fromFirebase', meet);
+            if(identity === 0 &&(!meet.status || meet.dismissed)){
+                Alert.alert('Whops','This Tinko is not available anymore');
+                return;
+            }
         }
 
         const {creatorData, placePhotos, participatingUsersData} = this.state;
@@ -519,13 +528,13 @@ export default class TinkoDetailScreen extends React.Component {
     render() {
         const { creatorLoadingDone, placePhotosLoadingDone, userUid, creatorUid, identity,
             creatorData, title, placePhotos, startTime, allowPeopleNearby, participatingUsersList,
-            maxNo, description, duration, participatingUsersData, placeName, placeCoordinate, placeAddress, placeId, tagsList, showMap } = this.state;
+            maxNo, description, duration, participatingUsersData, placeName, placeCoordinate, placeAddress, placeId, tagsList, showMap, meet } = this.state;
 
-        // if(!(creatorLoadingDone && placePhotosLoadingDone)){
-        //     return(
-        //         <View style={styles.container}/>
-        //     );
-        // }
+        if(identity === 0 && (!meet.status || meet.dismissed)){
+            return(
+                <View style={styles.container}/>
+            );
+        }
 
         let tagsString='';
         for(let i=0; i<tagsList.length; i++){
