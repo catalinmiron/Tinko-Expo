@@ -44,6 +44,7 @@ export default class PrivateChatScreen extends Component {
     }
 
     componentDidMount(){
+        //unReadNumNeedsUpdates(pid,0);
         this.getFromDB(uid,pid);
         this.socket = SocketIOClient('https://shuaiyixu.xyz');
         // this.socket = SocketIOClient('http://47.89.187.42:4000/');
@@ -79,7 +80,7 @@ export default class PrivateChatScreen extends Component {
         currentOnSelectUser("");
 
         this.socket.removeListener("connect" + uid);
-        unReadNumNeedsUpdates(pid,0);
+
     }
 
     getFromDB(uid,pid){

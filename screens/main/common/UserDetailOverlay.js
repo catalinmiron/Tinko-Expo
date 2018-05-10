@@ -3,7 +3,7 @@ import React, {
 } from 'react'
 import {Text, Image, AsyncStorage, DeviceEventEmitter} from 'react-native';
 import {Button, Header, Avatar, Overlay, Input} from 'react-native-elements'
-import {firestoreDB} from "../../../modules/CommonUtility";
+import {firestoreDB, getFromAsyncStorage} from "../../../modules/CommonUtility";
 import {getLength,updateUnReadNum} from "../../../modules/ChatStack";
 import {sendFriendRequest} from "../../../modules/SocketClient";
 
@@ -45,7 +45,13 @@ export default class UserDetailScreen extends Component{
             updateMethod:null,
             requestMessage:'',
             loading:true,
-        }
+            thisUserData:{}
+        };
+        getFromAsyncStorage('ThisUser').then((userData) => {
+            if(userData) {
+                this.setState({thisUserData:userData})
+            }
+        });
     }
 
     componentDidMount(){
@@ -78,6 +84,7 @@ export default class UserDetailScreen extends Component{
     }
 
     getUserDataFromSql(uid){
+
         db.transaction(
             tx => {
                 tx.executeSql(`SELECT * FROM friend_list${this.state.userUid} WHERE userId = '${uid}'` , [], (_, { rows }) => {
@@ -97,7 +104,7 @@ export default class UserDetailScreen extends Component{
                         let isFriends = data[0].isFriend === 1;
                         this.setState({
                             userData:userData,
-                            requestMessage:`I am ${data[0].username}`,
+                            requestMessage:`I am ${this.state.thisUserData.username}`,
                             isFriends:isFriends,
                             loading:false,
                         });
@@ -164,8 +171,8 @@ export default class UserDetailScreen extends Component{
 
     render() {
         //console.log(this.props);
-        const { userData, userUid, isFriends, isVisible, requestMessage, loading}  = this.state;
-        //console.log(userData);
+        const { thisUserData, userData, userUid, isFriends, isVisible, requestMessage, loading}  = this.state;
+        console.log(thisUserData, userData);
         return (
             <Overlay
                 height={300}
@@ -222,7 +229,7 @@ export default class UserDetailScreen extends Component{
                             :
                             <View>
                                 <Input
-                                    placeholder={`I am ${userData.username}`}
+                                    placeholder={`I am ${thisUserData.username}`}
                                     onChangeText={(requestMessage) => this.setState({requestMessage})}
                                     value={requestMessage}
                                 />

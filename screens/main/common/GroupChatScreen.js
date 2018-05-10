@@ -27,7 +27,7 @@ export default class PrivateChatScreen extends Component {
     componentWillUnmount(){
         currentOnSelectUser("");
         this.socket.removeListener("connect" + uid);
-        unReadNumNeedsUpdates(MeetId,1);
+        //unReadNumNeedsUpdates(MeetId,1);
     }
 
     state = {
