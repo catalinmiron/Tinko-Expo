@@ -1,6 +1,6 @@
 import _ from 'lodash';
 import React from 'react';
-import {View, Alert, TouchableWithoutFeedback, Image, ScrollView, Text, StyleSheet, Dimensions, SafeAreaView, TouchableOpacity, InteractionManager} from 'react-native';
+import {View, Alert, TouchableWithoutFeedback, Image, ScrollView, Text, StyleSheet, Dimensions, SafeAreaView, TouchableOpacity, InteractionManager, BackHandler} from 'react-native';
 import firebase from 'firebase';
 import 'firebase/firestore';
 import Swiper from 'react-native-swiper';
@@ -56,7 +56,7 @@ export default class TinkoDetailScreen extends React.Component {
 
     constructor(props){
         super(props);
-        //console.log(props);
+        console.log(props);
         console.log('called from constructor');
         let user = firebase.auth().currentUser;
         this.onJoinButtonPressed = this.onJoinButtonPressed.bind(this);
@@ -97,6 +97,8 @@ export default class TinkoDetailScreen extends React.Component {
             unsubscribe:null,
             identity:1,
             showMap:false,
+            quit:false,
+            dismissed:false
             //identity: 0: not joined
             //          1: creator
             //          2: joined cannot invite
@@ -121,13 +123,22 @@ export default class TinkoDetailScreen extends React.Component {
         InteractionManager.runAfterInteractions(() => {
             this.setState({showMap:true});
         });
+        BackHandler.addEventListener('androidBackPress', this.androidBackHandler.bind(this));
     }
 
 
     componentWillUnmount(){
         this.unsubscribe();
         this.updateMeetDataToSql();
+        BackHandler.removeEventListener('androidBackPress', this.androidBackHandler.bind(this));
+    }
 
+    androidBackHandler(){
+        if(this.props.navigation.state.routeName==='TinkoDetail'){
+            this.props.navigation.goBack(null);
+            return true;
+        }
+        return false;
     }
 
     updateMeetDataToSql(){
@@ -244,7 +255,7 @@ export default class TinkoDetailScreen extends React.Component {
             postTime = new Date(postTimeTS.seconds*1000);
             startTime = new Date(startTimeTS.seconds*1000);
         }
-        console.log('processMeet',fromFirebase, postTime, typeof(postTimeTS));
+        //console.log('processMeet',fromFirebase, postTime, typeof(postTimeTS));
 
 
         let allFriends = meet.allFriends,
@@ -264,7 +275,8 @@ export default class TinkoDetailScreen extends React.Component {
             selectedFriendsList = Object.keys(meet.selectedFriendsList),
             //startTime = meet.startTime.toDate(),
             status = meet.status,
-            title = meet.title;
+            title = meet.title,
+            dismissed = meet.dismissed;
         let tagsList;
         if(meet.tagsList){
             tagsList=meet.tagsList;
@@ -289,10 +301,10 @@ export default class TinkoDetailScreen extends React.Component {
 
         }
 
-        const {creatorData, placePhotos, participatingUsersData}=this.state;
+        const {creatorData, placePhotos, participatingUsersData, quit}=this.state;
         if(fromFirebase){
             //console.log('fromFirebase', meet);
-            if(identity === 0 &&(!meet.status || meet.dismissed)){
+            if(!quit && identity === 0 &&(!meet.status || meet.dismissed)){
                 Alert.alert('Whops','This Tinko is not available anymore',
                     [
                         {text: 'OK', onPress: () => {
@@ -348,6 +360,7 @@ export default class TinkoDetailScreen extends React.Component {
             tagsList,
             title,
             identity,
+            dismissed
         },()=>console.log('participatingUsersList',this.state.participatingUsersList));
         this.setNavigationParams();
     }
@@ -439,6 +452,7 @@ export default class TinkoDetailScreen extends React.Component {
     onQuitMeetButtonPressed(){
         const { userUid, meetId,participatingUsersList } = this.state;
         _.pull(participatingUsersList,userUid);
+        this.setState({quit:true});
         let meetRef = firestoreDB().collection("Meets").doc(meetId);
         meetRef.update({
             [`participatingUsersList.${userUid}`]:firebase.firestore.FieldValue.delete(),
@@ -455,6 +469,7 @@ export default class TinkoDetailScreen extends React.Component {
                     Alert.alert('error', error);
                 });
         }).catch((error)=>{
+            this.setState({quit:false});
             Alert.alert('Error', error);
         });
     }
@@ -486,31 +501,36 @@ export default class TinkoDetailScreen extends React.Component {
     }
 
     onOpenThreeDotsActionSheet = () => {
-        const { identity } = this.state;
+        const { identity,dismissed } = this.state;
         var options;
         var destructiveButtonIndex;
         var cancelButtonIndex;
-        switch (identity){
-            case 0:
-                options = ["Report", "Cancel"];
-                //destructiveButtonIndex = 0;
-                cancelButtonIndex = 1;
-                break;
-            case 1:
-                options = ["Edit","Dismiss", "Cancel"];
-                destructiveButtonIndex = 1;
-                cancelButtonIndex = 2;
-                break;
-            case 2:
-            case 3:
-                options = ["Report", "Quit", "Cancel"];
-                destructiveButtonIndex = 1;
-                cancelButtonIndex = 2;
-                break;
-            default:
-                options = ["Cancel"];
-                //destructiveButtonIndex = 0;
-                cancelButtonIndex = 0;
+        if(dismissed){
+            options = ["Cancel"];
+            cancelButtonIndex = 0;
+        } else {
+            switch (identity){
+                case 0:
+                    options = ["Report", "Cancel"];
+                    //destructiveButtonIndex = 0;
+                    cancelButtonIndex = 1;
+                    break;
+                case 1:
+                    options = ["Edit","Dismiss", "Cancel"];
+                    destructiveButtonIndex = 1;
+                    cancelButtonIndex = 2;
+                    break;
+                case 2:
+                case 3:
+                    options = ["Report", "Quit", "Cancel"];
+                    destructiveButtonIndex = 1;
+                    cancelButtonIndex = 2;
+                    break;
+                default:
+                    options = ["Cancel"];
+                    //destructiveButtonIndex = 0;
+                    cancelButtonIndex = 0;
+            }
         }
 
         this.props.showActionSheetWithOptions(
@@ -747,7 +767,7 @@ export default class TinkoDetailScreen extends React.Component {
     }
 
     renderActivityBar(){
-        const {buttonShowLoading, identity, allowParticipantsInvite, meetId} = this.state;
+        const {buttonShowLoading, identity, allowParticipantsInvite, meetId,dismissed} = this.state;
 
         return(
             <Header
@@ -772,6 +792,9 @@ export default class TinkoDetailScreen extends React.Component {
                 </TouchableWithoutFeedback>
             }
             rightComponent={
+                dismissed ?
+                    null
+                    :
                 <View style={{flexDirection:'row', height:50, alignItems:'center'}}>
                     {(allowParticipantsInvite || identity===1) &&
                     <Entypo.Button

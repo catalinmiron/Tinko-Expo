@@ -259,12 +259,19 @@ export default class DiscoverScreen extends Component {
 
                 {meets.length===0 ? //&& !redoSearching ?
                     <View
-                        style={{position:'absolute', zIndex:100, top: containerHeight-listHeight-marginBottomValue, width: SCREEN_WIDTH, height:listHeight+marginBottomValue, justifyContent: 'flex-start', alignItems: 'center',}}
+                        style={Platform.OS === 'android' ?
+                            {width: SCREEN_WIDTH, height:listHeight, justifyContent: 'flex-start', alignItems: 'center',}
+                            :
+                            {position:'absolute', zIndex:100, top: containerHeight-listHeight-marginBottomValue, width: SCREEN_WIDTH, height:listHeight+marginBottomValue, justifyContent: 'flex-start', alignItems: 'center',}
+                        }
                     >
                         <Image
                             resizeMethod={'auto'}
                             source={getImageSource("default")}
-                            style={{ borderRadius:10, width: SCREEN_WIDTH-10, height: listHeight }}
+                            style={Platform.OS === 'android' ?
+                                { width: SCREEN_WIDTH, height: listHeight }
+                            :
+                                { borderRadius:10, width: SCREEN_WIDTH-10, height: listHeight }}
                         />
                         <View
                             style={styles.headerTop}
@@ -276,56 +283,94 @@ export default class DiscoverScreen extends Component {
                         </View>
                     </View>
                     :
-                    null
-                }
-
-                <View
-                    ref={ref => {
-                        this.circle = ref;
-                    }}
-                    {...this._panResponder.panHandlers}
-                    style = {{position:'absolute', zIndex:100 }} >
-                    <ScrollView
-                        style={{flex:1}}
-                        scrollEnabled={false}
+                    <TouchableOpacity
+                        style={Platform.OS === 'android' ?
+                            {width: SCREEN_WIDTH, height:listHeight}
+                            :
+                            {position:'absolute', top: containerHeight-listHeight-marginBottomValue, width: SCREEN_WIDTH, height:listHeight+marginBottomValue}
+                        }
+                        onPress={() => (this.props.screenProps.navigation.navigate('TinkoDetail', {meetId:meets[0].key}))}
                     >
-                        {meets.map((meet) => (
-                            <TouchableWithoutFeedback
-                                key = {meet.key}
-                                onPress={() => (this.props.screenProps.navigation.navigate('TinkoDetail', {meetId:meet.key}))}
-                                >
 
-                                <View
-                                    style={{flex:1, width: SCREEN_WIDTH, height:listHeight+marginBottomValue, justifyContent: 'flex-start', alignItems: 'center',}}
-                                >
+                        <View
+                            style={{ width: SCREEN_WIDTH, height:listHeight+marginBottomValue, justifyContent: 'flex-start', alignItems: 'center',}}
+                        >
+                            <Image
+                                resizeMethod={'auto'}
+                                source={getImageSource(meets[0].tags[0])}
+                                style={Platform.OS === 'android' ?
+                                    { width: SCREEN_WIDTH, height: listHeight }
+                                    :
+                                    { borderRadius:10, width: SCREEN_WIDTH-10, height: listHeight }}
+                            />
+                            <View
+                                style={styles.headerTop}
+                            >
+                                <Text style={styles.meetTitle} numberOfLines={1}>{meets[0].title}</Text>
+                                <View style={{flexDirection:'row'}}>
                                     <Image
-                                        resizeMethod={'auto'}
-                                        source={getImageSource(meet.tags[0])}
-                                        style={{ borderRadius:10, width: SCREEN_WIDTH-10, height: listHeight }}
-                                    />
-                                    <View
-                                        style={styles.headerTop}
-                                    >
-                                        <Text style={styles.meetTitle} numberOfLines={1}>{meet.title}</Text>
-                                        <View style={{flexDirection:'row'}}>
-                                            <Image
-                                                source={{ uri: meet.creator.photoURL }}
-                                                style={styles.userPic}/>
-                                            <View style={{marginTop:10}}>
+                                        source={{ uri: meets[0].creator.photoURL }}
+                                        style={styles.userPic}/>
+                                    <View style={{marginTop:10}}>
 
-                                                <Text style={styles.userName}>{meet.creator.name}</Text>
-                                                <Text style={styles.startTime}>{meet.startTime}</Text>
-                                                <Text style={styles.meetPlaceName}>{meet.placeName}</Text>
-                                                <Text style={styles.postTime}>{meet.postTime}</Text>
-                                            </View>
-                                        </View>
+                                        <Text style={styles.userName}>{meets[0].creator.name}</Text>
+                                        <Text style={styles.startTime}>{meets[0].startTime}</Text>
+                                        <Text style={styles.meetPlaceName}>{meets[0].placeName}</Text>
+                                        <Text style={styles.postTime}>{meets[0].postTime}</Text>
                                     </View>
                                 </View>
-                            </TouchableWithoutFeedback>
-                        ))}
-                    </ScrollView>
+                            </View>
+                        </View>
+                    </TouchableOpacity>
+                }
 
-                </View>
+                {/*<View*/}
+                    {/*ref={ref => {*/}
+                        {/*this.circle = ref;*/}
+                    {/*}}*/}
+                    {/*{...this._panResponder.panHandlers}*/}
+                    {/*style = {{position:'absolute', zIndex:100 }} >*/}
+                    {/*<ScrollView*/}
+                        {/*style={{flex:1}}*/}
+                        {/*scrollEnabled={false}*/}
+                    {/*>*/}
+                        {/*{meets.map((meet) => (*/}
+                            {/*<TouchableWithoutFeedback*/}
+                                {/*key = {meet.key}*/}
+                                {/*onPress={() => (this.props.screenProps.navigation.navigate('TinkoDetail', {meetId:meet.key}))}*/}
+                                {/*>*/}
+
+                                {/*<View*/}
+                                    {/*style={{flex:1, width: SCREEN_WIDTH, height:listHeight+marginBottomValue, justifyContent: 'flex-start', alignItems: 'center',}}*/}
+                                {/*>*/}
+                                    {/*<Image*/}
+                                        {/*resizeMethod={'auto'}*/}
+                                        {/*source={getImageSource(meet.tags[0])}*/}
+                                        {/*style={{ borderRadius:10, width: SCREEN_WIDTH-10, height: listHeight }}*/}
+                                    {/*/>*/}
+                                    {/*<View*/}
+                                        {/*style={styles.headerTop}*/}
+                                    {/*>*/}
+                                        {/*<Text style={styles.meetTitle} numberOfLines={1}>{meet.title}</Text>*/}
+                                        {/*<View style={{flexDirection:'row'}}>*/}
+                                            {/*<Image*/}
+                                                {/*source={{ uri: meet.creator.photoURL }}*/}
+                                                {/*style={styles.userPic}/>*/}
+                                            {/*<View style={{marginTop:10}}>*/}
+
+                                                {/*<Text style={styles.userName}>{meet.creator.name}</Text>*/}
+                                                {/*<Text style={styles.startTime}>{meet.startTime}</Text>*/}
+                                                {/*<Text style={styles.meetPlaceName}>{meet.placeName}</Text>*/}
+                                                {/*<Text style={styles.postTime}>{meet.postTime}</Text>*/}
+                                            {/*</View>*/}
+                                        {/*</View>*/}
+                                    {/*</View>*/}
+                                {/*</View>*/}
+                            {/*</TouchableWithoutFeedback>*/}
+                        {/*))}*/}
+                    {/*</ScrollView>*/}
+
+                {/*</View>*/}
             </View>
 
         );

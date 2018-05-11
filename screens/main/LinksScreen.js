@@ -487,9 +487,9 @@ export default class FriendChatListView extends Component {
                         //     { value: messages.length, textStyle: { color: 'orange' }, containerStyle: { marginTop: -20 } }
                         // }
                         onPress={() => {
-                            unReadNumNeedsUpdates(messages.id,0);
                             currentOnSelectId = messages.id;
                                  if (messages.type === 1){
+                                     unReadNumNeedsUpdates(messages.id,0);
                                      updateUnReadNum(1,messages.id);
                                      currentOnSelectUser(messages.id);
                                      // totalUnReadMessageNum = totalUnReadMessageNum - getLength(messages.id);
@@ -501,6 +501,7 @@ export default class FriendChatListView extends Component {
                                          myId:uid
                                      });
                                  }else{
+                                     unReadNumNeedsUpdates(messages.id,1);
                                      updateUnReadNum(2,messages.id);
                                      currentOnSelectUser(messages.id);
                                      // totalUnReadMessageNum = totalUnReadMessageNum - getLength(messages.id);

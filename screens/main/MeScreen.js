@@ -19,6 +19,7 @@ import IconBadge from '../../modules/react-native-icon-badge';
 import {Ionicons} from '@expo/vector-icons';
 import {writeInAsyncStorage, getFromAsyncStorage, firestoreDB} from "../../modules/CommonUtility";
 import {} from '../../modules/ChatStack';
+import { ifIphoneX } from 'react-native-iphone-x-helper';
 
 const db = SQLite.openDatabase('db.db');
 const SCREEN_WIDTH = Dimensions.get('window').width;
@@ -216,71 +217,69 @@ export default class Me extends React.Component {
     render() {
         const { userData ,badgeHidden} = this.state;
         return (
-            <SafeAreaView style={{flex: 1, backgroundColor:'white'}}>
-                <ScrollView style={{backgroundColor: "white", height: "100%" ,width: "100%"}}>
-                    <Ionicons
-                        onPress={() => this.props.navigation.navigate('Setting',{getThisUserData:this.getThisUserData.bind(this)})}
-                        style={{position:'absolute',zIndex:100,top:Platform.OS === 'android' ? 40 : 20, right:SCREEN_WIDTH*0.05}}
-                        name={'ios-settings'}
-                        size={30}
-                        color={'black'}
-                        backgroundColor={'transparent'}
-                    />
-                    <View style={styles.outerDiv}>
-                        <Image
-                            style={{width: 130,height: 130,marginTop:Platform.OS === 'android' ? 40 : 20,borderRadius: 25}}
-                            source={{uri:userData.photoURL}}/>
-                        <Text style={{marginTop:5,fontSize:22,color:"rgb(54,53,59)",fontWeight:"bold"}}>{userData.username}</Text>
-                    </View>
-                    <View style={{justifyContent: 'center', alignItems: 'center',}}>
-                        <View style={{
-                            width:"90%",
-                            marginTop:25,
-                            backgroundColor:"#F2F4F4",
-                            height:55,
-                            borderRadius:10,
-                            flexDirection: 'row'
-                        }}>
-                            <TouchableOpacity
-                                onPress={() => this.newFriendsButtonPressed()}
-                                style={{flex:1, height:55,alignItems: 'center',justifyContent: 'center',}}>
-                                <IconBadge
-                                    MainElement={
-                                        <View style={{height:35, width:35, alignItems: 'center',justifyContent: 'center',}}>
-                                            <Ionicons
-                                                name='md-person-add'
-                                                size={26}
-                                                color="#626567"
-                                             />
-                                        </View>
+            <ScrollView style={{flex:1, backgroundColor: "white", height: "100%" ,width: "100%"}}>
+                <Ionicons
+                    onPress={() => this.props.navigation.navigate('Setting',{getThisUserData:this.getThisUserData.bind(this)})}
+                    style={{position:'absolute',zIndex:100,top:ifIphoneX(54, 40), right:SCREEN_WIDTH*0.05}}
+                    name={'ios-settings'}
+                    size={30}
+                    color={'black'}
+                    backgroundColor={'transparent'}
+                />
+                <View style={styles.outerDiv}>
+                    <Image
+                        style={{width: 130,height: 130,marginTop: ifIphoneX(54, 40),borderRadius: 25}}
+                        source={{uri:userData.photoURL}}/>
+                    <Text style={{marginTop:5,fontSize:22,color:"rgb(54,53,59)",fontWeight:"bold"}}>{userData.username}</Text>
+                </View>
+                <View style={{justifyContent: 'center', alignItems: 'center',}}>
+                    <View style={{
+                        width:"90%",
+                        marginTop:25,
+                        backgroundColor:"#F2F4F4",
+                        height:55,
+                        borderRadius:10,
+                        flexDirection: 'row'
+                    }}>
+                        <TouchableOpacity
+                            onPress={() => this.newFriendsButtonPressed()}
+                            style={{flex:1, height:55,alignItems: 'center',justifyContent: 'center',}}>
+                            <IconBadge
+                                MainElement={
+                                    <View style={{height:35, width:35, alignItems: 'center',justifyContent: 'center',}}>
+                                        <Ionicons
+                                            name='md-person-add'
+                                            size={26}
+                                            color="#626567"
+                                        />
+                                    </View>
 
-                                    }
-                                    IconBadgeStyle={
-                                        {width:10, height:10, backgroundColor: 'red'}
-                                    }
-                                    Hidden={badgeHidden}
-                                />
-                            </TouchableOpacity>
-                            <SubButton
-                                index={1}
-                                onPress={() => console.log('second')}
-                                ViewStyle={{borderLeftWidth:2,borderRightWidth:2,borderColor:"white",}}
+                                }
+                                IconBadgeStyle={
+                                    {width:10, height:10, backgroundColor: 'red'}
+                                }
+                                Hidden={badgeHidden}
                             />
-                            <SubButton
-                                index={2}
-                                onPress={() => console.log('third')}
-                            />
-                        </View>
+                        </TouchableOpacity>
+                        <SubButton
+                            index={1}
+                            onPress={() => this.props.navigation.navigate('MyTinkos')}
+                            ViewStyle={{borderLeftWidth:2,borderRightWidth:2,borderColor:"white",}}
+                        />
+                        <SubButton
+                            index={2}
+                            onPress={() => console.log('third')}
+                        />
                     </View>
+                </View>
 
 
-                    <FriendsList
-                        showThisUser={this.props.screenProps.showThisUser}
-                        onRef={ref => this.friendsList = ref}
-                        navigation={this.props.navigation}
-                    />
-                </ScrollView>
-            </SafeAreaView>
+                <FriendsList
+                    showThisUser={this.props.screenProps.showThisUser}
+                    onRef={ref => this.friendsList = ref}
+                    navigation={this.props.navigation}
+                />
+            </ScrollView>
         );
     }
 }
