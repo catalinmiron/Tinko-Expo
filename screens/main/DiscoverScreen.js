@@ -283,7 +283,7 @@ export default class DiscoverScreen extends Component {
                         </View>
                     </View>
                     :
-                    <TouchableOpacity
+                    <TouchableWithoutFeedback
                         style={Platform.OS === 'android' ?
                             {width: SCREEN_WIDTH, height:listHeight}
                             :
@@ -321,7 +321,7 @@ export default class DiscoverScreen extends Component {
                                 </View>
                             </View>
                         </View>
-                    </TouchableOpacity>
+                    </TouchableWithoutFeedback>
                 }
 
                 {/*<View*/}

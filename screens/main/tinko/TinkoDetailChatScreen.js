@@ -197,10 +197,10 @@ export default class TinkoDetailChatScreen extends React.Component {
                     console.log('after fetch', data);
                     let messages=[];
                     this.processMessageData(data,1);
-                    console.log(data);
-                    if(!data){
-                        return;
-                    }
+                    //console.log(data);
+                    // if(!data){
+                    //     return;
+                    // }
 
                     if(data.length<limit){
                         this.setState({loadEarlier:false, });
