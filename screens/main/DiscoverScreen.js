@@ -6,8 +6,15 @@ import { MapView, Constants, Location, Permissions, GestureHandler  } from 'expo
 import GeoFire from 'geofire';
 import firebase from 'firebase';
 import 'firebase/firestore';
-import {getStartTimeString, getPostTimeString, getImageSource, firestoreDB} from "../../modules/CommonUtility";
+import {
+    getStartTimeString,
+    getPostTimeString,
+    getImageSource,
+    firestoreDB,
+    getUserDataFromDatabase
+} from "../../modules/CommonUtility";
 import { Header } from 'react-navigation';
+import {getData, updateUserInfo} from "../../modules/ChatStack";
 
 const SCREEN_HEIGHT = Dimensions.get('window').height;
 const SCREEN_WIDTH = Dimensions.get('window').width;
@@ -27,12 +34,12 @@ var onKeyEnteredRegistration;
 
 export default class DiscoverScreen extends Component {
 
-    _panResponder = {};
-    //_previousLeft = 0;
-    _previousTop = 0;
-    _circleStyles = {};
-    _minTop = 0;
-    _maxTop = 0;
+    // _panResponder = {};
+    // //_previousLeft = 0;
+    // _previousTop = 0;
+    // _circleStyles = {};
+    // _minTop = 0;
+    // _maxTop = 0;
 
 
 
@@ -47,6 +54,7 @@ export default class DiscoverScreen extends Component {
                 lng: -73.9851,
             },
             meets: [],
+            selectedMeetData:null,
             containerHeight: SCREEN_HEIGHT,
             yOriginal:0,
             yOffset:0,
@@ -62,12 +70,13 @@ export default class DiscoverScreen extends Component {
             firstTimeLoadingDone:false,
             redoSearching:false,
         }
+        this.processSelectedMeet=this.processSelectedMeet.bind(this);
 
     }
 
 
     componentWillMount() {
-        this._initPanResponder();
+        //this._initPanResponder();
         geofireRef = new GeoFire(firebase.database().ref("Meets"));
         // if (Platform.OS === 'android' && !Constants.isDevice) {
         //     this.setState({
@@ -83,7 +92,7 @@ export default class DiscoverScreen extends Component {
 
     componentDidMount() {
 
-        this._updateNativeStyles();
+        //this._updateNativeStyles();
         this.props.screenProps.getDiscoverRef(this);
     }
 
@@ -103,6 +112,10 @@ export default class DiscoverScreen extends Component {
         this.setState({
             locationLoadingDone:true,
             location: locationDic,
+            currentRegion:{
+                latitude:locationDic.lat,
+                longitude:locationDic.lng
+            }
         });
 
         this.getGeoFireMeets(locationDic.lat, locationDic.lng);
@@ -111,11 +124,11 @@ export default class DiscoverScreen extends Component {
     };
 
     getGeoFireMeets(lat, lng){
-        this.setState({meets:[]});
+        this.setState({meets:[], selectedMeetData:null});
 
         var geoQuery = geofireRef.query({
             center: [lat, lng],
-            radius: 100
+            radius: 11
         });
 
         onKeyEnteredRegistration = geoQuery.on("key_entered", function(key, location, distance) {
@@ -126,47 +139,73 @@ export default class DiscoverScreen extends Component {
                 if (meetDoc.exists) {
                     //console.log("Document data:", meetDoc.data());
                     let meet = meetDoc.data();
-                    let creatorUid = meet.creator;
-                    let userRef = firestoreDb.collection("Users").doc(creatorUid);
-                    userRef.get().then((userDoc) => {
-                        if (userDoc.exists) {
-                            //console.log("Document data:", userDoc.data());
-                            let creator = userDoc.data();
-
-                            let tagsList=[];
-                            if(meet.tagsList){
-                                tagsList=meet.tagsList;
-                            }
-
-                            let meetDic = {
-                                LatLng: {
-                                    latitude: location[0],
-                                    longitude: location[1],
-                                },
-                                title: meet.title,
-                                startTime: getStartTimeString(meet.startTime.toDate()),
-                                postTime: getPostTimeString(meet.postTime.toDate()),
-                                placeName: meet.place.name,
-                                creator: {
-                                    name: creator.username,
-                                    photoURL: creator.photoURL,
-                                },
-                                tags:tagsList,
-                                key: meetDoc.id,
-                            };
-                            this.setState((state) => {
-                                let meets = state.meets;
-                                meets.push(meetDic);
-                                return {meets, redoSearching:false};
-                            }, () => this._setMaxTop(this.state.meets.length));
-
-
-                        } else {
-                            console.log("No such document!");
+                    let tagsList=[];
+                    if(meet.tagsList){
+                        tagsList=meet.tagsList;
+                    }
+                    let meetDic = {
+                        LatLng: {
+                            latitude: location[0],
+                            longitude: location[1],
+                        },
+                        title: meet.title,
+                        startTime: getStartTimeString(meet.startTime.toDate()),
+                        postTime: getPostTimeString(meet.postTime.toDate()),
+                        placeName: meet.place.name,
+                        creatorUid:meet.creator,
+                        tags:tagsList,
+                        key: meetDoc.id,
+                    };
+                    this.setState((state) => {
+                        let meets = state.meets;
+                        meets.push(meetDic);
+                        if(meets.length===1){
+                            this.processSelectedMeet(meetDic);
                         }
-                    }).catch((error) => {
-                        console.log("Error getting document:", error);
+                        return {meets, redoSearching:false};
                     });
+
+                    // let creatorUid = meet.creator;
+                    // let userRef = firestoreDb.collection("Users").doc(creatorUid);
+                    // userRef.get().then((userDoc) => {
+                    //     if (userDoc.exists) {
+                    //         //console.log("Document data:", userDoc.data());
+                    //         let creator = userDoc.data();
+                    //
+                    //         let tagsList=[];
+                    //         if(meet.tagsList){
+                    //             tagsList=meet.tagsList;
+                    //         }
+                    //
+                    //         let meetDic = {
+                    //             LatLng: {
+                    //                 latitude: location[0],
+                    //                 longitude: location[1],
+                    //             },
+                    //             title: meet.title,
+                    //             startTime: getStartTimeString(meet.startTime.toDate()),
+                    //             postTime: getPostTimeString(meet.postTime.toDate()),
+                    //             placeName: meet.place.name,
+                    //             creator: {
+                    //                 name: creator.username,
+                    //                 photoURL: creator.photoURL,
+                    //             },
+                    //             tags:tagsList,
+                    //             key: meetDoc.id,
+                    //         };
+                    //         this.setState((state) => {
+                    //             let meets = state.meets;
+                    //             meets.push(meetDic);
+                    //             return {meets, redoSearching:false};
+                    //         }, () => this._setMaxTop(this.state.meets.length));
+                    //
+                    //
+                    //     } else {
+                    //         console.log("No such document!");
+                    //     }
+                    // }).catch((error) => {
+                    //     console.log("Error getting document:", error);
+                    // });
 
                 } else {
                     console.log("No such document!");
@@ -175,6 +214,23 @@ export default class DiscoverScreen extends Component {
                 console.log("Error getting document:", error);
             });
         }.bind(this));
+    }
+
+    async processSelectedMeet(meetDic){
+        console.log(meetDic);
+        meetDic.creator={
+            username:'',
+            photoURL:''
+        }
+        this.setState({selectedMeetData:meetDic})
+        await getUserDataFromDatabase(meetDic.creatorUid,
+            (userData) => {
+                meetDic.creator = userData;
+                this.setState({selectedMeetData:meetDic})
+            },
+            (error) => {
+                console.log("error");
+            });
     }
 
     onRedoSearchButtonPressed(){
@@ -186,14 +242,15 @@ export default class DiscoverScreen extends Component {
     }
 
 
+
     render() {
-        const { redoSearching, firstTimeLoadingDone, showRedoSearchButton, locationLoadingDone, location, meets, containerHeight, yOffset, yOriginal, yOnGoing, yOldOffset, yOnScrollOffset,flatListHeight, listHeight, marginBottomValue } = this.state;
+        const { redoSearching, firstTimeLoadingDone, showRedoSearchButton, locationLoadingDone, location, meets, selectedMeetData, containerHeight, yOffset, yOriginal, yOnGoing, yOldOffset, yOnScrollOffset,flatListHeight, listHeight, marginBottomValue,currentRegion } = this.state;
         let flatListMarginTopHeight = containerHeight-listHeight-marginBottomValue-yOffset-yOldOffset;
         //console.log(flatListMarginTopHeight);
         return (
             <View
                 style = {styles.container}
-                onLayout={(event) => { this.find_dimesions(event.nativeEvent.layout) }}
+                //onLayout={(event) => { this.find_dimesions(event.nativeEvent.layout) }}
             >
 
                 {showRedoSearchButton ?
@@ -237,18 +294,17 @@ export default class DiscoverScreen extends Component {
                                 description={meet.startTime}
                                 key={meet.key}
                                 identifier={meet.key}
-                                onPress={()=>{
-                                    this.setState((state) => {
-                                        let meets = state.meets;
-                                        let originalMeet = meets[0];
-                                        meets.splice(0, 1, meets[i]);
-                                        meets.splice(i, 1, originalMeet);
-                                        return {meets};
-                                    })
+                                onPress={async ()=>{
+                                    await this.processSelectedMeet(meet);
+                                    // this.setState((state) => {
+                                    //     let meets = state.meets;
+                                    //     let originalMeet = meets[0];
+                                    //     meets.splice(0, 1, meets[i]);
+                                    //     meets.splice(i, 1, originalMeet);
+                                    //     return {meets};
+                                    // })
                                 }}
-                                onCalloutPress={()=>{
-                                    this.props.screenProps.navigation.navigate('TinkoDetail', {meetId:meet.key})
-                                }}
+                                onCalloutPress={()=>this.props.screenProps.navigation.navigate('TinkoDetail', {meetId:meet.key})}
                             >
                             </MapView.Marker>
                         ))}
@@ -257,39 +313,14 @@ export default class DiscoverScreen extends Component {
                     null
                 }
 
-                {meets.length===0 ? //&& !redoSearching ?
-                    <View
-                        style={Platform.OS === 'android' ?
-                            {width: SCREEN_WIDTH, height:listHeight, justifyContent: 'flex-start', alignItems: 'center',}
-                            :
-                            {position:'absolute', zIndex:100, top: containerHeight-listHeight-marginBottomValue, width: SCREEN_WIDTH, height:listHeight+marginBottomValue, justifyContent: 'flex-start', alignItems: 'center',}
-                        }
-                    >
-                        <Image
-                            resizeMethod={'auto'}
-                            source={getImageSource("default")}
-                            style={Platform.OS === 'android' ?
-                                { width: SCREEN_WIDTH, height: listHeight }
-                            :
-                                { borderRadius:10, width: SCREEN_WIDTH-10, height: listHeight }}
-                        />
-                        <View
-                            style={styles.headerTop}
-                        >
-                            <View style={{marginTop:10}}>
-                                <Text style={styles.meetTitle}>Post The First Tinko In This Area</Text>
-                                <Text style={styles.userName}>Make Happiness everywhere to anyone</Text>
-                            </View>
-                        </View>
-                    </View>
-                    :
+                {selectedMeetData ? //&& !redoSearching ?
                     <TouchableWithoutFeedback
                         style={Platform.OS === 'android' ?
                             {width: SCREEN_WIDTH, height:listHeight}
                             :
-                            {position:'absolute', top: containerHeight-listHeight-marginBottomValue, width: SCREEN_WIDTH, height:listHeight+marginBottomValue}
+                            {position:'absolute', zIndex:100, top: containerHeight-listHeight-marginBottomValue, width: SCREEN_WIDTH, height:listHeight+marginBottomValue}
                         }
-                        onPress={() => (this.props.screenProps.navigation.navigate('TinkoDetail', {meetId:meets[0].key}))}
+                        onPress={() => (this.props.screenProps.navigation.navigate('TinkoDetail', {meetId:selectedMeetData.key}))}
                     >
 
                         <View
@@ -297,7 +328,7 @@ export default class DiscoverScreen extends Component {
                         >
                             <Image
                                 resizeMethod={'auto'}
-                                source={getImageSource(meets[0].tags[0])}
+                                source={getImageSource(selectedMeetData.tags[0])}
                                 style={Platform.OS === 'android' ?
                                     { width: SCREEN_WIDTH, height: listHeight }
                                     :
@@ -306,22 +337,54 @@ export default class DiscoverScreen extends Component {
                             <View
                                 style={styles.headerTop}
                             >
-                                <Text style={styles.meetTitle} numberOfLines={1}>{meets[0].title}</Text>
+                                <Text style={styles.meetTitle} numberOfLines={1}>{selectedMeetData.title}</Text>
                                 <View style={{flexDirection:'row'}}>
                                     <Image
-                                        source={{ uri: meets[0].creator.photoURL }}
+                                        source={{ uri: selectedMeetData.creator.photoURL }}
                                         style={styles.userPic}/>
                                     <View style={{marginTop:10}}>
 
-                                        <Text style={styles.userName}>{meets[0].creator.name}</Text>
-                                        <Text style={styles.startTime}>{meets[0].startTime}</Text>
-                                        <Text style={styles.meetPlaceName}>{meets[0].placeName}</Text>
-                                        <Text style={styles.postTime}>{meets[0].postTime}</Text>
+                                        <Text style={styles.userName}>{selectedMeetData.creator.username}</Text>
+                                        <Text style={styles.startTime}>{selectedMeetData.startTime}</Text>
+                                        <Text style={styles.meetPlaceName}>{selectedMeetData.placeName}</Text>
+                                        <Text style={styles.postTime}>{selectedMeetData.postTime}</Text>
                                     </View>
                                 </View>
                             </View>
                         </View>
                     </TouchableWithoutFeedback>
+                    :
+                    <TouchableWithoutFeedback
+                        style={Platform.OS === 'android' ?
+                            {width: SCREEN_WIDTH, height:listHeight}
+                            :
+                            {position:'absolute', zIndex:100, top: containerHeight-listHeight-marginBottomValue, width: SCREEN_WIDTH, height:listHeight+marginBottomValue}
+                        }
+                        onPress={() => this.props.screenProps.navigation.navigate('Create',{location:currentRegion})}
+                    >
+
+                        <View
+                            style={{ width: SCREEN_WIDTH, height:listHeight+marginBottomValue, justifyContent: 'flex-start', alignItems: 'center',}}
+                        >
+                            <Image
+                                resizeMethod={'auto'}
+                                source={getImageSource('default')}
+                                style={Platform.OS === 'android' ?
+                                    { width: SCREEN_WIDTH, height: listHeight }
+                                    :
+                                    { borderRadius:10, width: SCREEN_WIDTH-10, height: listHeight }}
+                            />
+                            <View
+                                style={styles.headerTop}
+                            >
+                                <View style={{marginTop:10}}>
+                                    <Text style={styles.meetTitle}>Post The First Tinko In This Area</Text>
+                                    <Text style={styles.userName}>Make Happiness everywhere to anyone</Text>
+                                </View>
+                            </View>
+                        </View>
+                    </TouchableWithoutFeedback>
+
                 }
 
                 {/*<View*/}
@@ -377,87 +440,87 @@ export default class DiscoverScreen extends Component {
     }
 
 
-    find_dimesions(layout){
-        const { height } = layout;
-        console.log('ScreenHeight:', SCREEN_HEIGHT, 'containerHeight:', height);
-        this.setState({containerHeight: height});
-        const { containerHeight, listHeight, marginBottomValue } = this.state;
-        let listTopHeight = height-listHeight-marginBottomValue;
-        this._previousTop = listTopHeight;
-        this._circleStyles.style.top = listTopHeight;
-        this._updateNativeStyles();
-        this._minTop=listTopHeight;
-
-    }
-
-    _setMaxTop(lengthOfMeet){
-        const { containerHeight, listHeight, marginBottomValue } = this.state;
-        this._maxTop = containerHeight - (listHeight+marginBottomValue)*lengthOfMeet;
-    }
-
-    _initPanResponder() {
-        const { containerHeight, listHeight, marginBottomValue } = this.state;
-        let listTopHeight = containerHeight-listHeight-marginBottomValue;
-        this._panResponder = PanResponder.create({
-            onStartShouldSetPanResponder: this._handleStartShouldSetPanResponder,
-            onMoveShouldSetPanResponder: this._handleMoveShouldSetPanResponder,
-            onPanResponderGrant: this._handlePanResponderGrant,
-            onPanResponderMove: this._handlePanResponderMove,
-            onPanResponderRelease: this._handlePanResponderEnd,
-            onPanResponderTerminate: this._handlePanResponderEnd,
-        });
-        //this._previousLeft = 0;
-        this._previousTop = listTopHeight;
-        this._circleStyles = {
-            style: {
-                left: this._previousLeft,
-                top: this._previousTop,
-            },
-        };
-    }
-
-    _updateNativeStyles = () => {
-        this.circle && this.circle.setNativeProps(this._circleStyles);
-    };
-
-    _handleStartShouldSetPanResponder = (e, gestureState) => {
-        // Should we become active when the user presses down on the circle?
-        return true;
-    };
-
-    _handleMoveShouldSetPanResponder = (e, gestureState) => {
-        // Should we become active when the user moves a touch over the circle?
-        return true;
-    };
-
-    _handlePanResponderGrant = (e, gestureState) => {
-
-    };
-
-    _handlePanResponderMove = (e, gestureState) => {
-        //console.log(e, gestureState);
-        //this._circleStyles.style.left = this._previousLeft + gestureState.dx;
-        let dy = gestureState.dy;
-        let top =  this._previousTop + dy;
-        let fullView = top <= this._maxTop;
-        let minView = top >= this._minTop;
-        //let partialView = !fullView && !minView;
-
-        // if((fullView && dy>0) || (minView && dy<0) || partialView){
-        //     this._circleStyles.style.top = this._previousTop + gestureState.dy;
-        // }
-
-
-        if(top<=this._minTop && this._maxTop<=top){
-            this._circleStyles.style.top = this._previousTop + gestureState.dy;
-            this._updateNativeStyles();
-        }
-
-    };
-
-    _handlePanResponderEnd = (e, gestureState) => {
-        this._previousTop += gestureState.dy;
-    };
+    // find_dimesions(layout){
+    //     const { height } = layout;
+    //     console.log('ScreenHeight:', SCREEN_HEIGHT, 'containerHeight:', height);
+    //     this.setState({containerHeight: height});
+    //     const { containerHeight, listHeight, marginBottomValue } = this.state;
+    //     let listTopHeight = height-listHeight-marginBottomValue;
+    //     this._previousTop = listTopHeight;
+    //     this._circleStyles.style.top = listTopHeight;
+    //     this._updateNativeStyles();
+    //     this._minTop=listTopHeight;
+    //
+    // }
+    //
+    // _setMaxTop(lengthOfMeet){
+    //     const { containerHeight, listHeight, marginBottomValue } = this.state;
+    //     this._maxTop = containerHeight - (listHeight+marginBottomValue)*lengthOfMeet;
+    // }
+    //
+    // _initPanResponder() {
+    //     const { containerHeight, listHeight, marginBottomValue } = this.state;
+    //     let listTopHeight = containerHeight-listHeight-marginBottomValue;
+    //     this._panResponder = PanResponder.create({
+    //         onStartShouldSetPanResponder: this._handleStartShouldSetPanResponder,
+    //         onMoveShouldSetPanResponder: this._handleMoveShouldSetPanResponder,
+    //         onPanResponderGrant: this._handlePanResponderGrant,
+    //         onPanResponderMove: this._handlePanResponderMove,
+    //         onPanResponderRelease: this._handlePanResponderEnd,
+    //         onPanResponderTerminate: this._handlePanResponderEnd,
+    //     });
+    //     //this._previousLeft = 0;
+    //     this._previousTop = listTopHeight;
+    //     this._circleStyles = {
+    //         style: {
+    //             left: this._previousLeft,
+    //             top: this._previousTop,
+    //         },
+    //     };
+    // }
+    //
+    // _updateNativeStyles = () => {
+    //     this.circle && this.circle.setNativeProps(this._circleStyles);
+    // };
+    //
+    // _handleStartShouldSetPanResponder = (e, gestureState) => {
+    //     // Should we become active when the user presses down on the circle?
+    //     return true;
+    // };
+    //
+    // _handleMoveShouldSetPanResponder = (e, gestureState) => {
+    //     // Should we become active when the user moves a touch over the circle?
+    //     return true;
+    // };
+    //
+    // _handlePanResponderGrant = (e, gestureState) => {
+    //
+    // };
+    //
+    // _handlePanResponderMove = (e, gestureState) => {
+    //     //console.log(e, gestureState);
+    //     //this._circleStyles.style.left = this._previousLeft + gestureState.dx;
+    //     let dy = gestureState.dy;
+    //     let top =  this._previousTop + dy;
+    //     let fullView = top <= this._maxTop;
+    //     let minView = top >= this._minTop;
+    //     //let partialView = !fullView && !minView;
+    //
+    //     // if((fullView && dy>0) || (minView && dy<0) || partialView){
+    //     //     this._circleStyles.style.top = this._previousTop + gestureState.dy;
+    //     // }
+    //
+    //
+    //     if(top<=this._minTop && this._maxTop<=top){
+    //         this._circleStyles.style.top = this._previousTop + gestureState.dy;
+    //         this._updateNativeStyles();
+    //     }
+    //
+    // };
+    //
+    // _handlePanResponderEnd = (e, gestureState) => {
+    //     this._previousTop += gestureState.dy;
+    // };
 
 }
 

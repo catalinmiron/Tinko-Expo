@@ -199,11 +199,9 @@ export default class CreateScreen extends React.Component {
 
         if(!this.state.editingMode){
 
-            if (Platform.OS === 'android' && !Constants.isDevice) {
-                this.setState({
-                    errorMessage: 'Oops, this will not work on Sketch in an Android emulator. Try it on your device!',
-                });
-            } else {
+            if(this.props.navigation.state.params.location){
+                this.getNearestPlace(this.props.navigation.state.params.location);
+            }else{
                 this.getLocationAsync();
             }
 
@@ -224,16 +222,23 @@ export default class CreateScreen extends React.Component {
         this.setState({ location });
         //console.log(this.state.location);
         //console.log(this.state.location.coords.latitude);
-        fetch(`https://maps.googleapis.com/maps/api/place/nearbysearch/json?location=${location.coords.latitude},${location.coords.longitude}&rankby=distance&key=AIzaSyCw_VwOF6hmY5yri8OpqOr9sCzTTT7JKiU`)
+        this.getNearestPlace({
+            latitude:location.coords.latitude,
+            longitude:location.coords.longitude
+        })
+    };
+
+    getNearestPlace(location){
+        fetch(`https://maps.googleapis.com/maps/api/place/nearbysearch/json?location=${location.latitude},${location.longitude}&rankby=distance&key=AIzaSyCw_VwOF6hmY5yri8OpqOr9sCzTTT7JKiU`)
             .then((response) => response.json())
             .then((responseJson) => {
                 //console.log(responseJson.results[0]);
                 let myPlace = responseJson.results[0];
                 this.setState({placeName: myPlace.name, placeAddress: myPlace.vicinity, placeCoordinate: myPlace.geometry.location, placeId: myPlace.place_id })
             }).catch((error) => {
-                console.error(error);
-            });
-    };
+            console.error(error);
+        });
+    }
 
     getSql(){
         const { userUid } = this.state;
