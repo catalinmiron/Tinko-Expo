@@ -30,7 +30,6 @@ export default class RegisterScreen extends Component {
         this.state = {
             fontLoaded: false,
             email: props.navigation.state.params.email,
-            email_valid: true,
             password: '',
             login_failed: false,
             showLoading: false,
@@ -60,27 +59,31 @@ export default class RegisterScreen extends Component {
         //console.log('onRegisterButtonPressed')
         this.setState({ showLoading: true });
         const {email, password, repeatPassword} = this.state;
-        if(password.localeCompare(repeatPassword)===0){
-            //Alert.alert('Good', 'Password are same');
-            let credential = firebase.auth.EmailAuthProvider.credential(email, password);
-            firebase.auth().currentUser.linkWithCredential(credential)
-                .then((user) => {
-                    console.log("Account linking success", user);
-                    this.props.screenProps.handleUserLoggedIn();
-                }).catch((error) => {
-                Alert.alert("Email Linking Failed", error);
-            });
-        } else {
+        if(password.length<8){
+            this.setState({ showLoading: false });
+            Alert.alert('Error', 'Password should be at least 8 characters');
+            return;
+        }
+        if(password.localeCompare(repeatPassword)!==0){
             this.setState({ showLoading: false });
             Alert.alert('Error', 'Password are not same');
+            return;
         }
+        let credential = firebase.auth.EmailAuthProvider.credential(email, password);
+        firebase.auth().currentUser.linkWithCredential(credential)
+            .then((user) => {
+                console.log("Account linking success", user);
+                this.props.screenProps.handleUserLoggedIn();
+            }).catch((error) => {
+            Alert.alert("Email Linking Failed", error);
+        });
 
     }
 
 
 
     render() {
-        const { email, password, email_valid, showLoading, repeatPassword } = this.state;
+        const { email, password, showLoading, repeatPassword } = this.state;
 
         return (
             <View style={styles.container}>
@@ -91,12 +94,12 @@ export default class RegisterScreen extends Component {
                     { this.state.fontLoaded ?
                         <View style={styles.loginView}>
                             <View style={styles.loginTitle}>
-                                <Text style={styles.travelText}>TINKO</Text>
+                                <Text style={styles.travelText}>REGISTRATION</Text>
                             </View>
                             <View style={styles.loginInput}>
                                 <View style={{marginVertical: 10}}>
                                     <Input
-                                        width={230}
+                                        containerStyle={{width:250}}
                                         onChangeText={email => this.setState({email})}
                                         value={email}
                                         inputStyle={{marginLeft: 10, color: 'white'}}
@@ -113,14 +116,11 @@ export default class RegisterScreen extends Component {
                                         }}
                                         blurOnSubmit={false}
                                         placeholderTextColor="white"
-                                        displayError={!email_valid}
-                                        errorStyle={{textAlign: 'center', fontSize: 12}}
-                                        errorMessage="Please enter a valid email address"
                                     />
                                 </View>
                                 <View style={{marginVertical: 10}}>
                                     <Input
-                                        width={230}
+                                        containerStyle={{width:250}}
                                         onChangeText={(password) => this.setState({password})}
                                         value={password}
                                         inputStyle={{marginLeft: 10, color: 'white'}}
@@ -134,14 +134,11 @@ export default class RegisterScreen extends Component {
                                         ref={ input => this.passwordInput = input}
                                         blurOnSubmit={true}
                                         placeholderTextColor="white"
-                                        displayError={false}
-                                        errorStyle={{textAlign: 'center', fontSize: 12}}
-                                        errorMessage="The email and password you entered did not match out records. Please try again!"
                                     />
                                 </View>
                                 <View style={{marginVertical: 10}}>
                                     <Input
-                                        width={230}
+                                        containerStyle={{width:250}}
                                         onChangeText={(repeatPassword) => this.setState({repeatPassword})}
                                         value={repeatPassword}
                                         inputStyle={{marginLeft: 10, color: 'white'}}
@@ -155,9 +152,6 @@ export default class RegisterScreen extends Component {
                                         ref={ input => this.passwordInput = input}
                                         blurOnSubmit={true}
                                         placeholderTextColor="white"
-                                        displayError={false}
-                                        errorStyle={{textAlign: 'center', fontSize: 12}}
-                                        errorMessage="The email and password you entered did not match out records. Please try again!"
                                     />
                                 </View>
                                 <View style={{marginVertical: 10}}>
@@ -168,7 +162,6 @@ export default class RegisterScreen extends Component {
                                         onPress={() => this.onRegisterButtonPressed()}
                                         loading={showLoading}
                                         loadingProps={{size: 'small', color: 'white'}}
-                                        disabled={ !email_valid && password.length < 8}
                                         buttonStyle={{height: 50, width: 250, backgroundColor: 'transparent', borderWidth: 2, borderColor: 'white', borderRadius: 30}}
                                         containerStyle={{marginVertical: 10}}
                                         titleStyle={{fontWeight: 'bold', color: 'white'}}
