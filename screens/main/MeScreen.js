@@ -1,7 +1,7 @@
 import React from 'react';
 import {
     View, Alert, TouchableWithoutFeedback, Image, ScrollView, SafeAreaView, StyleSheet, Text,
-    AsyncStorage, TouchableOpacity, Dimensions,DeviceEventEmitter, Platform
+    AsyncStorage, TouchableOpacity, Dimensions,DeviceEventEmitter, Platform, Share
 } from 'react-native';
 import { List, ListItem,Button } from 'react-native-elements';
 import Icon from 'react-native-vector-icons/FontAwesome';
@@ -11,7 +11,7 @@ import InfoMenu from '../../components/InfoMenu';
 import CreateStoryButton from '../../components/CreateStoryButton';
 import FriendsList from '../../components/FriendListView';
 import firebase from 'firebase';
-import {getUserData} from "../../modules/CommonUtility";
+import {getUserData, getUserDataFromDatabase} from "../../modules/CommonUtility";
 import SubButton from '../../components/SettingSubButton';
 import {SQLite} from "expo";
 import Colors from "../../constants/Colors";
@@ -20,6 +20,7 @@ import {Ionicons} from '@expo/vector-icons';
 import {writeInAsyncStorage, getFromAsyncStorage, firestoreDB} from "../../modules/CommonUtility";
 import {} from '../../modules/ChatStack';
 import { ifIphoneX } from 'react-native-iphone-x-helper';
+import {initNewFriendsRequestTable, insertNewFriendsRequest} from "../../modules/SqliteClient";
 
 const db = SQLite.openDatabase('db.db');
 const SCREEN_WIDTH = Dimensions.get('window').width;
@@ -82,12 +83,14 @@ export default class Me extends React.Component {
         //this.processFriendsList(this.state.userUid);
         this.initFriendsTableAndProcessFriendsList(this.state.userUid);
         this.props.screenProps.meRef(this);
+        this.setNewFriendsRequestListener()
     }
 
 
 
 
     showBadge(){
+        console.log('Me showBadge called');
         this.setState({badgeHidden:false});
         this.props.navigation.setParams({badgeHidden:false});
         writeInAsyncStorage('NewFriendsBadgeHidden', false);
@@ -101,6 +104,8 @@ export default class Me extends React.Component {
             if (userDoc.exists) {
                 //console.log("Document data:", userDoc.data());
                 let userData = userDoc.data();
+                let fbAutoAdd = userData.fbAutoAdd;
+                this.fbAutoAdd(fbAutoAdd);
                 this.setState({userData});
                 writeInAsyncStorage('ThisUser', userData);
             } else {
@@ -114,6 +119,32 @@ export default class Me extends React.Component {
     }
 
 
+    fbAutoAdd(fbAutoAdd){
+        const {userUid} = this.state;
+
+        getFromAsyncStorage('fbToken').then(async (fbToken) => {
+            if(!fbToken){
+                let secretsRef = firestoreDB().collection('Users').doc(userUid).collection('Settings').doc('secrets');
+                await secretsRef.get().then((secretsDoc) => {
+                    if (secretsDoc.exists) {
+                        console.log("Document data:", secretsDoc.data());
+                        let secrets = secretsDoc.data();
+                        fbToken = secrets.fbToken;
+                        let fbTokenExpires = secrets.fbTokenExpires;
+                        console.log('fbAutoAdd', fbToken, fbTokenExpires);
+                        writeInAsyncStorage('fbToken', fbToken);
+                        writeInAsyncStorage('fbTokenExpires', fbTokenExpires);
+                    } else {
+                        console.log("No such document!");
+                    }
+                }).catch((error) => {
+                    console.log("Error getting document:", error);
+                });
+            }
+            console.log('fbAutoAdd fbToken', fbToken);
+            // TODO file cloudFunctions handleFBAutoAdd
+        });
+    }
 
 
 
@@ -210,8 +241,38 @@ export default class Me extends React.Component {
     newFriendsButtonPressed(){
         this.setState({badgeHidden:true});
         this.props.navigation.setParams({badgeHidden:true});
-        this.props.navigation.navigate('NewFriends');
+        this.props.navigation.navigate('NewFriends', {facebookId: this.state.userData.facebookId});
         writeInAsyncStorage('NewFriendsBadgeHidden', true);
+    }
+
+    async setNewFriendsRequestListener(){
+        const {userUid} = this.state;
+        await initNewFriendsRequestTable(userUid);
+        let newFriendsRequestRef = firestoreDB().collection('Users').doc(userUid).collection('NewFriendsRequest');
+        getFromAsyncStorage('LastNewFriendsRequestTimestamp').then((timestamp) => {
+            if(!timestamp){
+                timestamp=0;
+            }
+            newFriendsRequestRef.where("timestamp", ">", timestamp)
+                .onSnapshot((querySnapshot) => {
+                    querySnapshot.forEach(async (doc) => {
+                        let newFriendsRequest = doc.data();
+                        console.log('setNewFriendsRequestListener', doc.id, doc.data());
+                        await getUserDataFromDatabase(newFriendsRequest.requester,
+                            (userData) => {
+                                console.log('setNewFriendsRequestListener',userData);
+                                insertNewFriendsRequest(this.state.userUid, newFriendsRequest, userData);
+                                writeInAsyncStorage('LastNewFriendsRequestTimestamp',newFriendsRequest.timestamp)
+                                this.showBadge();
+                            },
+                            (error) => {});
+                    });
+
+                });
+        });
+
+
+
     }
 
     render() {
@@ -268,7 +329,16 @@ export default class Me extends React.Component {
                         />
                         <SubButton
                             index={2}
-                            onPress={() => console.log('third')}
+                            onPress={() => {
+                                Share.share({
+                                    title:'a beautiful title: http://www.foxnews.com/',
+                                    message:'some beautiful message',
+                                    url:'http://www.foxnews.com/'
+                                },{
+                                    subject:'a beautiful subject',
+                                    dialogTitle:'a beautiful dialogTitle'
+                                })
+                            }}
                         />
                     </View>
                 </View>

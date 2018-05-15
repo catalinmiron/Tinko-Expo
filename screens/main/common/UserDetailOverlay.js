@@ -1,7 +1,7 @@
 import React, {
     Component
 } from 'react'
-import {Text, Image, AsyncStorage, DeviceEventEmitter} from 'react-native';
+import {Text, Image, AsyncStorage, DeviceEventEmitter, Alert} from 'react-native';
 import {Button, Header, Avatar, Overlay, Input} from 'react-native-elements'
 import {firestoreDB, getFromAsyncStorage} from "../../../modules/CommonUtility";
 import {getLength,updateUnReadNum} from "../../../modules/ChatStack";
@@ -169,6 +169,18 @@ export default class UserDetailScreen extends Component{
         );
     }
 
+    sendNewFriendsRequest(responser, type, requestMessage){
+        const { userUid } = this.state;
+        let newFriendsRequestRef = firestoreDB().collection('Users').doc(responser).collection('NewFriendsRequest').doc(userUid);
+        newFriendsRequestRef.set({
+            requester:userUid,
+            responser:responser,
+            type:type,
+            msg:requestMessage,
+            timestamp:new Date().getTime(),
+        }).catch((error) => Alert.alert('Error', error));
+    }
+
     render() {
         //console.log(this.props);
         const { thisUserData, userData, userUid, isFriends, isVisible, requestMessage, loading}  = this.state;
@@ -237,7 +249,8 @@ export default class UserDetailScreen extends Component{
                                     containerStyle={{marginTop:10}}
                                     title='Add Friend'
                                     onPress={() => {
-                                        sendFriendRequest(userUid, userData.uid, 0, requestMessage);
+                                        this.sendNewFriendsRequest(userData.uid,0,requestMessage);
+                                        //sendFriendRequest(userUid, userData.uid, 0, requestMessage);
                                         this.setState({isVisible:false});
                                     }}
                                 />

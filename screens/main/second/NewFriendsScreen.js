@@ -17,7 +17,7 @@ export default class NewFriendsScreen extends Component {
 
     constructor(props){
         super(props);
-        //console.log(props);
+        console.log(props);
         let user = firebase.auth().currentUser;
         let uid = user.uid;
         //console.log(uid);
@@ -80,13 +80,14 @@ export default class NewFriendsScreen extends Component {
         this.setState({buttonShowLoading:true});
         let bodyData = {
             requester:request.requesterUid,
-            responser:this.state.userUid
-        }
+            responser:this.state.userUid,
+            requesterFacebookId: this.props.navigation.state.params.facebookId
+        };
         getPostRequest('initializeTwoWayFriendship', bodyData,
             (response) => {
                 console.log(response);
                 this.setState({buttonShowLoading:false});
-                acceptFriendRequest(request.requesterUid, this.state.userUid);
+                //acceptFriendRequest(request.requesterUid, this.state.userUid);
                 updateNewFriendsRequestType(this.state.userUid, request.id).fork(
                     (error) => {
                         console.log(error);
@@ -203,7 +204,7 @@ export default class NewFriendsScreen extends Component {
                             <ListItem
                                 key={request.requesterUid}
                                 title={request.username}
-                                leftAvatar={{ rounded: true, source: { uri: request.photoURL} }}
+                                leftAvatar={{ rounded: true, size:40, source: { uri: request.photoURL } }}
                                 subtitle={request.msg}
                                 rightElement={
                                     <this.renderRightElement request={request}/>

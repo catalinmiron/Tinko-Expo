@@ -317,7 +317,7 @@ export const getYMDhmsTime = (timeStamp) =>{
 export const getListTime = (time) => {
     let today = moment(),
         thisTime = moment(time, "YYYY-MM-DD hh:mm:ss");
-    console.log(thisTime);
+    //console.log(thisTime);
     let timeArr = time.split(" "),
         YMD = timeArr[0].split("-"),
         hms = timeArr[1].split(":"),

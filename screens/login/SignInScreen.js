@@ -85,9 +85,9 @@ export default class SignInScreen extends Component {
         console.log(email);
 
         this.resetNavigation('Register', email);
-        // getPostRequest('initializeNewUser', dict,
-        //     ()=>{},
-        //     (error)=>Alert.alert('Error', error));
+        getPostRequest('initializeNewUser', dict,
+            ()=>{},
+            (error)=>Alert.alert('Error', error));
     };
 
     async logInFirebase(token, expires){
@@ -97,8 +97,8 @@ export default class SignInScreen extends Component {
             const { a, b } = user.metadata;
             console.log(a, b); //a = creationTime, b = lastSignInTime
 
-            writeInAsyncStorage('fbToken'+user.uid, token);
-            writeInAsyncStorage('fbTokenExpires'+user.uid, expires);
+            writeInAsyncStorage('fbToken', token);
+            writeInAsyncStorage('fbTokenExpires', expires);
 
             this.initializeNewUser(token, user.uid, expires);
             // if(a===b){ //first time login
@@ -115,6 +115,8 @@ export default class SignInScreen extends Component {
             // }
         }).catch((error) => {
             console.log(error);
+            this.setState({showLoading:false});
+            Alert.alert('Error', error);
         })
     }
 
