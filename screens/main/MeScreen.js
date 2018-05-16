@@ -11,7 +11,7 @@ import InfoMenu from '../../components/InfoMenu';
 import CreateStoryButton from '../../components/CreateStoryButton';
 import FriendsList from '../../components/FriendListView';
 import firebase from 'firebase';
-import {getUserData, getUserDataFromDatabase} from "../../modules/CommonUtility";
+import {getPostRequest, getUserData, getUserDataFromDatabase} from "../../modules/CommonUtility";
 import SubButton from '../../components/SettingSubButton';
 import {SQLite} from "expo";
 import Colors from "../../constants/Colors";
@@ -119,31 +119,62 @@ export default class Me extends React.Component {
     }
 
 
-    fbAutoAdd(fbAutoAdd){
+    async fbAutoAdd(fbAutoAdd){
         const {userUid} = this.state;
 
-        getFromAsyncStorage('fbToken').then(async (fbToken) => {
+        if(!fbAutoAdd){
+            return;
+        }
+        await getFromAsyncStorage('lastFBAutoAddTimestamp').then((timestamp) =>{
+            if (timestamp && timestamp < new Date().getTime - 24*50*50*1000){
+                return;
+            }
+        });
+
+        let userFBToken, userFBTokenExpires;
+        await getFromAsyncStorage('fbToken').then(async (fbToken) => {
             if(!fbToken){
                 let secretsRef = firestoreDB().collection('Users').doc(userUid).collection('Settings').doc('secrets');
                 await secretsRef.get().then((secretsDoc) => {
                     if (secretsDoc.exists) {
                         console.log("Document data:", secretsDoc.data());
                         let secrets = secretsDoc.data();
-                        fbToken = secrets.fbToken;
-                        let fbTokenExpires = secrets.fbTokenExpires;
-                        console.log('fbAutoAdd', fbToken, fbTokenExpires);
-                        writeInAsyncStorage('fbToken', fbToken);
-                        writeInAsyncStorage('fbTokenExpires', fbTokenExpires);
+                        userFBToken = secrets.fbToken;
+                        userFBTokenExpires = secrets.fbTokenExpires;
+                        console.log('fbAutoAdd', userFBToken, userFBTokenExpires);
+                        writeInAsyncStorage('fbToken', userFBToken);
+                        writeInAsyncStorage('fbTokenExpires', userFBTokenExpires);
                     } else {
                         console.log("No such document!");
                     }
                 }).catch((error) => {
                     console.log("Error getting document:", error);
                 });
+            }else{
+                userFBToken = fbToken;
+                await getFromAsyncStorage('fbTokenExpires').then((fbTokenExpires) => {
+                    userFBTokenExpires = fbTokenExpires;
+                })
             }
-            console.log('fbAutoAdd fbToken', fbToken);
-            // TODO file cloudFunctions handleFBAutoAdd
         });
+        console.log('fbAutoAdd', userFBTokenExpires*1000, new Date().getTime(), userFBToken);
+        if(userFBTokenExpires*1000 < new Date().getTime()){
+            return;
+        }
+        const response = await fetch(
+            `https://graph.facebook.com/me?access_token=${userFBToken}&fields=friends`
+        );
+        var dict = await response.json();
+        dict.userUid = userUid;
+        dict.facebookId = this.state.userData.facebookId;
+        console.log(dict);
+
+        getPostRequest('handleFBAutoAdd', dict,
+            ()=>{
+            console.log('fbAutoAdd success')
+                writeInAsyncStorage('lastFBAutoAddTimestamp', new Date().getTime())
+            },
+            (error)=>console.log(error));
     }
 
 
