@@ -113,12 +113,12 @@ export default class MyTinkosScreen extends React.Component {
             >
 
                 <View
-                    style={{flex:1, width: SCREEN_WIDTH, height:135, justifyContent: 'flex-start', alignItems: 'center',}}
+                    style={{flex:1, width: SCREEN_WIDTH, height:140, justifyContent: 'flex-start', alignItems: 'center',}}
                 >
                     <Image
                         resizeMethod={'auto'}
                         source={getImageSource(tagName)}
-                        style={{ borderRadius:10, width: SCREEN_WIDTH-10, height: 130 }}
+                        style={{ borderRadius:10, width: SCREEN_WIDTH-10, height: 135 }}
                     />
                     <View
                         style={styles.headerTop}

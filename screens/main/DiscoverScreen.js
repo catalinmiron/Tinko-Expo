@@ -61,7 +61,7 @@ export default class DiscoverScreen extends Component {
             yOldOffset:0,
             flatListHeight:0,
             yOnScrollOffset:0,
-            listHeight: 130,
+            listHeight: 135,
             marginBottomValue:5,
             //flatListScrollEnabled:false,
             locationLoadingDone:false,
@@ -244,9 +244,13 @@ export default class DiscoverScreen extends Component {
 
 
     render() {
-        const { redoSearching, firstTimeLoadingDone, showRedoSearchButton, locationLoadingDone, location, meets, selectedMeetData, containerHeight, yOffset, yOriginal, yOnGoing, yOldOffset, yOnScrollOffset,flatListHeight, listHeight, marginBottomValue,currentRegion } = this.state;
+        const { redoSearching, firstTimeLoadingDone, showRedoSearchButton, locationLoadingDone, location, meets, selectedMeetData, containerHeight, yOffset, yOriginal, yOnGoing, yOldOffset, yOnScrollOffset,flatListHeight, listHeight,currentRegion } = this.state;
+        let marginBottomValue = this.state.marginBottomValue;
         let flatListMarginTopHeight = containerHeight-listHeight-marginBottomValue-yOffset-yOldOffset;
         //console.log(flatListMarginTopHeight);
+        if(Platform.OS === 'android'){
+            marginBottomValue=0;
+        }
         return (
             <View
                 style = {styles.container}
@@ -310,7 +314,13 @@ export default class DiscoverScreen extends Component {
                         ))}
                     </MapView>
                     :
-                    null
+                    <View style={{flex:1, justifyContent:'center', alignItems:'center'}}>
+                        <Text>Please Enable Location Services to use this feature</Text>
+                        <Button
+                            title={'RELOAD'}
+                            onPress={()=>this._getLocationAsync()}
+                        />
+                    </View>
                 }
 
                 {selectedMeetData ? //&& !redoSearching ?
@@ -360,7 +370,11 @@ export default class DiscoverScreen extends Component {
                             :
                             {position:'absolute', zIndex:100, top: containerHeight-listHeight-marginBottomValue, width: SCREEN_WIDTH, height:listHeight+marginBottomValue}
                         }
-                        onPress={() => this.props.screenProps.navigation.navigate('Create',{location:currentRegion})}
+                        onPress={() => {
+                            if(locationLoadingDone){
+                                this.props.screenProps.navigation.navigate('Create',{location:currentRegion})
+                            }
+                        }}
                     >
 
                         <View

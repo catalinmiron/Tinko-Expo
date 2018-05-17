@@ -96,7 +96,7 @@ export default class CreateScreen extends React.Component {
             title:'',
             userUid: userUid,
             startTime: dateTime,
-            placeName:'',
+            placeName:'Pick a place',
             placeCoordinate:{},
             placeAddress:'',
             placeId:'',
