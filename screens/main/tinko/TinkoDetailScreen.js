@@ -1,13 +1,13 @@
 import _ from 'lodash';
 import React from 'react';
-import {View, Alert, TouchableWithoutFeedback, Image, ScrollView, Text, StyleSheet, Dimensions, SafeAreaView, TouchableOpacity, InteractionManager, BackHandler} from 'react-native';
+import {View, Alert, TouchableWithoutFeedback, Image, ScrollView, Text, StyleSheet, Dimensions, SafeAreaView, TouchableOpacity, InteractionManager, BackHandler, ActivityIndicator} from 'react-native';
 import firebase from 'firebase';
 import 'firebase/firestore';
 import Swiper from 'react-native-swiper';
 import { getStartTimeString,  getDurationString, getUserData, getImageSource, getUserDataFromDatabase, firestoreDB } from "../../../modules/CommonUtility";
 import {MapView, SQLite} from 'expo';
 import { Ionicons, MaterialIcons, Entypo, MaterialCommunityIcons, Feather  } from '@expo/vector-icons';
-import { Avatar, Button, Header} from 'react-native-elements';
+import { Avatar, Button, Header, Overlay} from 'react-native-elements';
 import { ifIphoneX } from 'react-native-iphone-x-helper';
 import { getPostRequest,getListWhoParticipatedInMeetsByMeetId } from "../../../modules/CommonUtility";
 import { ActionSheetProvider, connectActionSheet } from '@expo/react-native-action-sheet';
@@ -98,7 +98,8 @@ export default class TinkoDetailScreen extends React.Component {
             identity:1,
             showMap:false,
             quit:false,
-            dismissed:false
+            dismissed:false,
+            loadingVisible:false,
             //identity: 0: not joined
             //          1: creator
             //          2: joined cannot invite
@@ -475,12 +476,13 @@ export default class TinkoDetailScreen extends React.Component {
     }
 
     onDismissMeetButtonPressed(){
+        this.setState({loadingVisible:true});
         const { userUid, meetId } = this.state;
         let meetRef = firestoreDB().collection("Meets").doc(meetId);
         meetRef.update({dismissed:true}).then(()=>{
 
             let bodyData ={meetId:meetId};
-            //NEED CHANGE
+
             dismissMeet(userUid,meetId);
             getPostRequest('checkMeetStatus', bodyData,
                 () => {
@@ -490,12 +492,15 @@ export default class TinkoDetailScreen extends React.Component {
                         this.props.navigation.state.params.getMeets();
                         console.log('after getMeets called');
                     }
+                    this.setState({loadingVisible:false});
                 },
                 (error) => {
                     console.log(error);
+                    this.setState({loadingVisible:false});
                     Alert.alert('error', error);
                 });
         }).catch((error)=>{
+            this.setState({loadingVisible:false});
             Alert.alert('Error', error);
         });
     }
@@ -564,7 +569,7 @@ export default class TinkoDetailScreen extends React.Component {
     render() {
         const { creatorLoadingDone, placePhotosLoadingDone, userUid, creatorUid, identity,
             creatorData, title, placePhotos, startTime, allowPeopleNearby, participatingUsersList,
-            maxNo, description, duration, participatingUsersData, placeName, placeCoordinate, placeAddress, placeId, tagsList, showMap, meet } = this.state;
+            maxNo, description, duration, participatingUsersData, placeName, placeCoordinate, placeAddress, placeId, tagsList, showMap, meet, loadingVisible } = this.state;
 
         // if(identity === 0 && (!meet.status || meet.dismissed)){
         //     return(
@@ -760,6 +765,20 @@ export default class TinkoDetailScreen extends React.Component {
                 </ScrollView>
                 <this.renderActivityBar />
 
+
+                <Overlay
+                    height={100}
+                    width={100}
+                    borderRadius={25}
+                    isVisible={loadingVisible}
+                    windowBackgroundColor={'transparent'}
+                    //onBackdropPress={()=>this.setState({loadingVisible:false})}
+                >
+
+                    <ActivityIndicator size={'large'}/>
+
+
+                </Overlay>
 
             </View>
 

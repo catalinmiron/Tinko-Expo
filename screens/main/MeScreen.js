@@ -78,12 +78,16 @@ export default class Me extends React.Component {
     };
 
 
-    componentDidMount(){
-        this.getThisUserData();
+    async componentDidMount(){
         //this.processFriendsList(this.state.userUid);
         this.initFriendsTableAndProcessFriendsList(this.state.userUid);
         this.props.screenProps.meRef(this);
-        this.setNewFriendsRequestListener()
+        this.setNewFriendsRequestListener();
+
+        await this.getThisUserData();
+        let fbAutoAdd = this.state.userData.fbAutoAdd;
+        console.log('after getThisUserData', this.state.userData);
+        this.fbAutoAdd(fbAutoAdd);
     }
 
 
@@ -96,16 +100,14 @@ export default class Me extends React.Component {
         writeInAsyncStorage('NewFriendsBadgeHidden', false);
     }
 
-    getThisUserData(){
+    async getThisUserData(){
         const {userUid} = this.state;
         let firestoreDb = firestoreDB();
         let userRef = firestoreDb.collection("Users").doc(userUid);
-        userRef.get().then((userDoc) => {
+        await userRef.get().then((userDoc) => {
             if (userDoc.exists) {
                 //console.log("Document data:", userDoc.data());
                 let userData = userDoc.data();
-                let fbAutoAdd = userData.fbAutoAdd;
-                this.fbAutoAdd(fbAutoAdd);
                 this.setState({userData});
                 writeInAsyncStorage('ThisUser', userData);
             } else {
@@ -126,7 +128,8 @@ export default class Me extends React.Component {
             return;
         }
         await getFromAsyncStorage('lastFBAutoAddTimestamp').then((timestamp) =>{
-            if (timestamp && timestamp < new Date().getTime - 24*50*50*1000){
+            if (timestamp && timestamp > new Date().getTime - 24*50*50*1000){
+                console.log('last fbAutoAdd check is within 24 hours');
                 return;
             }
         });
@@ -164,14 +167,14 @@ export default class Me extends React.Component {
         const response = await fetch(
             `https://graph.facebook.com/me?access_token=${userFBToken}&fields=friends`
         );
-        var dict = await response.json();
+        let dict = await response.json();
         dict.userUid = userUid;
         dict.facebookId = this.state.userData.facebookId;
         console.log(dict);
 
         getPostRequest('handleFBAutoAdd', dict,
             ()=>{
-            console.log('fbAutoAdd success')
+                console.log('fbAutoAdd success');
                 writeInAsyncStorage('lastFBAutoAddTimestamp', new Date().getTime())
             },
             (error)=>console.log(error));
