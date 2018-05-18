@@ -10,6 +10,7 @@ import {
 } from "../../../modules/CommonUtility";
 import {ifIphoneX} from "react-native-iphone-x-helper";
 import {logoutFromNotification} from '../../../modules/CommonUtility';
+import _ from "lodash";
 
 const SCREEN_WIDTH = Dimensions.get('window').width;
 
@@ -24,6 +25,8 @@ export default class MyTinkosScreen extends React.Component {
         let user = firebase.auth().currentUser;
         this.state={
             userUid:user.uid,
+            meetsData:[],
+            lastSnapshot:null
         };
     }
 
@@ -33,12 +36,31 @@ export default class MyTinkosScreen extends React.Component {
 
 
     getMeets(){
+        const {userUid, lastSnapshot } = this.state;
         const firestoreDb = firestoreDB();
-        var query = firestoreDb.collection("Meets").orderBy(`participatingUsersList.${this.state.userUid}.startTime`);
+        let query;
+        if(!lastSnapshot){
+            query = firestoreDb.collection("Meets").orderBy(`participatingUsersList.${userUid}.startTime`).limit(10);
+        } else {
+            query = firestoreDb.collection("Meets").orderBy(`participatingUsersList.${userUid}.startTime`).startAfter(lastSnapshot).limit(10);
+        }
+
 
         query.get().then(async (querySnapshot) => {
-            var meetsData = await this.processMeets(querySnapshot.docs);
-            this.setState({meetsData});
+            
+            console.log('querySnapshot size:', querySnapshot.size);
+            if (querySnapshot.size===0){
+                return;
+            }
+
+            let addMeetsData = await this.processMeets(querySnapshot.docs);
+
+            let lastSnapshot = querySnapshot.docs[querySnapshot.docs.length-1];
+            //console.log(addMeetsData);
+            this.setState((state) => {
+                let meetsData = _.concat(state.meetsData, addMeetsData);
+                return {meetsData, lastSnapshot};
+            });
             //console.log(meetsData);
             console.log("Done");
             // var lastVisible = querySnapshot.docs[querySnapshot.docs.length-1];
@@ -160,6 +182,8 @@ export default class MyTinkosScreen extends React.Component {
                     data={this.state.meetsData}
                     keyExtractor={this._keyExtractor}
                     renderItem={this._renderItem}
+                    onEndReached={()=>this.getMeets()}
+                    onEndReachedThreshold={0}
                 />
             </View>
         )
