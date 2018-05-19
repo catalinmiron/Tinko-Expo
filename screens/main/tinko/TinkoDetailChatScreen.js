@@ -9,6 +9,7 @@ import {Header} from "react-native-elements";
 import { ifIphoneX } from 'react-native-iphone-x-helper';
 import SocketIOClient from 'socket.io-client';
 import KeyboardSpacer from "react-native-keyboard-spacer";
+import {MaterialIcons} from '@expo/vector-icons';
 
 let MeetId = "",
     uid = "",
@@ -293,6 +294,8 @@ export default class TinkoDetailChatScreen extends React.Component {
                 <Header
                     centerComponent={{ text: 'Discuss', style: { fontSize:18, fontFamily:'regular', color: '#fff' } }}
                     outerContainerStyles={ifIphoneX({height:88})}
+                    leftComponent={<MaterialIcons name='details' size={26} color={'white'} backgroundColor={'transparent'}
+                                                   onPress={()=>this.props.navigation.navigate('TinkoDetail')}/>}
                 />
                 <GiftedChat
 

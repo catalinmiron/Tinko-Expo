@@ -1,11 +1,22 @@
-import {Component} from "react";
+import React, {Component} from 'react';
+import {WebView, View} from 'react-native';
+import {ifIphoneX} from "react-native-iphone-x-helper";
+import {Header} from 'react-native-elements';
 
 export default class TinkoWebView extends Component {
+    static navigationOptions = {header:null};
     render() {
         return (
-            <WebView
-                source={{uri: 'https://github.com/facebook/react-native'}}
-            />
+            <View style={{flex:1}}>
+                <Header
+                    leftComponent={{ icon: 'chevron-left', color: '#fff', onPress:()=>this.props.navigation.goBack()}}
+                    centerComponent={{ text: this.props.navigation.state.params.title, style: { fontSize:18, fontFamily:'regular', color: '#fff' } }}
+                    outerContainerStyles={ifIphoneX({height:88})}
+                />
+                <WebView
+                    source={{uri: this.props.navigation.state.params.uri}}
+                />
+            </View>
         );
     }
 }

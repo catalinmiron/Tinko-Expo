@@ -159,22 +159,46 @@ export default class SettingsScreen extends React.Component {
                             />
                         }
                     />
-                    <View style={{width:SCREEN_WIDTH, justifyContent:'center', alignItems:'center'}}>
-                        <Button
-                            onPress={() => this.onLogoutButtonPressed()}
-                            title="Logout"
-                            titleStyle={{ fontWeight: "700" }}
-                            buttonStyle={{
-                                backgroundColor: "rgba(92, 99,216, 1)",
-                                width: 300,
-                                height: 45,
-                                borderColor: "transparent",
-                                borderWidth: 0,
-                                borderRadius: 5
-                            }}
-                            containerStyle={{ marginTop: 20 }}
-                        />
-                    </View>
+                    <ListItem
+                        title='Privacy Policy'
+                        titleStyle={styles.titleStyle}
+                        containerStyle={{marginTop:20}}
+                        chevron
+                        chevronColor={'black'}
+                        onPress={()=>this.props.navigation.navigate('TinkoWebView',{title:'Privacy Policy', uri:'https://termsfeed.com/privacy-policy/11f395148fd94535328c9cda80d1ca86'})}
+                    />
+                    <ListItem
+                        title='Services Terms'
+                        titleStyle={styles.titleStyle}
+                        chevron
+                        chevronColor={'black'}
+                        onPress={()=>this.props.navigation.navigate('TinkoWebView',{title:'Services Terms', uri:'https://termsfeed.com/terms-conditions/5f13460a2ff8f4a683d5ee096fa3a5f1'})}
+                    />
+
+                    <ListItem
+                        title='Logout'
+                        titleStyle={{fontFamily:'regular', fontSize:18}}
+                        containerStyle={{marginTop:20}}
+                        chevron
+                        chevronColor={'black'}
+                        onPress={()=>this.onLogoutButtonPressed()}
+                    />
+                    {/*<View style={{width:SCREEN_WIDTH, justifyContent:'center', alignItems:'center'}}>*/}
+                        {/*<Button*/}
+                            {/*onPress={() => this.onLogoutButtonPressed()}*/}
+                            {/*title="Logout"*/}
+                            {/*titleStyle={{ fontWeight: "700" }}*/}
+                            {/*buttonStyle={{*/}
+                                {/*backgroundColor: "rgba(92, 99,216, 1)",*/}
+                                {/*width: 300,*/}
+                                {/*height: 45,*/}
+                                {/*borderColor: "transparent",*/}
+                                {/*borderWidth: 0,*/}
+                                {/*borderRadius: 5*/}
+                            {/*}}*/}
+                            {/*containerStyle={{ marginTop: 20 }}*/}
+                        {/*/>*/}
+                    {/*</View>*/}
                 </ScrollView>
             </View>
         )

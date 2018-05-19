@@ -47,7 +47,7 @@ export default class MyTinkosScreen extends React.Component {
 
 
         query.get().then(async (querySnapshot) => {
-            
+
             console.log('querySnapshot size:', querySnapshot.size);
             if (querySnapshot.size===0){
                 return;
