@@ -535,6 +535,16 @@ export default class FriendChatListView extends Component {
                 />
                 <ScrollView>
                     {friendList}
+                    {this.state.messages.length===0 &&
+                        <ListItem
+                            title={'Welcome to Tinko'}
+                            titleStyle={{fontFamily:'regular'}}
+                            subtitle={'You can view your friends\' Tinko at Tinko tab.' +
+                            'And view nearby Tinkos at Discover tab.'}
+                            subtitleStyle={{fontFamily:'regular', color:'#626567'}}
+                            leftAvatar={{ rounded: true, size:40, source: { uri: 'https://firebasestorage.googleapis.com/v0/b/tinko-64673.appspot.com/o/System%2FMeetAvatar%2Fsmileface.png?alt=media&token=9fd2c9aa-f52c-48b1-9daa-b014ef674b13' } }}
+                        />
+                    }
                 </ScrollView>
             </View>
         )
