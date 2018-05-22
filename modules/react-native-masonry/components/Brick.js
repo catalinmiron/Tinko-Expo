@@ -1,33 +1,34 @@
 import React, { Component } from 'react';
-import {Text, View, Image, TouchableHighlight, TouchableOpacity, StyleSheet} from 'react-native';
+import {Text, View, Image, TouchableHighlight, TouchableOpacity, StyleSheet, Dimensions} from 'react-native';
 import {getImageSource} from "../../CommonUtility";
+
+const SCREEN_WIDTH = Dimensions.get('window').width;
 
 export default function Brick (props) {
 	// Avoid margins for first element
 	const image =_getTouchableUnit(props, props.gutter);
 	//const footer = (props.renderFooter) ? props.renderFooter(props.data) : null;
 	//const header = (props.renderHeader) ? props.renderHeader(props.data) : null;
-    //console.log(props);
+    console.log(props);
     const data = props.data;
 	return (
 		<View key={props.brickKey} >
             <TouchableOpacity
                 key='brick-footer'
                 style={styles.headerTop}
-                onPress={() => props.navigateToDetail(data.meetId)}
+                onPress={data.onPress ? () => data.onPress() : () => props.navigateToDetail(data.meetId)}
             >
                 <Image
                     source={{uri: data.creator.photoURL}}
                     style={styles.userPic}/>
-                <View style={{marginTop: 5}}>
+                <View style={{marginTop: 5, width:SCREEN_WIDTH/2-10-50}}>
                     <Text style={styles.userName}>{data.creator.username}</Text>
                     <Text style={styles.postTime}>{data.postTime}</Text>
                 </View>
-                <View style={{width: 10, backgroundColor: 'white'}}/>
             </TouchableOpacity>
 		  {image}
             <TouchableOpacity key='brick-header' style={styles.footer}
-                              onPress={() => props.navigateToDetail(data.meetId)}>
+                              onPress={data.onPress ? () => data.onPress() : () => props.navigateToDetail(data.meetId)}>
                 <Text style={styles.footerTitle}>{data.title}</Text>
                 <Text style={styles.footerTime}>{data.startTime}</Text>
                 <Text style={styles.footerPlaceName}>{data.placeName}</Text>
@@ -77,7 +78,7 @@ export function _getTouchableUnit (props, gutter = 0) {
 	return (
 		<TouchableHighlight
           key={props.uri}
-          onPress={() => props.navigateToDetail(props.data.meetId)}>
+          onPress={props.data.onPress ? () => props.data.onPress() : () => props.navigateToDetail(props.data.meetId)}>
           <View>
             { _getImageTag(props, gutter) }
           </View>
@@ -92,7 +93,7 @@ const styles = StyleSheet.create({
         alignItems: 'center',
         backgroundColor: 'transparent',
         position: 'absolute',
-        zIndex: 100,
+        zIndex: 50,
     },
     userPic: {
         height: 45,

@@ -26,7 +26,7 @@ export default class TinkoScreen extends Component {
 
     constructor(props){
         super(props);
-        //console.log(props);
+        console.log(props);
         let user = firebase.auth().currentUser;
         this.getMeets=this.getMeets.bind(this);
         this.navigateToDetail=this.navigateToDetail.bind(this);
@@ -243,6 +243,26 @@ export default class TinkoScreen extends Component {
 
     render() {
 
+        let { meetsData } = this.state;
+        if(meetsData.length===0){
+            meetsData = [{
+                data: {
+                    meetId: '001',
+                    title: 'Let\'s create a Tinko',
+                    startTime: '',
+                    postTime: '',
+                    placeName: '',
+                    creator: {
+                        username: 'WELCOME',
+                        photoURL: 'https://firebasestorage.googleapis.com/v0/b/tinko-64673.appspot.com/o/System%2FMeetAvatar%2Fsmileface.png?alt=media&token=9fd2c9aa-f52c-48b1-9daa-b014ef674b13',
+                    },
+                    tags: 'default',
+                    onPress:this.props.screenProps.openCreateModel
+                },
+                uri: '001',
+
+            }];
+        }
 
         return (
             <View style={styles.container}>
@@ -257,7 +277,7 @@ export default class TinkoScreen extends Component {
                 <Masonry
                     sorted // optional - Default: false
                     columns={2} // optional - Default: 2
-                    bricks={this.state.meetsData}
+                    bricks={meetsData}
                     refreshControl={
                         <RefreshControl
                             refreshing={this.state.refreshing}

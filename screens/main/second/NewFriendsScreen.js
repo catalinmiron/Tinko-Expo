@@ -204,8 +204,10 @@ export default class NewFriendsScreen extends Component {
                             <ListItem
                                 key={request.requesterUid}
                                 title={request.username}
+                                titleStyle={{fontFamily:'regular'}}
                                 leftAvatar={{ rounded: true, size:40, source: { uri: request.photoURL } }}
                                 subtitle={request.msg}
+                                subtitleStyle={{fontFamily:'regular', color:'#626567'}}
                                 rightElement={
                                     <this.renderRightElement request={request}/>
                                 }

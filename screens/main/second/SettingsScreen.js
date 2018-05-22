@@ -179,8 +179,6 @@ export default class SettingsScreen extends React.Component {
                         title='Logout'
                         titleStyle={{fontFamily:'regular', fontSize:18}}
                         containerStyle={{marginTop:20}}
-                        chevron
-                        chevronColor={'black'}
                         onPress={()=>this.onLogoutButtonPressed()}
                     />
                     {/*<View style={{width:SCREEN_WIDTH, justifyContent:'center', alignItems:'center'}}>*/}

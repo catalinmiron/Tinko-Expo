@@ -141,11 +141,11 @@ export default class TinkoTabNavigatorScreen extends React.Component {
             return (
                 <View style={{flexDirection:'row'}}>
                     <Text
-                        style={{color:'white', fontSize:22, fontFamily:'regular'}}
+                        style={{color:'black', fontSize:22, fontFamily:'regular'}}
                         onPress={()=>this.discoverRef.props.navigation.navigate('Tinko')}
                     >    TINKO </Text>
-                    <Text  style={{color:'white', fontSize:20, fontFamily:'bold'}}> | </Text>
-                    <Text  style={{color:'white', fontSize:22, fontFamily:'bold'}}> Discover</Text>
+                    <Text  style={{color:'black', fontSize:20, fontFamily:'bold'}}> | </Text>
+                    <Text  style={{color:'black', fontSize:22, fontFamily:'bold'}}> Discover</Text>
                 </View>
             );
         }
@@ -162,6 +162,10 @@ export default class TinkoTabNavigatorScreen extends React.Component {
     getTinkoRef = ref => (this.tinkoRef = ref);
     getDiscoverRef = ref => (this.discoverRef = ref);
 
+    openCreateModel(){
+        this.props.navigation.navigate('Create',{tinkoGetMeets:this.tinkoRef.getMeets});
+    }
+
     render() {
         return (
             <View style={styles.container}>
@@ -169,7 +173,7 @@ export default class TinkoTabNavigatorScreen extends React.Component {
                 <TinkoTabNavigator
                     //onRef={ref => (this.tinkoNav = ref)}
                     onNavigationStateChange={(prevState, newState) => this.onNavStateChnage(newState)}
-                    screenProps={{getTinkoRef:this.getTinkoRef,getDiscoverRef:this.getDiscoverRef,...this.props}}
+                    screenProps={{getTinkoRef:this.getTinkoRef,getDiscoverRef:this.getDiscoverRef,openCreateModel:this.openCreateModel.bind(this),...this.props}}
                 />
 
                 <ActionButton buttonColor="#3498db">
