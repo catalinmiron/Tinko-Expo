@@ -175,7 +175,7 @@ export default class InvitationRangeScreen extends React.Component{
                         <ListItem
                             title={userData.username}
                             key={userData.uid}
-                            leftAvatar={{ rounded: true, source: { uri: userData.photoURL } }}
+                            leftAvatar={{ rounded: true, size:40, source: { uri: userData.photoURL } }}
                             rightElement={
                                 <this.renderRightElement userData={userData} i={i}/>
                             }

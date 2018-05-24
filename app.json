@@ -1,7 +1,7 @@
 {
   "expo": {
     "name": "tinko-expo",
-    "description": "A very interesting project.",
+    "description": "A very interesting app.",
     "slug": "tinko-expo",
     "privacy": "public",
     "sdkVersion": "27.0.0",
@@ -28,6 +28,12 @@
           "apiKey": "My Key Here"
         }
       }
+    }
+    ,
+    "updates": {
+      "enabled": true,
+      "checkAutomatically": "ON_LOAD",
+      "fallbackToCacheTimeout": 0
     }
   }
 }

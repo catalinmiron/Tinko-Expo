@@ -212,7 +212,7 @@ export default class InvitationRangeScreen extends React.Component{
                     {notFriendsListData.map((userData, i) => (
                         <ListItem
                             key={userData.uid}
-                            leftAvatar={{ rounded: true, source: { uri: userData.photoURL } }}
+                            leftAvatar={{ rounded: true, size:40, source: { uri: userData.photoURL } }}
                             title={userData.username}
                             rightIcon = {userData.selected ? {name:'done'} : null}
                             onPress={() => {

@@ -387,21 +387,21 @@ export const getImageSource = (tagName) => {
         case "#party":
             return require('../assets/images/tagsTheme/StaindGlass.jpg');
         case "#sports":
-            return require('../assets/images/tagsTheme/lines.jpg');
+            return require('../assets/images/tagsTheme/sports.jpg');
         case "#food":
-            return require('../assets/images/tagsTheme/yumao.jpg');
+            return require('../assets/images/tagsTheme/food.png');
         case "#shopping":
-            return require('../assets/images/tagsTheme/city.png');
+            return require('../assets/images/tagsTheme/shopping.jpg');
         case "#movie":
-            return require('../assets/images/tagsTheme/sky.jpg');
+            return require('../assets/images/tagsTheme/cinema.jpg');
         case "#bar":
-            return require('../assets/images/tagsTheme/leaves.jpg');
+            return require('../assets/images/tagsTheme/bar.jpg');
         case "#travel":
-            return require('../assets/images/tagsTheme/humian.jpg');
+            return require('../assets/images/tagsTheme/travel.jpg');
         case "#study":
-            return require('../assets/images/tagsTheme/cloud.jpg');
+            return require('../assets/images/tagsTheme/leaves.jpg');
         case "#esports":
-            return require('../assets/images/tagsTheme/humian.jpg');
+            return require('../assets/images/tagsTheme/esports.jpg');
         default:
             return require('../assets/images/tagsTheme/StaindGlass.jpg');
 

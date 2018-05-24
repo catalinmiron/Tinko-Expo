@@ -100,19 +100,19 @@ export default class SignInScreen extends Component {
             writeInAsyncStorage('fbToken', token);
             writeInAsyncStorage('fbTokenExpires', expires);
 
-            this.initializeNewUser(token, user.uid, expires);
-            // if(a===b){ //first time login
-            //     this.initializeNewUser(token, user.uid, expires);
-            // } else {
-            //     console.log('goingToMain');
-            //     let secretsRef = firestoreDB().collection('Users').doc(user.uid).collection('Settings').doc('secrets');
-            //
-            //     secretsRef.update({fbToken:token, fbTokenExpires:expires})
-            //         .catch((error)=>{
-            //             console.log(error);
-            //         });
-            //     this.props.screenProps.handleUserLoggedIn();
-            // }
+            //this.initializeNewUser(token, user.uid, expires);
+            if(a===b){ //first time login
+                this.initializeNewUser(token, user.uid, expires);
+            } else {
+                console.log('goingToMain');
+                let secretsRef = firestoreDB().collection('Users').doc(user.uid).collection('Settings').doc('secrets');
+
+                secretsRef.update({fbToken:token, fbTokenExpires:expires})
+                    .catch((error)=>{
+                        console.log(error);
+                    });
+                this.props.screenProps.handleUserLoggedIn();
+            }
         }).catch((error) => {
             console.log(error);
             this.setState({showLoading:false});

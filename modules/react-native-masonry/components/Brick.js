@@ -1,8 +1,12 @@
 import React, { Component } from 'react';
 import {Text, View, Image, TouchableHighlight, TouchableOpacity, StyleSheet, Dimensions} from 'react-native';
 import {getImageSource} from "../../CommonUtility";
+import { LinearGradient } from 'expo';
 
 const SCREEN_WIDTH = Dimensions.get('window').width;
+
+let topHeight = 0;
+let botHeight = 0;
 
 export default function Brick (props) {
 	// Avoid margins for first element
@@ -17,7 +21,21 @@ export default function Brick (props) {
                 key='brick-footer'
                 style={styles.headerTop}
                 onPress={data.onPress ? () => data.onPress() : () => props.navigateToDetail(data.meetId)}
+                onLayout={(e)=> topHeight = e.nativeEvent.layout.height}
             >
+                <LinearGradient
+                    colors={['rgba(0,0,0,0.3)', 'transparent']}
+                    style={{
+                        borderRadius:10,
+                        marginTop:props.gutter,
+                        position: 'absolute',
+                        left: 0,
+                        right: 0,
+                        top: 0,
+                        width:props.width,
+                        height: topHeight,
+                    }}
+                />
                 <Image
                     source={{uri: data.creator.photoURL}}
                     style={styles.userPic}/>
@@ -28,7 +46,21 @@ export default function Brick (props) {
             </TouchableOpacity>
 		  {image}
             <TouchableOpacity key='brick-header' style={styles.footer}
-                              onPress={data.onPress ? () => data.onPress() : () => props.navigateToDetail(data.meetId)}>
+                              onPress={data.onPress ? () => data.onPress() : () => props.navigateToDetail(data.meetId)}
+                              onLayout = {(e) => botHeight = e.nativeEvent.layout.height}
+            >
+                <LinearGradient
+                    colors={['transparent', 'rgba(0,0,0,0.3)']}
+                    style={{
+                        borderRadius:10,
+                        position: 'absolute',
+                        left: 0,
+                        right: 0,
+                        bot:0,
+                        width:props.width,
+                        height: botHeight,
+                    }}
+                />
                 <Text style={styles.footerTitle}>{data.title}</Text>
                 <Text style={styles.footerTime}>{data.startTime}</Text>
                 <Text style={styles.footerPlaceName}>{data.placeName}</Text>
@@ -90,7 +122,7 @@ const styles = StyleSheet.create({
     headerTop: {
         flexDirection: 'row',
         padding: 5,
-        alignItems: 'center',
+        //alignItems: 'center',
         backgroundColor: 'transparent',
         position: 'absolute',
         zIndex: 50,
