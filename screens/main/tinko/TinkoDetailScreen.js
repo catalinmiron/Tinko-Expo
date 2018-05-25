@@ -100,6 +100,9 @@ export default class TinkoDetailScreen extends React.Component {
             quit:false,
             dismissed:false,
             loadingVisible:false,
+            userUploadedImages:[],
+            userImagesLoadingDone:false,
+            swiperImages:[],
             //identity: 0: not joined
             //          1: creator
             //          2: joined cannot invite
@@ -176,6 +179,12 @@ export default class TinkoDetailScreen extends React.Component {
 
                         let meet = JSON.parse(meetDataString);
                         console.log('meet',meet);
+
+                        let userUploadedImages = meet.userUploadedImages;
+                        if(!userUploadedImages){
+                            userUploadedImages=[];
+                        }
+                        this.setState({userUploadedImages, userImagesLoadingDone:true});
 
                         let creatorDataString = data[0].creatorData;
                         let placePhotoDataString = data[0].placePhotoData;
@@ -278,6 +287,11 @@ export default class TinkoDetailScreen extends React.Component {
             status = meet.status,
             title = meet.title,
             dismissed = meet.dismissed;
+
+        let userUploadedImages = meet.userUploadedImages;
+        if(!userUploadedImages){
+            userUploadedImages=[];
+        }
         let tagsList;
         if(meet.tagsList){
             tagsList=meet.tagsList;
@@ -361,7 +375,9 @@ export default class TinkoDetailScreen extends React.Component {
             tagsList,
             title,
             identity,
-            dismissed
+            dismissed,
+            userUploadedImages,
+            userImagesLoadingDone:true,
         },()=>console.log('participatingUsersList',this.state.participatingUsersList));
         this.setNavigationParams();
     }
@@ -569,13 +585,15 @@ export default class TinkoDetailScreen extends React.Component {
     render() {
         const { creatorLoadingDone, placePhotosLoadingDone, userUid, creatorUid, identity,
             creatorData, title, placePhotos, startTime, allowPeopleNearby, participatingUsersList,
-            maxNo, description, duration, participatingUsersData, placeName, placeCoordinate, placeAddress, placeId, tagsList, showMap, meet, loadingVisible } = this.state;
+            maxNo, description, duration, participatingUsersData, placeName, placeCoordinate, placeAddress, placeId, tagsList, showMap, meet, loadingVisible, userUploadedImages, userImagesLoadingDone } = this.state;
 
         // if(identity === 0 && (!meet.status || meet.dismissed)){
         //     return(
         //         <View style={styles.container}/>
         //     );
         // }
+
+        let headerSwiper = userUploadedImages.concat(placePhotos)
 
         let tagsString='';
         for(let i=0; i<tagsList.length; i++){
@@ -609,20 +627,19 @@ export default class TinkoDetailScreen extends React.Component {
                             {/*}*/}
                         {/*</ScrollView>*/}
 
-                        {placePhotosLoadingDone?
+                        {(userImagesLoadingDone && userUploadedImages.length!==0) || (userImagesLoadingDone && placePhotosLoadingDone) ?
                             <Swiper
-                                //loop
+                                loop={false}
                                 showsPagination = {false}
                             >
 
-
-                                {_.size(placePhotos) > 0 ?
-                                    placePhotos.map((l, i) =>(
-                                        <Image
-                                            resizeMethod={'auto'}
-                                            style={{width:SCREEN_WIDTH, height:SCREEN_WIDTH/2}}
-                                            key = {i}
-                                            source={{uri:`https://maps.googleapis.com/maps/api/place/photo?maxwidth=${Math.ceil(SCREEN_WIDTH)}&photoreference=${l.photo_reference}&key=AIzaSyCw_VwOF6hmY5yri8OpqOr9sCzTTT7JKiU`}}/>
+                                {headerSwiper.length !== 0 ?
+                                    headerSwiper.map((l,i) => (
+                                    <Image
+                                        resizeMethod={'auto'}
+                                        style={{width:SCREEN_WIDTH, height:SCREEN_WIDTH/2}}
+                                        key = {i}
+                                        source={{uri:l.photo_reference ? `https://maps.googleapis.com/maps/api/place/photo?maxwidth=${Math.ceil(SCREEN_WIDTH)}&photoreference=${l.photo_reference}&key=AIzaSyCw_VwOF6hmY5yri8OpqOr9sCzTTT7JKiU` : l}}/>
                                     ))
                                     :
                                     <Image
@@ -631,6 +648,46 @@ export default class TinkoDetailScreen extends React.Component {
                                         key = {'placePhoto'}
                                         source={getImageSource(tagsList[0])}/>
                                 }
+
+                                {/*{userUploadedImages.map((uri) => (*/}
+                                    {/*<Image*/}
+                                        {/*resizeMethod={'auto'}*/}
+                                        {/*style={{width:SCREEN_WIDTH, height:SCREEN_WIDTH/2}}*/}
+                                        {/*key = {uri}*/}
+                                        {/*source={{uri:uri}}/>*/}
+                                {/*))}*/}
+
+                                {/*{placePhotos.map((l, i) =>(*/}
+                                    {/*<Image*/}
+                                        {/*resizeMethod={'auto'}*/}
+                                        {/*style={{width:SCREEN_WIDTH, height:SCREEN_WIDTH/2}}*/}
+                                        {/*key = {i}*/}
+                                        {/*source={{uri:`https://maps.googleapis.com/maps/api/place/photo?maxwidth=${Math.ceil(SCREEN_WIDTH)}&photoreference=${l.photo_reference}&key=AIzaSyCw_VwOF6hmY5yri8OpqOr9sCzTTT7JKiU`}}/>*/}
+                                {/*))}*/}
+
+                                {/*{userUploadedImages.length===0 && placePhotos.length===0 &&*/}
+                                {/*<Image*/}
+                                    {/*resizeMethod={'auto'}*/}
+                                    {/*style={{width:SCREEN_WIDTH, height:SCREEN_WIDTH/2}}*/}
+                                    {/*key = {'placePhoto'}*/}
+                                    {/*source={getImageSource(tagsList[0])}/>*/}
+                                {/*}*/}
+
+                                {/*{_.size(placePhotos) > 0 ?*/}
+                                    {/*placePhotos.map((l, i) =>(*/}
+                                        {/*<Image*/}
+                                            {/*resizeMethod={'auto'}*/}
+                                            {/*style={{width:SCREEN_WIDTH, height:SCREEN_WIDTH/2}}*/}
+                                            {/*key = {i}*/}
+                                            {/*source={{uri:`https://maps.googleapis.com/maps/api/place/photo?maxwidth=${Math.ceil(SCREEN_WIDTH)}&photoreference=${l.photo_reference}&key=AIzaSyCw_VwOF6hmY5yri8OpqOr9sCzTTT7JKiU`}}/>*/}
+                                    {/*))*/}
+                                    {/*:*/}
+                                    {/*<Image*/}
+                                        {/*resizeMethod={'auto'}*/}
+                                        {/*style={{width:SCREEN_WIDTH, height:SCREEN_WIDTH/2}}*/}
+                                        {/*key = {'placePhoto'}*/}
+                                        {/*source={getImageSource(tagsList[0])}/>*/}
+                                {/*}*/}
                             </Swiper>
                             :
                             <Image

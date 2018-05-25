@@ -168,7 +168,7 @@ export const getUserDataFromDatabase = async (uid, onComplete, onError) => {
 export const getMeetInfo = async (meetId, onComplete, onError) => {
     await getMeetTitleFromSql(meetId)
         .then((meetInfo) => {
-            onComplete(meetInfo.title, meetInfo.tagName);
+            onComplete(meetInfo.title, meetInfo.tagName, meetInfo.coverImageUri);
         })
         .catch(async () => {
             let docRef = firestoreDB().collection("Meets").doc(meetId);
@@ -187,8 +187,13 @@ export const getMeetInfo = async (meetId, onComplete, onError) => {
                         } else{
                             tagName = 'default';
                         }
-                        console.log('come from firebase', title, tagName);
-                        onComplete(title, tagName);
+                        let userUploadedImages = meet.userUploadedImages;
+                        let coverImageUri = null;
+                        if(userUploadedImages && userUploadedImages.length>0){
+                            coverImageUri = userUploadedImages[0];
+                        }
+                        //console.log('come from firebase', title, tagName);
+                        onComplete(title, tagName, coverImageUri);
                     }
                 }
             ).catch(err => {
@@ -413,21 +418,21 @@ export const getMeetAvatarUri = (tagName) => {
         case "#party":
             return 'https://firebasestorage.googleapis.com/v0/b/tinko-64673.appspot.com/o/System%2FMeetAvatar%2FStaindGlassavatar.jpg?alt=media&token=c0f51bf5-90f5-4139-abc8-f254af428a71';
         case "#sports":
-            return 'https://firebasestorage.googleapis.com/v0/b/tinko-64673.appspot.com/o/System%2FMeetAvatar%2Flinesavatar.jpg?alt=media&token=7c62b1e0-25ac-4bb3-94c6-b80e733a6fc1';
+            return 'https://firebasestorage.googleapis.com/v0/b/tinko-64673.appspot.com/o/System%2FMeetAvatar%2F6090864-sports-wallpaper.jpg?alt=media&token=4adde46c-bda4-4516-82ad-86b613224122';
         case "#food":
-            return 'https://firebasestorage.googleapis.com/v0/b/tinko-64673.appspot.com/o/System%2FMeetAvatar%2Fyumaoavatar.jpg?alt=media&token=fe623811-bf97-4390-803a-1e79f848916a';
+            return 'https://firebasestorage.googleapis.com/v0/b/tinko-64673.appspot.com/o/System%2FMeetAvatar%2Ffoodwallpaper.png?alt=media&token=b05b3699-f208-4848-a76c-3dc04438760f';
         case "#shopping":
-            return 'https://firebasestorage.googleapis.com/v0/b/tinko-64673.appspot.com/o/System%2FMeetAvatar%2Fcityavatar.png?alt=media&token=d6ced46b-0673-4688-969b-f0781863810e';
+            return 'https://firebasestorage.googleapis.com/v0/b/tinko-64673.appspot.com/o/System%2FMeetAvatar%2Fshoppingwallpaper.jpg?alt=media&token=4ca5b5dc-3c5f-45ee-859e-9d1f94575f46';
         case "#movie":
-            return 'https://firebasestorage.googleapis.com/v0/b/tinko-64673.appspot.com/o/System%2FMeetAvatar%2Fskyavatar.jpg?alt=media&token=fcc00315-6498-45ec-a1e6-3b8df8fb6d3a';
+            return 'https://firebasestorage.googleapis.com/v0/b/tinko-64673.appspot.com/o/System%2FMeetAvatar%2Fcinemawallpaper.jpg?alt=media&token=8a8cf55f-c0a4-432a-86c7-3f4701c6a388';
         case "#bar":
-            return 'https://firebasestorage.googleapis.com/v0/b/tinko-64673.appspot.com/o/System%2FMeetAvatar%2Fleavesavatar.jpg?alt=media&token=5b48042a-3cca-4349-9273-1b378c75eb3e';
+            return 'https://firebasestorage.googleapis.com/v0/b/tinko-64673.appspot.com/o/System%2FMeetAvatar%2Fbarwallpaper.jpg?alt=media&token=857f1e5e-7b11-4ae2-acdd-6c17160177c0';
         case "#travel":
-            return 'https://firebasestorage.googleapis.com/v0/b/tinko-64673.appspot.com/o/System%2FMeetAvatar%2Fhumianavatar.jpg?alt=media&token=fcdc91ca-a5bd-49e7-8093-364c3092bc67';
+            return 'https://firebasestorage.googleapis.com/v0/b/tinko-64673.appspot.com/o/System%2FMeetAvatar%2Ftravelwallpaper.jpg?alt=media&token=25524a85-2e40-480b-8387-6e5e07eaaa17';
         case "#study":
-            return 'https://firebasestorage.googleapis.com/v0/b/tinko-64673.appspot.com/o/System%2FMeetAvatar%2Fcloudavatar.jpg?alt=media&token=b56e43a4-7c60-4810-bc6b-f6682c69fe4a';
+            return 'https://firebasestorage.googleapis.com/v0/b/tinko-64673.appspot.com/o/System%2FMeetAvatar%2Fleavesavatar.jpg?alt=media&token=5b48042a-3cca-4349-9273-1b378c75eb3e';
         case "#esports":
-            return 'https://firebasestorage.googleapis.com/v0/b/tinko-64673.appspot.com/o/System%2FMeetAvatar%2Fhumianavatar.jpg?alt=media&token=fcdc91ca-a5bd-49e7-8093-364c3092bc67';
+            return 'https://firebasestorage.googleapis.com/v0/b/tinko-64673.appspot.com/o/System%2FMeetAvatar%2Fesportswallpaper.jpg?alt=media&token=8965ffc1-fd95-4fe1-9f77-64b24b9d7729';
         default:
             return 'https://firebasestorage.googleapis.com/v0/b/tinko-64673.appspot.com/o/System%2FMeetAvatar%2FStaindGlassavatar.jpg?alt=media&token=c0f51bf5-90f5-4139-abc8-f254af428a71';
 

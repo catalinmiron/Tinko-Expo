@@ -186,6 +186,11 @@ export default class TinkoScreen extends Component {
     buildBrick(meet, meetId, user){
         let startTimeString = getStartTimeString(meet.startTime.toDate());
         let postTimeString = getPostTimeString(meet.postTime.toDate());
+        let userUploadedImages = meet.userUploadedImages;
+        let coverImageUri = null;
+        if(userUploadedImages && userUploadedImages.length>0){
+            coverImageUri = userUploadedImages[0];
+        }
         return {
             data: {
                 meetId: meetId,
@@ -198,6 +203,7 @@ export default class TinkoScreen extends Component {
                     photoURL: user.photoURL,
                 },
                 tags: meet.tagsList,
+                coverImageUri:coverImageUri,
             },
             uri: meetId,
         };

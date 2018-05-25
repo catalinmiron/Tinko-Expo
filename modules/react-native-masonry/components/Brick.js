@@ -13,7 +13,7 @@ export default function Brick (props) {
 	const image =_getTouchableUnit(props, props.gutter);
 	//const footer = (props.renderFooter) ? props.renderFooter(props.data) : null;
 	//const header = (props.renderHeader) ? props.renderHeader(props.data) : null;
-    console.log(props);
+    //console.log(props);
     const data = props.data;
 	return (
 		<View key={props.brickKey} >
@@ -56,7 +56,7 @@ export default function Brick (props) {
                         position: 'absolute',
                         left: 0,
                         right: 0,
-                        bot:0,
+                        bottom:0,
                         width:props.width,
                         height: botHeight,
                     }}
@@ -87,20 +87,33 @@ export function _getImageTag (image, gutter = 0) {
 
 
 	//console.log(image);
-    let tag;
-    if(image.data.tags){
-        tag = image.data.tags[0];
-    } else {
-        tag='';
+    let coverImageUri = image.data.coverImageUri;
+    if(coverImageUri){
+        return (
+            <Image
+                key={image.data.meetId}
+                resizeMethod={'auto'}
+                source={{uri:coverImageUri}}
+                style={{ borderRadius:10, width: image.width, height: image.height, marginTop: gutter, ...image.imageContainerStyle }}
+            />
+        )
+    }else{
+        let tag;
+        if(image.data.tags){
+            tag = image.data.tags[0];
+        } else {
+            tag='';
+        }
+        return (
+            <Image
+                key={image.data.meetId}
+                resizeMethod={'auto'}
+                source={getImageSource(tag)}
+                style={{ borderRadius:10, width: image.width, height: image.height, marginTop: gutter, ...image.imageContainerStyle }}
+            />
+        )
     }
-    return (
-        <Image
-            key={image.data.meetId}
-            resizeMethod={'auto'}
-            source={getImageSource(tag)}
-            style={{ borderRadius:10, width: image.width, height: image.height, marginTop: gutter, ...image.imageContainerStyle }}
-        />
-    )
+
 
 }
 

@@ -412,9 +412,14 @@ export default class FriendChatListView extends Component {
 
     async getMeetsName(id){
         await getMeetInfo(id,
-            (title, tagName)=>{
-            console.log(title, tagName);
-            let uri = getMeetAvatarUri(tagName);
+            (title, tagName, coverImageUri)=>{
+            console.log(title, tagName, coverImageUri);
+            let uri;
+            if(coverImageUri){
+                uri = coverImageUri;
+            } else {
+                uri = getMeetAvatarUri(tagName);
+            }
                 updateMeets({
                     name:title,
                     photoURL:uri,
@@ -456,6 +461,8 @@ export default class FriendChatListView extends Component {
 
                                     <Image
                                     style={{width: 50,height: 50,borderRadius: 10}}
+                                    // resizeMethod={'auto'}
+                                    // resizeMode={'center'}
                                     source={{uri:messages.imageURL}}/>
 
 

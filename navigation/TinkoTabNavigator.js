@@ -80,7 +80,7 @@ export default class TinkoTabNavigatorScreen extends React.Component {
             headerTitle:params.tinkoHeaderTitle,
             headerRight:(params.stateIndex===0?
                 <MaterialIcons.Button
-                    name="sort" size={20} color="white" style={{marginRight:26}} backgroundColor="transparent"
+                    name="sort" size={20} color="black" style={{marginRight:26}} backgroundColor="transparent"
                     onPress = {() => params.sortButton()}/>
                     :null
             ),
@@ -129,10 +129,10 @@ export default class TinkoTabNavigatorScreen extends React.Component {
         if(stateIndex===0){
             return (
                 <View style={{flexDirection:'row'}}>
-                    <Text style={{color:'white', fontSize:22, fontFamily:'bold'}}>  TINKO </Text>
-                    <Text  style={{color:'white', fontSize:20, fontFamily:'bold'}}> | </Text>
+                    <Text style={{color:'black', fontSize:22, fontFamily:'bold'}}>  TINKO </Text>
+                    <Text  style={{color:'black', fontSize:20, fontFamily:'bold'}}> | </Text>
                     <Text
-                        style={{color:'white', fontSize:20, fontFamily:'regular'}}
+                        style={{color:'black', fontSize:20, fontFamily:'regular'}}
                         onPress={()=> this.tinkoRef.props.navigation.navigate('Discover')}
                     > Discover</Text>
                 </View>

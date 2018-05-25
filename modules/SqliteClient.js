@@ -141,10 +141,16 @@ export const getMeetTitleFromSql = async (meetId) => {
                             } else {
                                 tagName='default';
                             }
+                            let userUploadedImages = meetData.userUploadedImages;
+                            let coverImageUri = null;
+                            if(userUploadedImages && userUploadedImages.length>0){
+                                coverImageUri = userUploadedImages[0];
+                            }
                             //console.log('getMeetTitleFromSql, ', meetData.title, tagName);
                             resolve({
                                 title:meetData.title,
                                 tagName:tagName,
+                                coverImageUri:coverImageUri
                             })
                         }else{
                             console.log('getMeetTitleFromSql data === {}');

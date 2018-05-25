@@ -364,14 +364,15 @@ export default class Me extends React.Component {
                         <SubButton
                             index={2}
                             onPress={() => {
-                                Share.share({
-                                    title:'a beautiful title: http://www.foxnews.com/',
-                                    message:'some beautiful message',
-                                    url:'http://www.foxnews.com/'
-                                },{
-                                    subject:'a beautiful subject',
-                                    dialogTitle:'a beautiful dialogTitle'
-                                })
+                                // Share.share({
+                                //     title:'a beautiful title: http://www.foxnews.com/',
+                                //     message:'some beautiful message',
+                                //     url:'http://www.foxnews.com/'
+                                // },{
+                                //     subject:'a beautiful subject',
+                                //     dialogTitle:'a beautiful dialogTitle'
+                                // })
+                                this.props.navigation.navigate('TinkoWebView',{title:'SHARE', uri:'https://www.facebook.com/sharer/sharer.php?u=https://expo.io/'})
                             }}
                         />
                     </View>
