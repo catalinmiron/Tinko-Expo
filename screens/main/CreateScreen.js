@@ -13,7 +13,8 @@ import ReactNative, {
     Dimensions,
     Switch,
     SafeAreaView,
-    Text
+    Text,
+    ActivityIndicator
 } from 'react-native';
 import {
     Input,
@@ -24,14 +25,14 @@ import {
     Col,
     Row,
     Icon,
-    Avatar, ListItem,
+    Avatar, ListItem, Overlay
 } from 'react-native-elements';
 import CustomButton from '../../components/CustomButton';
 import  DatePicker from 'react-native-datepicker';
 import { NavigationActions } from 'react-navigation';
-import { SQLite, Constants, Location, Permissions } from 'expo';
+import { SQLite, Constants, Location, Permissions, ImagePicker } from 'expo';
 import firebase from 'firebase';
-import { EvilIcons, Ionicons } from '@expo/vector-icons';
+import { EvilIcons, Ionicons, Feather } from '@expo/vector-icons';
 //import EvilIcons from '@expo/vector-icons/EvilIcons';
 import {createMeet} from "../../modules/SocketClient";
 import {KeyboardAwareScrollView} from 'react-native-keyboard-aware-scroll-view';
@@ -118,6 +119,8 @@ export default class CreateScreen extends React.Component {
             tagInputString:'#',
             tagInputWidth:50,
             postTime:null,
+            userUploadedImages:[],
+            loadingVisible:false,
         };
     }
 
@@ -166,6 +169,10 @@ export default class CreateScreen extends React.Component {
             }
 
 
+            let userUploadedImages = meet.userUploadedImages;
+            if(!userUploadedImages){
+                userUploadedImages = [];
+            }
 
             this.setState({
                 meetId:meet.meetId,
@@ -187,6 +194,7 @@ export default class CreateScreen extends React.Component {
                 tagsList:tagsList,
                 tagsString:tagsString,
                 postTime:meet.postTime,
+                userUploadedImages:userUploadedImages
             });
             this.tagsButtonRefs.forEach((tag) => {
                 //console.log('tags',tag.state.title);
@@ -303,7 +311,7 @@ export default class CreateScreen extends React.Component {
     onPostButtonPressed(){
         const { title, userUid, startTime, placeName, placeAddress, placeCoordinate, placeId,
             description, allFriends, allowPeopleNearby, oldAllowPeopleNearby, allowParticipantsInvite, postTime,
-            selectedFriendsList, duration, maxNo, tagsList, userPicked, editingMode, meetId } = this.state;
+            selectedFriendsList, duration, maxNo, tagsList, userPicked, editingMode, meetId, userUploadedImages } = this.state;
 
         var tagsListObj = {};
         tagsList.map((l,i) => {
@@ -361,6 +369,7 @@ export default class CreateScreen extends React.Component {
             maxNo: maxNo,
             description: description,
             place: placeObj,
+            userUploadedImages:userUploadedImages,
             //participatingUsersList: participatingUsersListObj,
             //selectedFriendsList: selectedFriendsListObj,
             //status: true,
@@ -505,10 +514,94 @@ export default class CreateScreen extends React.Component {
         );
     }
 
+    openImagePickActionSheet(){
+        let options = ['Take Photo', 'Choose from Camera Roll', 'Cancel'];
+        let cancelButtonIndex = 2;
+        this.props.showActionSheetWithOptions(
+            {
+                options,
+                cancelButtonIndex,
+            },
+            buttonIndex => {
+                if(buttonIndex===0){
+                    this._takePhoto();
+                } else if(buttonIndex===1){
+                    this._pickImage();
+                }
+            }
+        );
+    }
+
+    _takePhoto = async () => {
+        let { status } = await Permissions.askAsync(Permissions.CAMERA);
+        if (status !== 'granted') {
+            Alert.alert('Error', 'Please grant Camera Permission to use this feature.')
+        }
+        let { status2 } = await Permissions.askAsync(Permissions.CAMERA_ROLL);
+        // if (status2 !== 'granted') {
+        //     Alert.alert('Error', 'Please grant Camera Roll Permission to use this feature.')
+        // }
+        let pickerResult = await ImagePicker.launchCameraAsync({
+            //allowsEditing: true,
+            //aspect: [4, 3],
+        });
+
+        this._handleImagePicked(pickerResult);
+    };
+
+    _pickImage = async () => {
+        let { status } = await Permissions.askAsync(Permissions.CAMERA_ROLL);
+        if (status !== 'granted') {
+            Alert.alert('Error', 'Please grant Camera Roll Permission to use this feature.')
+        }
+        let pickerResult = await ImagePicker.launchImageLibraryAsync({
+            //allowsEditing: true,
+            //aspect: [4, 3],
+        });
+
+        this._handleImagePicked(pickerResult);
+    };
+
+    _handleImagePicked = async pickerResult => {
+        const { userUid } = this.state;
+        try {
+            this.setState({ loadingVisible: true });
+
+            if (!pickerResult.cancelled) {
+                let uploadUrl = await uploadImageAsync(pickerResult.uri, userUid);
+                this.setState((state) => {
+                    let userUploadedImages = state.userUploadedImages;
+                    userUploadedImages.push(uploadUrl);
+                })
+            }
+        } catch (e) {
+            console.log(e);
+            alert('Upload failed, sorry :(');
+        } finally {
+            this.setState({ loadingVisible: false });
+        }
+    };
+
+
+    onUploadedImageLongPress(uri){
+        Alert.alert("Delete this image?", '',
+            [
+                {text: 'Cancel', onPress: () => console.log('Cancel Pressed'), style: 'cancel'},
+                {text: 'Delete', onPress: () => {
+                    this.setState((state) => {
+                        let userUploadedImages = state.userUploadedImages;
+                        _.pull(userUploadedImages, uri);
+                        return {userUploadedImages};
+                    })
+                    }, style:"destructive"},
+            ]);
+    }
+
     render() {
         const {title, startTime, placeName, placeAddress, description, inputHeight, allFriends, allowParticipantsInvite, allowPeopleNearby,
             selectedFriendsList, maxNo, descriptionHeight, tagsString, tagInputString, tagInputWidth, duration, durationUnit,titleHeight,
-            tagsList, editingMode, meetId} = this.state;
+            tagsList, editingMode, meetId, userUploadedImages, loadingVisible} = this.state;
+        let editedUserUploadedImages = userUploadedImages.concat(['UPLOAD']);
         let temp = placeAddress.split(',');
         let area = temp[temp.length-1];
         var dateTimeParts = startTime.split(' '),
@@ -763,11 +856,56 @@ export default class CreateScreen extends React.Component {
                             }}
                         />
 
-                        <View style={{height:20}}/>
 
+
+                        <View style={{marginTop:30}}>
+                            {_.chunk(editedUserUploadedImages, 3).map((chunk, chunkIndex) => (
+                                <View style={{ flexDirection: 'row', marginBottom: 10 }} key={chunkIndex}>
+                                    {chunk.map(uri => (
+                                        uri === 'UPLOAD' ?
+                                            <TouchableOpacity
+                                                key = {'UPLOAD'}
+                                                onPress={() => this.openImagePickActionSheet()}
+                                                style={{height:75, width:75, backgroundColor:'#F2F3F4',justifyContent: 'center', alignItems: 'center',marginRight:SCREEN_WIDTH*0.9/6-37.5, marginLeft:SCREEN_WIDTH*0.9/6-37.5}}
+                                            >
+                                                <Feather name='plus' size={30} color={'#CACFD2'}/>
+                                            </TouchableOpacity>
+                                            :
+                                            <TouchableOpacity
+                                                onLongPress={()=> this.onUploadedImageLongPress(uri)}
+                                                style={{height:75, width:75,marginRight:SCREEN_WIDTH*0.9/6-37.5, marginLeft:SCREEN_WIDTH*0.9/6-37.5}}
+                                                key={uri}
+                                            >
+                                                <Image
+                                                    style={{height:75, width:75}}
+                                                    source={{uri:uri}}
+                                                />
+                                            </TouchableOpacity>
+                                    ))}
+                                </View>
+                            ))}
+                        </View>
+
+
+
+                        <View style={{height:20}}/>
 
                     </View>
                 </View>
+                <Overlay
+                    height={100}
+                    width={100}
+                    borderRadius={25}
+                    isVisible={loadingVisible}
+                    windowBackgroundColor={'transparent'}
+                    overlayBackgroundColor="#F2F3F4"
+                    overlayStyle={{justifyContent:'center', alignItems:'center'}}
+                >
+
+                    <ActivityIndicator size={'large'}/>
+
+
+                </Overlay>
             </KeyboardAwareScrollView>
         );
     }
@@ -797,3 +935,16 @@ const styles = StyleSheet.create({
     },
 
 });
+
+async function uploadImageAsync(uri, userUid) {
+    console.log(userUid);
+    const response = await fetch(uri);
+    const blob = await response.blob();
+    const ref = firebase
+        .storage()
+        .ref()
+        .child('Users').child('Meet').child(userUid+new Date().getTime());
+
+    const snapshot = await ref.put(blob);
+    return snapshot.downloadURL;
+}

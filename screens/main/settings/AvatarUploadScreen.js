@@ -151,7 +151,7 @@ export default class AvatarUploadScreen extends React.Component {
         // }
         let pickerResult = await ImagePicker.launchCameraAsync({
             allowsEditing: true,
-            aspect: [4, 3],
+            aspect: [1, 1],
         });
 
         this._handleImagePicked(pickerResult);
@@ -164,7 +164,7 @@ export default class AvatarUploadScreen extends React.Component {
         }
         let pickerResult = await ImagePicker.launchImageLibraryAsync({
             allowsEditing: true,
-            aspect: [4, 3],
+            aspect: [1, 1],
         });
 
         this._handleImagePicked(pickerResult);
@@ -176,7 +176,7 @@ export default class AvatarUploadScreen extends React.Component {
             this.setState({ uploading: true });
 
             if (!pickerResult.cancelled) {
-                uploadUrl = await uploadImageAsync(pickerResult.uri, userUid);
+                let uploadUrl = await uploadImageAsync(pickerResult.uri, userUid);
                 let userRef = firestoreDB().collection('Users').doc(userUid);
                 userRef.update({photoURL:uploadUrl}).then(()=>{
                     this.setState({ image: uploadUrl });

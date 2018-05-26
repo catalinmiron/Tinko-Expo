@@ -829,6 +829,8 @@ export default class TinkoDetailScreen extends React.Component {
                     borderRadius={25}
                     isVisible={loadingVisible}
                     windowBackgroundColor={'transparent'}
+                    overlayBackgroundColor="#F2F3F4"
+                    overlayStyle={{justifyContent:'center', alignItems:'center'}}
                     //onBackdropPress={()=>this.setState({loadingVisible:false})}
                 >
 
