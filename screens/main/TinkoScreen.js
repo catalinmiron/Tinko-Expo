@@ -12,6 +12,8 @@ import { NavigationActions } from 'react-navigation';
 import { MaterialIcons } from '@expo/vector-icons';
 import { getStartTimeString, getPostTimeString, getPostRequest, getUserData,writeInAsyncStorage, getFromAsyncStorage, getUserDataFromDatabase, firestoreDB } from "../../modules/CommonUtility";
 import {getMeetTitleFromSql} from "../../modules/SqliteClient";
+import {CacheManager} from "react-native-expo-image-cache";
+
 const db = SQLite.openDatabase('db.db');
 
 const SCREEN_WIDTH = Dimensions.get('window').width;
@@ -168,6 +170,14 @@ export default class TinkoScreen extends Component {
             let meetId = e.id;
             let userUid = meet.creator;
 
+            let userUploadedImages = meet.userUploadedImages;
+            let coverImageUri = null;
+            if(userUploadedImages && userUploadedImages.length>0){
+                //coverImageUri = userUploadedImages[0];
+                coverImageUri = await CacheManager.get(userUploadedImages[0]).getPath();
+            }
+            meet.coverImageUri = coverImageUri;
+
             await getUserDataFromDatabase(userUid,
                 (userData) => {
                     //console.log(userData);
@@ -186,11 +196,8 @@ export default class TinkoScreen extends Component {
     buildBrick(meet, meetId, user){
         let startTimeString = getStartTimeString(meet.startTime.toDate());
         let postTimeString = getPostTimeString(meet.postTime.toDate());
-        let userUploadedImages = meet.userUploadedImages;
-        let coverImageUri = null;
-        if(userUploadedImages && userUploadedImages.length>0){
-            coverImageUri = userUploadedImages[0];
-        }
+
+
         return {
             data: {
                 meetId: meetId,
@@ -203,7 +210,7 @@ export default class TinkoScreen extends Component {
                     photoURL: user.photoURL,
                 },
                 tags: meet.tagsList,
-                coverImageUri:coverImageUri,
+                coverImageUri:meet.coverImageUri,
             },
             uri: meetId,
         };

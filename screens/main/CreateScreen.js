@@ -331,8 +331,8 @@ export default class CreateScreen extends React.Component {
 
 
     async onPostButtonPressed(){
-        //this.setState({loadingVisible:true});
-        this.props.navigation.dispatch(NavigationActions.back());
+        this.setState({loadingVisible:true});
+
 
         const { title, userUid, startTime, placeName, placeAddress, placeCoordinate, placeId,
             description, allFriends, allowPeopleNearby, oldAllowPeopleNearby, allowParticipantsInvite, postTime,
@@ -467,7 +467,7 @@ export default class CreateScreen extends React.Component {
                 });
         }
 
-
+        this.props.navigation.dispatch(NavigationActions.back());
 
     }
 

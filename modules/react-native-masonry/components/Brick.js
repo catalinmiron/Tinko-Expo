@@ -119,10 +119,10 @@ export function _getImageTag (image, gutter = 0) {
 
 // _getTouchableUnit :: Image, Number -> TouchableTag
 export function _getTouchableUnit (props, gutter = 0) {
-    //console.log(image);
+    console.log(props);
 	return (
 		<TouchableHighlight
-          key={props.uri}
+          key={props.data.meetId}
           onPress={props.data.onPress ? () => props.data.onPress() : () => props.navigateToDetail(props.data.meetId)}>
           <View>
             { _getImageTag(props, gutter) }
