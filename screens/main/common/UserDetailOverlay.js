@@ -6,6 +6,7 @@ import {Button, Header, Avatar, Overlay, Input} from 'react-native-elements'
 import {firestoreDB, getFromAsyncStorage} from "../../../modules/CommonUtility";
 import {getLength,updateUnReadNum} from "../../../modules/ChatStack";
 import {sendFriendRequest} from "../../../modules/SocketClient";
+import {CacheManager} from "react-native-expo-image-cache";
 
 import {
     View
@@ -45,7 +46,8 @@ export default class UserDetailScreen extends Component{
             updateMethod:null,
             requestMessage:'',
             loading:true,
-            thisUserData:{}
+            thisUserData:{},
+            photoLocalPath:''
         };
         getFromAsyncStorage('ThisUser').then((userData) => {
             if(userData) {
@@ -57,6 +59,11 @@ export default class UserDetailScreen extends Component{
     componentDidMount(){
 
         //this.getUserDataFromFirebase();
+    }
+
+    async setPhotoLocalPath(photoURL){
+        let path = await CacheManager.get(photoURL).getPath();
+        this.setState({photoLocalPath:path})
     }
 
     showThisUser(uid, navigation, updateMethod){
@@ -76,6 +83,7 @@ export default class UserDetailScreen extends Component{
                 //console.log(value);
                 let userData = JSON.parse(value);
                 this.setState({userData, isFriends:true, loading:false});
+                this.setPhotoLocalPath(userData.photoURL);
             }
         } catch (error) {
             // Error retrieving data
@@ -108,6 +116,7 @@ export default class UserDetailScreen extends Component{
                             isFriends:isFriends,
                             loading:false,
                         });
+                        this.setPhotoLocalPath(userData.photoURL);
                         this.getUserDataFromFirebase(uid, isFriends);
                     }
                 });
@@ -137,6 +146,7 @@ export default class UserDetailScreen extends Component{
                         isFriends:isFriends,
                         loading:false,
                     });
+                    this.setPhotoLocalPath(userData.photoURL);
                     let callUpdateMethod = userData !== {};
                     this.updateFriendSql(this.state.userUid, user, isFriends, callUpdateMethod);
                 }
@@ -183,7 +193,7 @@ export default class UserDetailScreen extends Component{
 
     render() {
         //console.log(this.props);
-        const { thisUserData, userData, userUid, isFriends, isVisible, requestMessage, loading}  = this.state;
+        const { thisUserData, userData, userUid, isFriends, isVisible, requestMessage, loading, photoLocalPath}  = this.state;
         console.log(thisUserData, userData);
         return (
             <Overlay
@@ -207,7 +217,7 @@ export default class UserDetailScreen extends Component{
                             <Avatar
                                 size='large'
                                 rounded
-                                source={{uri: userData.photoURL}}
+                                source={{uri: photoLocalPath}}
                                 //onPress={() => console.log("Works!")}
                                 activeOpacity={0.7}
                             />
@@ -222,6 +232,7 @@ export default class UserDetailScreen extends Component{
 
                         {isFriends?
                             <Button
+                                containerStyle={{marginTop:30}}
                                 title='Message'
                                 onPress={() => {
                                     getLength(this.state.userData.uid);
@@ -251,7 +262,7 @@ export default class UserDetailScreen extends Component{
                                     onPress={() => {
                                         this.sendNewFriendsRequest(userData.uid,0,requestMessage);
                                         //sendFriendRequest(userUid, userData.uid, 0, requestMessage);
-                                        this.setState({isVisible:false});
+                                        this.setState({isVisible:false, photoLocalPath:''});
                                     }}
                                 />
                             </View>
