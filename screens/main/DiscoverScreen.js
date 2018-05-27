@@ -143,6 +143,11 @@ export default class DiscoverScreen extends Component {
                     if(meet.tagsList){
                         tagsList=meet.tagsList;
                     }
+                    let userUploadedImages = meet.userUploadedImages;
+                    let coverImageUri = null;
+                    if(userUploadedImages && userUploadedImages.length>0){
+                        coverImageUri = userUploadedImages[0];
+                    }
                     let meetDic = {
                         LatLng: {
                             latitude: location[0],
@@ -155,6 +160,7 @@ export default class DiscoverScreen extends Component {
                         creatorUid:meet.creator,
                         tags:tagsList,
                         key: meetDoc.id,
+                        coverImageUri:coverImageUri,
                     };
                     this.setState((state) => {
                         let meets = state.meets;
@@ -338,7 +344,7 @@ export default class DiscoverScreen extends Component {
                         >
                             <Image
                                 resizeMethod={'auto'}
-                                source={getImageSource(selectedMeetData.tags[0])}
+                                source={selectedMeetData.coverImageUri ? {uri:selectedMeetData.coverImageUri} : getImageSource(selectedMeetData.tags[0])}
                                 style={Platform.OS === 'android' ?
                                     { width: SCREEN_WIDTH, height: listHeight }
                                     :

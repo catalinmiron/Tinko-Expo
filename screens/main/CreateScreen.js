@@ -30,14 +30,20 @@ import {
 import CustomButton from '../../components/CustomButton';
 import  DatePicker from 'react-native-datepicker';
 import { NavigationActions } from 'react-navigation';
-import { SQLite, Constants, Location, Permissions, ImagePicker } from 'expo';
+import { SQLite, Constants, Location, Permissions, ImagePicker, ImageManipulator } from 'expo';
 import firebase from 'firebase';
 import { EvilIcons, Ionicons, Feather } from '@expo/vector-icons';
 //import EvilIcons from '@expo/vector-icons/EvilIcons';
 import {createMeet} from "../../modules/SocketClient";
 import {KeyboardAwareScrollView} from 'react-native-keyboard-aware-scroll-view';
 import { ActionSheetProvider, connectActionSheet } from '@expo/react-native-action-sheet';
-import {getStartTimeString, getDurationString, getPostRequest, firestoreDB} from "../../modules/CommonUtility";
+import {
+    getStartTimeString,
+    getDurationString,
+    getPostRequest,
+    firestoreDB,
+    getUserDataFromDatabase
+} from "../../modules/CommonUtility";
 
 const SCREEN_WIDTH = Dimensions.get('window').width;
 const db = SQLite.openDatabase('db.db');
@@ -120,6 +126,7 @@ export default class CreateScreen extends React.Component {
             tagInputWidth:50,
             postTime:null,
             userUploadedImages:[],
+            userUploadedImagesLocalUri:[],
             loadingVisible:false,
         };
     }
@@ -308,10 +315,30 @@ export default class CreateScreen extends React.Component {
         };
     }
 
-    onPostButtonPressed(){
+
+    async processLocalUri(){
+        const {userUploadedImages, userUploadedImagesLocalUri, userUid} = this.state;
+        await userUploadedImagesLocalUri.reduce((p,e,i) => p.then(async ()=> {
+            //console.log(p, e.data(), i);
+            let uri = e;
+            let uploadUrl = await uploadImageAsync(uri, userUid);
+            userUploadedImages.push(uploadUrl);
+
+        }),Promise.resolve());
+
+        return userUploadedImages;
+    }
+
+
+    async onPostButtonPressed(){
+        //this.setState({loadingVisible:true});
+        this.props.navigation.dispatch(NavigationActions.back());
+
         const { title, userUid, startTime, placeName, placeAddress, placeCoordinate, placeId,
             description, allFriends, allowPeopleNearby, oldAllowPeopleNearby, allowParticipantsInvite, postTime,
-            selectedFriendsList, duration, maxNo, tagsList, userPicked, editingMode, meetId, userUploadedImages } = this.state;
+            selectedFriendsList, duration, maxNo, tagsList, userPicked, editingMode, meetId } = this.state;
+
+        let userUploadedImages = await this.processLocalUri();
 
         var tagsListObj = {};
         tagsList.map((l,i) => {
@@ -438,10 +465,10 @@ export default class CreateScreen extends React.Component {
                 .catch((error) => {
                     console.log("Error adding document: ", error);
                 });
-
-
         }
-        this.props.navigation.dispatch(NavigationActions.back());
+
+
+
     }
 
     // updateUserParticipatingMeets(meetId, userUid){
@@ -542,6 +569,7 @@ export default class CreateScreen extends React.Component {
         //     Alert.alert('Error', 'Please grant Camera Roll Permission to use this feature.')
         // }
         let pickerResult = await ImagePicker.launchCameraAsync({
+            //quality:0.3
             //allowsEditing: true,
             //aspect: [4, 3],
         });
@@ -555,6 +583,7 @@ export default class CreateScreen extends React.Component {
             Alert.alert('Error', 'Please grant Camera Roll Permission to use this feature.')
         }
         let pickerResult = await ImagePicker.launchImageLibraryAsync({
+            //uality:0.3
             //allowsEditing: true,
             //aspect: [4, 3],
         });
@@ -568,10 +597,15 @@ export default class CreateScreen extends React.Component {
             this.setState({ loadingVisible: true });
 
             if (!pickerResult.cancelled) {
-                let uploadUrl = await uploadImageAsync(pickerResult.uri, userUid);
+                console.log('pickerResult: ', pickerResult);
+                const manipResult = await ImageManipulator.manipulate(pickerResult.uri,[{resize:{width:1000}}], {compress:0.5});
+                console.log('manipResult: ',manipResult)
+                //let uploadUrl = await uploadImageAsync(pickerResult.uri, userUid);
                 this.setState((state) => {
-                    let userUploadedImages = state.userUploadedImages;
-                    userUploadedImages.push(uploadUrl);
+                    let userUploadedImagesLocalUri = state.userUploadedImagesLocalUri;
+                    //userUploadedImagesLocalUri.push(pickerResult.uri);
+                    userUploadedImagesLocalUri.push(manipResult.uri);
+                    return {userUploadedImagesLocalUri};
                 })
             }
         } catch (e) {
@@ -600,8 +634,8 @@ export default class CreateScreen extends React.Component {
     render() {
         const {title, startTime, placeName, placeAddress, description, inputHeight, allFriends, allowParticipantsInvite, allowPeopleNearby,
             selectedFriendsList, maxNo, descriptionHeight, tagsString, tagInputString, tagInputWidth, duration, durationUnit,titleHeight,
-            tagsList, editingMode, meetId, userUploadedImages, loadingVisible} = this.state;
-        let editedUserUploadedImages = userUploadedImages.concat(['UPLOAD']);
+            tagsList, editingMode, meetId, userUploadedImages, userUploadedImagesLocalUri, loadingVisible} = this.state;
+        let editedUserUploadedImages = userUploadedImages.concat(userUploadedImagesLocalUri).concat(['UPLOAD']);
         let temp = placeAddress.split(',');
         let area = temp[temp.length-1];
         var dateTimeParts = startTime.split(' '),
@@ -646,6 +680,8 @@ export default class CreateScreen extends React.Component {
                             }}
 
                         />
+
+
 
 
                         <View style={{flexDirection:'row', justifyContent:'space-between', alignItems:'center'}}>
@@ -697,6 +733,35 @@ export default class CreateScreen extends React.Component {
                                 this.setState({ tagInputWidth: event.nativeEvent.contentSize.width })
                             }}
                         />
+
+
+                        <View style={{marginTop:20}}>
+                            {_.chunk(editedUserUploadedImages, 3).map((chunk, chunkIndex) => (
+                                <View style={{ flexDirection: 'row', marginBottom: 10 }} key={chunkIndex}>
+                                    {chunk.map(uri => (
+                                        uri === 'UPLOAD' ?
+                                            <TouchableOpacity
+                                                key = {'UPLOAD'}
+                                                onPress={() => this.openImagePickActionSheet()}
+                                                style={{height:75, width:75, backgroundColor:'#F2F3F4',justifyContent: 'center', alignItems: 'center',marginRight:SCREEN_WIDTH*0.9/6-37.5, marginLeft:SCREEN_WIDTH*0.9/6-37.5}}
+                                            >
+                                                <Feather name='plus' size={30} color={'#CACFD2'}/>
+                                            </TouchableOpacity>
+                                            :
+                                            <TouchableOpacity
+                                                onLongPress={()=> this.onUploadedImageLongPress(uri)}
+                                                style={{height:75, width:75,marginRight:SCREEN_WIDTH*0.9/6-37.5, marginLeft:SCREEN_WIDTH*0.9/6-37.5}}
+                                                key={uri}
+                                            >
+                                                <Image
+                                                    style={{height:75, width:75}}
+                                                    source={{uri:uri}}
+                                                />
+                                            </TouchableOpacity>
+                                    ))}
+                                </View>
+                            ))}
+                        </View>
 
 
 
@@ -857,34 +922,6 @@ export default class CreateScreen extends React.Component {
                         />
 
 
-
-                        <View style={{marginTop:30}}>
-                            {_.chunk(editedUserUploadedImages, 3).map((chunk, chunkIndex) => (
-                                <View style={{ flexDirection: 'row', marginBottom: 10 }} key={chunkIndex}>
-                                    {chunk.map(uri => (
-                                        uri === 'UPLOAD' ?
-                                            <TouchableOpacity
-                                                key = {'UPLOAD'}
-                                                onPress={() => this.openImagePickActionSheet()}
-                                                style={{height:75, width:75, backgroundColor:'#F2F3F4',justifyContent: 'center', alignItems: 'center',marginRight:SCREEN_WIDTH*0.9/6-37.5, marginLeft:SCREEN_WIDTH*0.9/6-37.5}}
-                                            >
-                                                <Feather name='plus' size={30} color={'#CACFD2'}/>
-                                            </TouchableOpacity>
-                                            :
-                                            <TouchableOpacity
-                                                onLongPress={()=> this.onUploadedImageLongPress(uri)}
-                                                style={{height:75, width:75,marginRight:SCREEN_WIDTH*0.9/6-37.5, marginLeft:SCREEN_WIDTH*0.9/6-37.5}}
-                                                key={uri}
-                                            >
-                                                <Image
-                                                    style={{height:75, width:75}}
-                                                    source={{uri:uri}}
-                                                />
-                                            </TouchableOpacity>
-                                    ))}
-                                </View>
-                            ))}
-                        </View>
 
 
 
