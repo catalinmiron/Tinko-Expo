@@ -4,7 +4,7 @@ import {View, Alert, TouchableWithoutFeedback, Image, ScrollView, Text, StyleShe
 import firebase from 'firebase';
 import 'firebase/firestore';
 import Swiper from 'react-native-swiper';
-import { getStartTimeString,  getDurationString, getUserData, getImageSource, getUserDataFromDatabase, firestoreDB } from "../../../modules/CommonUtility";
+import { getStartTimeString,  getDurationString, getUserData, getImageSource, getUserDataFromDatabase, firestoreDB, getAvatarPlaceholder } from "../../../modules/CommonUtility";
 import {MapView, SQLite} from 'expo';
 import { Ionicons, MaterialIcons, Entypo, MaterialCommunityIcons, Feather  } from '@expo/vector-icons';
 import { Avatar, Button, Header, Overlay} from 'react-native-elements';
@@ -14,6 +14,7 @@ import { ActionSheetProvider, connectActionSheet } from '@expo/react-native-acti
 import SocketIOClient from "socket.io-client";
 import {quitMeet,joinMeet,dismissMeet} from "../../../modules/SocketClient";
 import { NavigationActions } from 'react-navigation';
+import {CacheManager, Image as CacheImage} from "react-native-expo-image-cache";
 
 const db = SQLite.openDatabase('db.db');
 
@@ -593,7 +594,8 @@ export default class TinkoDetailScreen extends React.Component {
         //     );
         // }
 
-        let headerSwiper = userUploadedImages.concat(placePhotos)
+        let headerSwiper = userUploadedImages.concat(placePhotos);
+        console.log(headerSwiper);
 
         let tagsString='';
         for(let i=0; i<tagsList.length; i++){
@@ -635,12 +637,18 @@ export default class TinkoDetailScreen extends React.Component {
 
                                 {headerSwiper.length !== 0 ?
                                     headerSwiper.map((l,i) => (
-                                    <Image
+                                    <CacheImage
                                         resizeMethod={'auto'}
                                         style={{width:SCREEN_WIDTH, height:SCREEN_WIDTH/2}}
                                         key = {i}
-                                        source={{uri:l.photo_reference ? `https://maps.googleapis.com/maps/api/place/photo?maxwidth=${Math.ceil(SCREEN_WIDTH)}&photoreference=${l.photo_reference}&key=AIzaSyCw_VwOF6hmY5yri8OpqOr9sCzTTT7JKiU` : l}}/>
+                                        preview = {require('../../../assets/images/placeholder-big.jpg')}
+                                        uri = {l.photo_reference ? `https://maps.googleapis.com/maps/api/place/photo?maxwidth=${Math.ceil(SCREEN_WIDTH)}&photoreference=${l.photo_reference}&key=AIzaSyCw_VwOF6hmY5yri8OpqOr9sCzTTT7JKiU` : l}
+                                        //source={{uri:l.photo_reference ? `https://maps.googleapis.com/maps/api/place/photo?maxwidth=${Math.ceil(SCREEN_WIDTH)}&photoreference=${l.photo_reference}&key=AIzaSyCw_VwOF6hmY5yri8OpqOr9sCzTTT7JKiU` : l}}
+                                    />
+
+
                                     ))
+
                                     :
                                     <Image
                                         resizeMethod={'auto'}
@@ -718,12 +726,19 @@ export default class TinkoDetailScreen extends React.Component {
                         <TouchableWithoutFeedback
                             onPress={() => this.props.screenProps.showThisUser(creatorUid, this.props.navigation)}
                         >
-                            <Image
+                            {/*<Image*/}
+                                {/*onPress={() => this.props.screenProps.showThisUser(creatorUid, this.props.navigation)}*/}
+                                {/*style={{width:80, height:80, marginRight:15, borderWidth:1.5, borderColor:'white'}}*/}
+                                {/*key='creatorPhoto'*/}
+                                {/*source={{uri: creatorData.photoURL}}*/}
+                            {/*/>*/}
+                            <CacheImage
                                 onPress={() => this.props.screenProps.showThisUser(creatorUid, this.props.navigation)}
                                 style={{width:80, height:80, marginRight:15, borderWidth:1.5, borderColor:'white'}}
                                 key='creatorPhoto'
-                                source={{uri: creatorData.photoURL}}
-                            />
+                                preview={getAvatarPlaceholder}
+                                uri={creatorData.photoURL}
+                                />
                         </TouchableWithoutFeedback>
                     </View>
 
@@ -760,22 +775,36 @@ export default class TinkoDetailScreen extends React.Component {
                             {_.chunk(participatingUsersData, 3).map((chunk, chunkIndex) => (
                                 <View style={{ flexDirection: 'row', justifyContent: 'space-around', marginBottom: 10 }} key={chunkIndex}>
                                     {chunk.map(userData => (
-                                        <View
+                                        <TouchableOpacity
                                             key={userData.uid}
-                                            style = {{width:75}}>
-                                            <Avatar
-                                                size='large'
-                                                rounded
-                                                source={userData.photoURL ? { uri: userData.photoURL } : null}
-                                                title='TK'
+                                            style = {{width:75}}
+                                            onPress={() => {
+                                                console.log('touchableopacity touched');
+                                                this.props.screenProps.showThisUser(userData.uid, this.props.navigation)
+                                            }}
+                                        >
+                                            {/*<Avatar*/}
+                                                {/*size='large'*/}
+                                                {/*rounded*/}
+                                                {/*source={userData.photoURL ? { uri: userData.photoURL } : null}*/}
+                                                {/*title='TK'*/}
+                                                {/*key={userData.uid}*/}
+                                                {/*//onPress={() => this.props.screenProps.showThisUser(userData.uid, this.props.navigation)}*/}
+                                            {/*/>*/}
+                                            <CacheImage
                                                 key={userData.uid}
-                                                onPress={() => this.props.screenProps.showThisUser(userData.uid, this.props.navigation)}
+                                                preview={getAvatarPlaceholder}
+                                                //onPress={() => console.log('avatar pressed')}
+                                                uri={userData.photoURL ? userData.photoURL : null}
+                                                style={{width:75, height:75, borderRadius:37.5}}
                                             />
                                             <Text
+                                                //onPress={() => this.props.screenProps.showThisUser(userData.uid, this.props.navigation)}
+                                                textAlign={'center'}
                                                 numberOfLines={2}
-                                                style={{marginTop:3,color:'#626567'}}
+                                                style={{marginTop:3,color:'#626567', width:75}}
                                             >{userData.username}</Text>
-                                        </View>
+                                        </TouchableOpacity>
 
                                     ))}
                                 </View>

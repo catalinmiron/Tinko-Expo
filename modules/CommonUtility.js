@@ -464,4 +464,8 @@ export const getTagName = (tagName) => {
             return 'Meet Me';
 
     }
+};
+
+export const getAvatarPlaceholder = () => {
+    return require('../assets/images/avatar-placeholder.png');
 }

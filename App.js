@@ -66,6 +66,7 @@ export default class App extends React.Component {
           require('./assets/images/tagsTheme/cinema.jpg'),
           require('./assets/images/tagsTheme/bar.jpg'),
           require('./assets/images/tagsTheme/travel.jpg'),
+          require('./assets/images/avatar-placeholder.png'),
 
       ]),
       Font.loadAsync({
