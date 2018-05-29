@@ -193,22 +193,20 @@ export default class TinkoDetailChatScreen extends React.Component {
                 body: JSON.stringify(bodyData),
             }).then((response) => response.json())
                 .then((responseJson) => {
-                    if (responseJson.data){
-                        let data = responseJson.data;
-                        console.log('after fetch', data);
-                        let messages=[];
-                        this.processMessageData(data,1);
-                        if(data.length<limit){
-                            this.setState({loadEarlier:false, });
-                        } else {
-                            this.setState({loadEarlier:true, });
-                        }
-                        let lastId;
-                        if(data.length!==0){
-                            lastId=data[data.length-1].id;
-                        }
-                        this.setState({isLoadingEarlier:false, lastMeetId:lastId});
+                    let data = responseJson.data;
+                    console.log('after fetch', data);
+                    let messages=[];
+                    this.processMessageData(data,1);
+                    if(data.length<limit){
+                        this.setState({loadEarlier:false, });
+                    } else {
+                        this.setState({loadEarlier:true, });
                     }
+                    let lastId;
+                    if(data.length!==0){
+                        lastId=data[data.length-1].id;
+                    }
+                    this.setState({isLoadingEarlier:false, lastMeetId:lastId});
                 })
                 .catch((error) => {
                     console.log("报错了");
