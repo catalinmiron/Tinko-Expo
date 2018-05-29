@@ -310,7 +310,8 @@ export default class TinkoDetailChatScreen extends React.Component {
                             backgroundColor: 'white',
                         }
                     }}
-
+                    onPressAvatar={this.props.screenProps.showThisUser}
+                    navigation={this.props.navigation}
                     loadEarlier={loadEarlier}
                     onLoadEarlier={() => this.getGroupChatContents()}
                     isLoadingEarlier={isLoadingEarlier}

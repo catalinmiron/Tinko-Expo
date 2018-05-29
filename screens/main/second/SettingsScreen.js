@@ -2,9 +2,10 @@ import React from 'react';
 import {Alert, View, StyleSheet, Text, Switch, ScrollView, Dimensions} from "react-native";
 import firebase from "firebase";
 import {Avatar, Header, ListItem, Button} from 'react-native-elements';
-import {firestoreDB, getFromAsyncStorage} from "../../../modules/CommonUtility";
+import {firestoreDB, getAvatarPlaceholder, getFromAsyncStorage} from "../../../modules/CommonUtility";
 import {ifIphoneX} from "react-native-iphone-x-helper";
 import {logoutFromNotification} from '../../../modules/CommonUtility';
+import {Image as CacheImage} from "react-native-expo-image-cache";
 
 const SCREEN_WIDTH = Dimensions.get('window').width;
 
@@ -104,9 +105,10 @@ export default class SettingsScreen extends React.Component {
                         chevron
                         chevronColor={'black'}
                         rightElement={
-                            <Avatar
-                                size='medium'
-                                source={{uri: userData.photoURL}}
+                            <CacheImage
+                                preview={getAvatarPlaceholder}
+                                uri={userData.photoURL}
+                                style={{width:50, height:50}}
                             />
                         }
                         onPress={()=> this.props.navigation.navigate('AvatarUpload',{

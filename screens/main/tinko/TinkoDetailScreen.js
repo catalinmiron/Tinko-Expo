@@ -779,7 +779,6 @@ export default class TinkoDetailScreen extends React.Component {
                                             key={userData.uid}
                                             style = {{width:75}}
                                             onPress={() => {
-                                                console.log('touchableopacity touched');
                                                 this.props.screenProps.showThisUser(userData.uid, this.props.navigation)
                                             }}
                                         >

@@ -1,7 +1,8 @@
 import React, { Component } from 'react';
 import {Text, View, Image, TouchableHighlight, TouchableOpacity, StyleSheet, Dimensions} from 'react-native';
-import {getImageSource} from "../../CommonUtility";
+import {getAvatarPlaceholder, getImageSource} from "../../CommonUtility";
 import { LinearGradient } from 'expo';
+import {Image as CacheImage} from "react-native-expo-image-cache";
 
 const SCREEN_WIDTH = Dimensions.get('window').width;
 
@@ -36,8 +37,9 @@ export default function Brick (props) {
                         height: topHeight,
                     }}
                 />
-                <Image
-                    source={{uri: data.creator.photoURL}}
+                <CacheImage
+                    preview={getAvatarPlaceholder}
+                    uri={data.creator.photoURL}
                     style={styles.userPic}/>
                 <View style={{marginTop: 5, width:SCREEN_WIDTH/2-10-50}}>
                     <Text style={styles.userName}>{data.creator.username}</Text>

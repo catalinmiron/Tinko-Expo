@@ -5,11 +5,14 @@ import {
     View,
     ViewPropTypes,
     StyleSheet,
+    TouchableOpacity
 } from 'react-native';
 import PropTypes from 'prop-types'
+import {Image as CacheImage} from "react-native-expo-image-cache";
 
 import { Avatar, Day, utils } from 'react-native-gifted-chat';
 import Bubble from './SlackBubble';
+import {getAvatarPlaceholder} from "../modules/CommonUtility";
 
 const { isSameUser, isSameDay } = utils;
 
@@ -55,11 +58,17 @@ export default class Message extends React.Component {
         }
 
         const avatarProps = this.getInnerComponentProps();
+        console.log(avatarProps);
         return (
-            <Avatar
-                {...avatarProps}
-                imageStyle={{ left: [styles.slackAvatar, avatarProps.imageStyle, extraStyle] }}
-            />
+            <TouchableOpacity
+                onPress={() => avatarProps.onPressAvatar(avatarProps.currentMessage.user._id,avatarProps.navigation)}
+            >
+                <CacheImage
+                    preview={getAvatarPlaceholder}
+                    uri={avatarProps.currentMessage.user.avatar}
+                    style={styles.slackAvatar}
+                />
+            </TouchableOpacity>
         );
     }
 
@@ -99,6 +108,7 @@ const styles = StyleSheet.create({
         height: 40,
         width: 40,
         borderRadius: 3,
+        marginRight:8
     },
 });
 

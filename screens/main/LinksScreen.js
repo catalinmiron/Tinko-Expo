@@ -9,6 +9,7 @@ import * as firebase from "firebase";
 import moment from "moment";
 import IconBadge from '../../modules/react-native-icon-badge'
 import {Ionicons} from '@expo/vector-icons'
+import {Image as CacheImage} from "react-native-expo-image-cache";
 
 require("firebase/firestore");
 import SocketIOClient from 'socket.io-client';
@@ -92,6 +93,7 @@ export default class FriendChatListView extends Component {
     constructor(){
         super();
         let user = firebase.auth().currentUser;
+        this.renderChatList= this.renderChatList.bind(this);
         uid = user.uid;
         setUid(uid);
         this.socket = SocketIOClient('https://shuaiyixu.xyz/');
@@ -441,99 +443,96 @@ export default class FriendChatListView extends Component {
         });
     }
 
-    render() {
-        let friendList = [];
-        if (this.state.messages.length!==0){
-            for (let i = 0;i<this.state.messages.length ; i++){
-                let messages = this.state.messages[i];
-                friendList.push(
-                    <ListItem
-                        leftAvatar={
-                            <IconBadge
-                                MainElement={
-                                    messages.type===1 ?
-                                    <Avatar
-                                        size='medium'
-                                        rounded
-                                        source={{uri:messages.imageURL}}
+    renderChatList(){
+        return (
+            this.state.messages.map((messages) => (
+                <ListItem
+                    leftAvatar={
+                        <IconBadge
+                            MainElement={
+                                messages.type===1 ?
+                                    <CacheImage
+                                        style={{width:50, height:50, borderRadius:25}}
+                                        uri={messages.imageURL}
                                     />
-                                        :
 
-                                    <Image
-                                    style={{width: 50,height: 50,borderRadius: 10}}
-                                    // resizeMethod={'auto'}
-                                    // resizeMode={'center'}
-                                    source={{uri:messages.imageURL}}/>
+                                    :
+
+                                    <CacheImage
+                                        style={{width: 50,height: 50,borderRadius: 10}}
+                                        uri={messages.imageURL}/>
 
 
-                                }
-                                BadgeElement={
-                                    <Text style={{color: '#FFFFFF'}}>{messages.length}</Text>
-                                }
-                                IconBadgeStyle={
-                                    {width: 20, height: 20, backgroundColor: 'red'}
-                                }
-                                Hidden={!messages.length>0}
-                            />
-                        }
-                        key={messages.id}
-                        title={messages.personName}
-                        titleProps={{numberOfLines:1}}
-                        titleStyle={{fontFamily:'regular'}}
-                        // title={
-                        //     <View style={{flexDirection:'row',justifyContent:'space-between'}}>
-                        //         <Text style={{fontFamily:'regular', fontSize:25}} numberOfLines={1}>{messages.personName}</Text>
-                        //         <Text>3:22</Text>
-                        //     </View>
-                        // }
-                        subtitle={messages.msg}
-                        subtitleProps={{numberOfLines:1}}
-                        subtitleStyle={{fontFamily:'regular', color:'#626567'}}
-                        rightSubtitle={messages.time}
-                        // badge={
-                        //     { value: messages.length, textStyle: { color: 'orange' }, containerStyle: { marginTop: -20 } }
-                        // }
-                        onPress={() => {
-                            currentOnSelectId = messages.id;
-                                 if (messages.type === 1){
-                                     unReadNumNeedsUpdates(messages.id,0);
-                                     updateUnReadNum(1,messages.id);
-                                     currentOnSelectUser(messages.id);
-                                     // totalUnReadMessageNum = totalUnReadMessageNum - getLength(messages.id);
-                                     // this.totalUnreadMessageNumChanged(totalUnReadMessageNum);
-                                     this.props.navigation.navigate('PrivateChatPage', {
-                                         avatar:messages.imageURL,
-                                         name:messages.personName,
-                                         personId:messages.id,
-                                         myId:uid
-                                     });
-                                 }else{
-                                     unReadNumNeedsUpdates(messages.id,1);
-                                     updateUnReadNum(2,messages.id);
-                                     currentOnSelectUser(messages.id);
-                                     // totalUnReadMessageNum = totalUnReadMessageNum - getLength(messages.id);
-                                     // this.totalUnreadMessageNumChanged(totalUnReadMessageNum);
-                                     this.props.navigation.navigate('GroupChatPage', {
-                                         avatar:messages.imageURL,
-                                         name:messages.personName,
-                                         personId:messages.id,
-                                         myId:uid
-                                     })
-                                 }
                             }
+                            BadgeElement={
+                                <Text style={{color: '#FFFFFF'}}>{messages.length}</Text>
+                            }
+                            IconBadgeStyle={
+                                {width: 20, height: 20, backgroundColor: 'red'}
+                            }
+                            Hidden={!messages.length>0}
+                        />
+                    }
+                    key={messages.id}
+                    title={messages.personName}
+                    titleProps={{numberOfLines:1}}
+                    titleStyle={{fontFamily:'regular'}}
+                    // title={
+                    //     <View style={{flexDirection:'row',justifyContent:'space-between'}}>
+                    //         <Text style={{fontFamily:'regular', fontSize:25}} numberOfLines={1}>{messages.personName}</Text>
+                    //         <Text>3:22</Text>
+                    //     </View>
+                    // }
+                    subtitle={messages.msg}
+                    subtitleProps={{numberOfLines:1}}
+                    subtitleStyle={{fontFamily:'regular', color:'#626567'}}
+                    rightSubtitle={messages.time}
+                    // badge={
+                    //     { value: messages.length, textStyle: { color: 'orange' }, containerStyle: { marginTop: -20 } }
+                    // }
+                    onPress={() => {
+                        currentOnSelectId = messages.id;
+                        if (messages.type === 1){
+                            unReadNumNeedsUpdates(messages.id,0);
+                            updateUnReadNum(1,messages.id);
+                            currentOnSelectUser(messages.id);
+                            // totalUnReadMessageNum = totalUnReadMessageNum - getLength(messages.id);
+                            // this.totalUnreadMessageNumChanged(totalUnReadMessageNum);
+                            this.props.navigation.navigate('PrivateChatPage', {
+                                avatar:messages.imageURL,
+                                name:messages.personName,
+                                personId:messages.id,
+                                myId:uid
+                            });
+                        }else{
+                            unReadNumNeedsUpdates(messages.id,1);
+                            updateUnReadNum(2,messages.id);
+                            currentOnSelectUser(messages.id);
+                            // totalUnReadMessageNum = totalUnReadMessageNum - getLength(messages.id);
+                            // this.totalUnreadMessageNumChanged(totalUnReadMessageNum);
+                            this.props.navigation.navigate('GroupChatPage', {
+                                avatar:messages.imageURL,
+                                name:messages.personName,
+                                personId:messages.id,
+                                myId:uid
+                            })
                         }
-                        onLongPress={()=>{
-                            Alert.alert("Delete this row?", '',
-                                [
-                                    {text: 'Cancel', onPress: () => console.log('Cancel Pressed'), style: 'cancel'},
-                                    {text: 'Delete', onPress: () => this.removeData(messages.id), style:"destructive"},
-                                ]);
-                        }}
-                    />
-                )
-            }
+                    }
+                    }
+                    onLongPress={()=>{
+                        Alert.alert("Delete this row?", '',
+                            [
+                                {text: 'Cancel', onPress: () => console.log('Cancel Pressed'), style: 'cancel'},
+                                {text: 'Delete', onPress: () => this.removeData(messages.id), style:"destructive"},
+                            ]);
+                    }}
+                />
+            ))
+        )
+    }
 
-        }
+    render() {
+
         return (
             <View style={{flex:1}}>
                 <Header
@@ -541,7 +540,7 @@ export default class FriendChatListView extends Component {
                     outerContainerStyles={ifIphoneX({height:88})}
                 />
                 <ScrollView>
-                    {friendList}
+                    <this.renderChatList/>
                     {this.state.messages.length===0 &&
                         <ListItem
                             title={'Welcome to Tinko'}
