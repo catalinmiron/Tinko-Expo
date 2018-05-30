@@ -2,9 +2,10 @@ import React, {
     Component
 } from 'react';
 import {
-    AsyncStorage, View, StyleSheet, Text, DeviceEventEmitter, KeyboardAvoidingView, Platform
+    AsyncStorage, View, StyleSheet, Text, DeviceEventEmitter, KeyboardAvoidingView,TouchableOpacity, Platform
 } from 'react-native';
 import {getUserDetail} from "../../../modules/UserAPI";
+import {Image as CacheImage} from "react-native-expo-image-cache";
 import { SQLite } from 'expo';
 const db = SQLite.openDatabase('db.db');
 import { GiftedChat } from 'react-native-gifted-chat';
@@ -13,6 +14,7 @@ import {ifIphoneX} from "react-native-iphone-x-helper";
 import {Header} from "react-native-elements";
 import {unReadNumNeedsUpdates,updateLastMessage,currentOnSelectUser} from "../../../modules/ChatStack";
 import KeyboardSpacer from 'react-native-keyboard-spacer';
+import {getAvatarPlaceholder} from "../../../modules/CommonUtility";
 
 let uid = "",
     pid = "",
@@ -44,6 +46,7 @@ export default class PrivateChatScreen extends Component {
     }
 
     componentDidMount(){
+        //unReadNumNeedsUpdates(pid,0);
         this.getFromDB(uid,pid);
         this.socket = SocketIOClient('https://shuaiyixu.xyz');
         // this.socket = SocketIOClient('http://47.89.187.42:4000/');
@@ -79,7 +82,7 @@ export default class PrivateChatScreen extends Component {
         currentOnSelectUser("");
 
         this.socket.removeListener("connect" + uid);
-        unReadNumNeedsUpdates(pid,0);
+
     }
 
     getFromDB(uid,pid){
@@ -214,6 +217,7 @@ export default class PrivateChatScreen extends Component {
                     _id: Math.random()*100000,
                     name: userName,
                     avatar: userAvatar,
+
                 },
             }];
         }
@@ -273,6 +277,20 @@ export default class PrivateChatScreen extends Component {
         }
     }
 
+    renderAvatar(props){
+        console.log(props)
+        return(
+            <TouchableOpacity
+            onPress={() => props.onPressAvatar(pid,this.props.navigation)}
+        >
+            <CacheImage
+                preview={getAvatarPlaceholder}
+                uri={props.currentMessage.user.avatar}
+                style={styles.avatar}
+            />
+        </TouchableOpacity>)
+    }
+
     render() {
         return (
             <View style={{flex:1, backgroundColor:'white'}}>
@@ -284,10 +302,11 @@ export default class PrivateChatScreen extends Component {
 
                 <GiftedChat
                     messages={this.state.messages}
-
                     user={this.state.thisUser}
                     onSend={messages => this.SendMSG(messages)}
-
+                    renderAvatar={this.renderAvatar.bind(this)}
+                    onPressAvatar={this.props.screenProps.showThisUser}
+                    showAvatarForEveryMessage={true}
                     loadEarlier={this.state.hasCache}
                     isLoadingEarlier={this.state.isLoadingEarlier}
                     onLoadEarlier={() => this.getHistoryChatContents()}
@@ -331,5 +350,11 @@ const styles = StyleSheet.create({
     footerText: {
         fontSize: 14,
         color: '#aaa',
+    },
+    avatar: {
+        // The bottom should roughly line up with the first line of message text.
+        height: 36,
+        width: 36,
+        borderRadius: 18,
     },
 });

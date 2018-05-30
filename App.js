@@ -59,6 +59,14 @@ export default class App extends React.Component {
           require('./assets/images/tagsTheme/yumao.jpg'),
           require('./assets/images/bg_screen1.jpg'),
           require('./assets/images/placeholder-big.jpg'),
+          require('./assets/images/tagsTheme/esports.jpg'),
+          require('./assets/images/tagsTheme/sports.jpg'),
+          require('./assets/images/tagsTheme/food.png'),
+          require('./assets/images/tagsTheme/shopping.jpg'),
+          require('./assets/images/tagsTheme/cinema.jpg'),
+          require('./assets/images/tagsTheme/bar.jpg'),
+          require('./assets/images/tagsTheme/travel.jpg'),
+          require('./assets/images/avatar-placeholder.png'),
 
       ]),
       Font.loadAsync({

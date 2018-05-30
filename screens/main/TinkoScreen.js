@@ -12,6 +12,8 @@ import { NavigationActions } from 'react-navigation';
 import { MaterialIcons } from '@expo/vector-icons';
 import { getStartTimeString, getPostTimeString, getPostRequest, getUserData,writeInAsyncStorage, getFromAsyncStorage, getUserDataFromDatabase, firestoreDB } from "../../modules/CommonUtility";
 import {getMeetTitleFromSql} from "../../modules/SqliteClient";
+import {CacheManager} from "react-native-expo-image-cache";
+
 const db = SQLite.openDatabase('db.db');
 
 const SCREEN_WIDTH = Dimensions.get('window').width;
@@ -26,7 +28,7 @@ export default class TinkoScreen extends Component {
 
     constructor(props){
         super(props);
-        //console.log(props);
+        console.log(props);
         let user = firebase.auth().currentUser;
         this.getMeets=this.getMeets.bind(this);
         this.navigateToDetail=this.navigateToDetail.bind(this);
@@ -168,6 +170,14 @@ export default class TinkoScreen extends Component {
             let meetId = e.id;
             let userUid = meet.creator;
 
+            let userUploadedImages = meet.userUploadedImages;
+            let coverImageUri = null;
+            if(userUploadedImages && userUploadedImages.length>0){
+                //coverImageUri = userUploadedImages[0];
+                coverImageUri = await CacheManager.get(userUploadedImages[0]).getPath();
+            }
+            meet.coverImageUri = coverImageUri;
+
             await getUserDataFromDatabase(userUid,
                 (userData) => {
                     //console.log(userData);
@@ -186,6 +196,8 @@ export default class TinkoScreen extends Component {
     buildBrick(meet, meetId, user){
         let startTimeString = getStartTimeString(meet.startTime.toDate());
         let postTimeString = getPostTimeString(meet.postTime.toDate());
+
+
         return {
             data: {
                 meetId: meetId,
@@ -198,6 +210,7 @@ export default class TinkoScreen extends Component {
                     photoURL: user.photoURL,
                 },
                 tags: meet.tagsList,
+                coverImageUri:meet.coverImageUri,
             },
             uri: meetId,
         };
@@ -243,6 +256,26 @@ export default class TinkoScreen extends Component {
 
     render() {
 
+        let { meetsData } = this.state;
+        if(meetsData.length===0){
+            meetsData = [{
+                data: {
+                    meetId: '001',
+                    title: 'Let\'s create a Tinko',
+                    startTime: '',
+                    postTime: '',
+                    placeName: '',
+                    creator: {
+                        username: 'WELCOME',
+                        photoURL: 'https://firebasestorage.googleapis.com/v0/b/tinko-64673.appspot.com/o/System%2FMeetAvatar%2Fsmileface.png?alt=media&token=9fd2c9aa-f52c-48b1-9daa-b014ef674b13',
+                    },
+                    tags: 'default',
+                    onPress:this.props.screenProps.openCreateModel
+                },
+                uri: '001',
+
+            }];
+        }
 
         return (
             <View style={styles.container}>
@@ -257,7 +290,7 @@ export default class TinkoScreen extends Component {
                 <Masonry
                     sorted // optional - Default: false
                     columns={2} // optional - Default: 2
-                    bricks={this.state.meetsData}
+                    bricks={meetsData}
                     refreshControl={
                         <RefreshControl
                             refreshing={this.state.refreshing}

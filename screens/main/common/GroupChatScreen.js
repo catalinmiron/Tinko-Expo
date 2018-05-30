@@ -2,9 +2,10 @@ import React, {
     Component
 } from 'react';
 import {
-    View,DeviceEventEmitter, Platform
+    View, DeviceEventEmitter, Platform, TouchableOpacity, StyleSheet
 } from 'react-native';
-import {getUserDataFromDatabase,getMeetInfo} from "../../../modules/CommonUtility";
+import {getUserDataFromDatabase, getMeetInfo, getAvatarPlaceholder} from "../../../modules/CommonUtility";
+import {Image as CacheImage} from "react-native-expo-image-cache";
 import {SQLite } from 'expo';
 const db = SQLite.openDatabase('db.db');
 import {currentOnSelectUser, unReadNumNeedsUpdates, updateLastMessage} from "../../../modules/ChatStack";
@@ -27,7 +28,7 @@ export default class PrivateChatScreen extends Component {
     componentWillUnmount(){
         currentOnSelectUser("");
         this.socket.removeListener("connect" + uid);
-        unReadNumNeedsUpdates(MeetId,1);
+        //unReadNumNeedsUpdates(MeetId,1);
     }
 
     state = {
@@ -134,6 +135,21 @@ export default class PrivateChatScreen extends Component {
         });
     }
 
+
+    renderAvatar(props){
+        console.log(props)
+        return(
+            <TouchableOpacity
+                onPress={() => props.onPressAvatar(props.currentMessage.user._id,this.props.navigation)}
+            >
+                <CacheImage
+                    preview={getAvatarPlaceholder}
+                    uri={props.currentMessage.user.avatar}
+                    style={styles.avatar}
+                />
+            </TouchableOpacity>)
+    }
+
     render() {
         return (
             <View
@@ -150,7 +166,9 @@ export default class PrivateChatScreen extends Component {
                     ref={(c) => this.giftedChatRef = c}
                     messages={this.state.messages}
                     onSend={messages => this.onSend(messages)}
-                    showAvatarForEveryMessage = {true}
+                    renderAvatar={this.renderAvatar.bind(this)}
+                    onPressAvatar={this.props.screenProps.showThisUser}
+                    showAvatarForEveryMessage={true}
                     user={this.state.thisUser}
                     loadEarlier={this.state.hasCache}
                     isLoadingEarlier={this.state.isLoadingEarlier}
@@ -294,3 +312,12 @@ export default class PrivateChatScreen extends Component {
 
 
 }
+
+const styles = StyleSheet.create({
+    avatar: {
+        // The bottom should roughly line up with the first line of message text.
+        height: 36,
+        width: 36,
+        borderRadius: 18,
+    },
+});

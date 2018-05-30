@@ -1,19 +1,20 @@
 import _ from 'lodash';
 import React from 'react';
-import {View, Alert, TouchableWithoutFeedback, Image, ScrollView, Text, StyleSheet, Dimensions, SafeAreaView, TouchableOpacity, InteractionManager} from 'react-native';
+import {View, Alert, TouchableWithoutFeedback, Image, ScrollView, Text, StyleSheet, Dimensions, SafeAreaView, TouchableOpacity, InteractionManager, BackHandler, ActivityIndicator} from 'react-native';
 import firebase from 'firebase';
 import 'firebase/firestore';
 import Swiper from 'react-native-swiper';
-import { getStartTimeString,  getDurationString, getUserData, getImageSource, getUserDataFromDatabase, firestoreDB } from "../../../modules/CommonUtility";
+import { getStartTimeString,  getDurationString, getUserData, getImageSource, getUserDataFromDatabase, firestoreDB, getAvatarPlaceholder } from "../../../modules/CommonUtility";
 import {MapView, SQLite} from 'expo';
 import { Ionicons, MaterialIcons, Entypo, MaterialCommunityIcons, Feather  } from '@expo/vector-icons';
-import { Avatar, Button, Header} from 'react-native-elements';
+import { Avatar, Button, Header, Overlay} from 'react-native-elements';
 import { ifIphoneX } from 'react-native-iphone-x-helper';
 import { getPostRequest,getListWhoParticipatedInMeetsByMeetId } from "../../../modules/CommonUtility";
 import { ActionSheetProvider, connectActionSheet } from '@expo/react-native-action-sheet';
 import SocketIOClient from "socket.io-client";
 import {quitMeet,joinMeet,dismissMeet} from "../../../modules/SocketClient";
 import { NavigationActions } from 'react-navigation';
+import {CacheManager, Image as CacheImage} from "react-native-expo-image-cache";
 
 const db = SQLite.openDatabase('db.db');
 
@@ -56,7 +57,7 @@ export default class TinkoDetailScreen extends React.Component {
 
     constructor(props){
         super(props);
-        //console.log(props);
+        console.log(props);
         console.log('called from constructor');
         let user = firebase.auth().currentUser;
         this.onJoinButtonPressed = this.onJoinButtonPressed.bind(this);
@@ -97,6 +98,12 @@ export default class TinkoDetailScreen extends React.Component {
             unsubscribe:null,
             identity:1,
             showMap:false,
+            quit:false,
+            dismissed:false,
+            loadingVisible:false,
+            userUploadedImages:[],
+            userImagesLoadingDone:false,
+            swiperImages:[],
             //identity: 0: not joined
             //          1: creator
             //          2: joined cannot invite
@@ -121,13 +128,22 @@ export default class TinkoDetailScreen extends React.Component {
         InteractionManager.runAfterInteractions(() => {
             this.setState({showMap:true});
         });
+        BackHandler.addEventListener('androidBackPress', this.androidBackHandler.bind(this));
     }
 
 
     componentWillUnmount(){
         this.unsubscribe();
         this.updateMeetDataToSql();
+        BackHandler.removeEventListener('androidBackPress', this.androidBackHandler.bind(this));
+    }
 
+    androidBackHandler(){
+        if(this.props.navigation.state.routeName==='TinkoDetail'){
+            this.props.navigation.goBack(null);
+            return true;
+        }
+        return false;
     }
 
     updateMeetDataToSql(){
@@ -164,6 +180,12 @@ export default class TinkoDetailScreen extends React.Component {
 
                         let meet = JSON.parse(meetDataString);
                         console.log('meet',meet);
+
+                        let userUploadedImages = meet.userUploadedImages;
+                        if(!userUploadedImages){
+                            userUploadedImages=[];
+                        }
+                        this.setState({userUploadedImages, userImagesLoadingDone:true});
 
                         let creatorDataString = data[0].creatorData;
                         let placePhotoDataString = data[0].placePhotoData;
@@ -216,7 +238,9 @@ export default class TinkoDetailScreen extends React.Component {
     }
 
     processMeet(meet, fromFirebase){
+
         const {meetId,userUid}=this.state;
+
         meet['meetId'] = meetId;
         console.log('fromFirebase', fromFirebase, meet);
 
@@ -242,7 +266,7 @@ export default class TinkoDetailScreen extends React.Component {
             postTime = new Date(postTimeTS.seconds*1000);
             startTime = new Date(startTimeTS.seconds*1000);
         }
-        console.log('processMeet',fromFirebase, postTime, typeof(postTimeTS));
+        //console.log('processMeet',fromFirebase, postTime, typeof(postTimeTS));
 
 
         let allFriends = meet.allFriends,
@@ -262,7 +286,13 @@ export default class TinkoDetailScreen extends React.Component {
             selectedFriendsList = Object.keys(meet.selectedFriendsList),
             //startTime = meet.startTime.toDate(),
             status = meet.status,
-            title = meet.title;
+            title = meet.title,
+            dismissed = meet.dismissed;
+
+        let userUploadedImages = meet.userUploadedImages;
+        if(!userUploadedImages){
+            userUploadedImages=[];
+        }
         let tagsList;
         if(meet.tagsList){
             tagsList=meet.tagsList;
@@ -287,19 +317,42 @@ export default class TinkoDetailScreen extends React.Component {
 
         }
 
-        const {creatorData, placePhotos, participatingUsersData} = this.state;
+        const {creatorData, placePhotos, participatingUsersData, quit}=this.state;
+        if(fromFirebase){
+            //console.log('fromFirebase', meet);
+            if(!quit && identity === 0 &&(!meet.status || meet.dismissed)){
+                Alert.alert('Whops','This Tinko is not available anymore',
+                    [
+                        {text: 'OK', onPress: () => {
+                                this.props.navigation.goBack(null);
+                                if(this.props.navigation.state.params.comeFromTinkoScreen){
+                                    this.props.navigation.state.params.getMeets();
+                                }
+                            }},
+                    ],
+                    { cancelable: false });
+            }
+
+            if(!placePhotos || placePhotos.length===0 || placeId !== this.state.placeId){
+                this.getPlacePhotos(placeId);
+            }
+
+            //this.getPlacePhotos(placeId);
+            this.updateParticipatingUsersData(participatingUsersList);
+        }
+
+
+
         if(!creatorData || creatorUid !== this.state.creatorUid){
             this.getCreatorData(creatorUid);
         }
-        if(!placePhotos || placeId !== this.state.placeId){
-            this.getPlacePhotos(placeId);
-        }
+
         // if(!participatingUsersData){
         //     this.updateParticipatingUsersData(participatingUsersList);
         // }
         // this.getCreatorData(creatorUid);
         // this.getPlacePhotos(placeId);
-        this.updateParticipatingUsersData(participatingUsersList);
+
 
         this.setState({
             meet,
@@ -323,6 +376,9 @@ export default class TinkoDetailScreen extends React.Component {
             tagsList,
             title,
             identity,
+            dismissed,
+            userUploadedImages,
+            userImagesLoadingDone:true,
         },()=>console.log('participatingUsersList',this.state.participatingUsersList));
         this.setNavigationParams();
     }
@@ -414,6 +470,7 @@ export default class TinkoDetailScreen extends React.Component {
     onQuitMeetButtonPressed(){
         const { userUid, meetId,participatingUsersList } = this.state;
         _.pull(participatingUsersList,userUid);
+        this.setState({quit:true});
         let meetRef = firestoreDB().collection("Meets").doc(meetId);
         meetRef.update({
             [`participatingUsersList.${userUid}`]:firebase.firestore.FieldValue.delete(),
@@ -430,17 +487,19 @@ export default class TinkoDetailScreen extends React.Component {
                     Alert.alert('error', error);
                 });
         }).catch((error)=>{
+            this.setState({quit:false});
             Alert.alert('Error', error);
         });
     }
 
     onDismissMeetButtonPressed(){
+        this.setState({loadingVisible:true});
         const { userUid, meetId } = this.state;
         let meetRef = firestoreDB().collection("Meets").doc(meetId);
         meetRef.update({dismissed:true}).then(()=>{
 
             let bodyData ={meetId:meetId};
-            //NEED CHANGE
+
             dismissMeet(userUid,meetId);
             getPostRequest('checkMeetStatus', bodyData,
                 () => {
@@ -450,42 +509,50 @@ export default class TinkoDetailScreen extends React.Component {
                         this.props.navigation.state.params.getMeets();
                         console.log('after getMeets called');
                     }
+                    this.setState({loadingVisible:false});
                 },
                 (error) => {
                     console.log(error);
+                    this.setState({loadingVisible:false});
                     Alert.alert('error', error);
                 });
         }).catch((error)=>{
+            this.setState({loadingVisible:false});
             Alert.alert('Error', error);
         });
     }
 
     onOpenThreeDotsActionSheet = () => {
-        const { identity } = this.state;
+        const { identity,dismissed } = this.state;
         var options;
         var destructiveButtonIndex;
         var cancelButtonIndex;
-        switch (identity){
-            case 0:
-                options = ["Report", "Cancel"];
-                //destructiveButtonIndex = 0;
-                cancelButtonIndex = 1;
-                break;
-            case 1:
-                options = ["Edit","Dismiss", "Cancel"];
-                destructiveButtonIndex = 1;
-                cancelButtonIndex = 2;
-                break;
-            case 2:
-            case 3:
-                options = ["Report", "Quit", "Cancel"];
-                destructiveButtonIndex = 1;
-                cancelButtonIndex = 2;
-                break;
-            default:
-                options = ["Cancel"];
-                //destructiveButtonIndex = 0;
-                cancelButtonIndex = 0;
+        if(dismissed){
+            options = ["Cancel"];
+            cancelButtonIndex = 0;
+        } else {
+            switch (identity){
+                case 0:
+                    options = ["Report", "Cancel"];
+                    //destructiveButtonIndex = 0;
+                    cancelButtonIndex = 1;
+                    break;
+                case 1:
+                    options = ["Edit","Dismiss", "Cancel"];
+                    destructiveButtonIndex = 1;
+                    cancelButtonIndex = 2;
+                    break;
+                case 2:
+                case 3:
+                    options = ["Report", "Quit", "Cancel"];
+                    destructiveButtonIndex = 1;
+                    cancelButtonIndex = 2;
+                    break;
+                default:
+                    options = ["Cancel"];
+                    //destructiveButtonIndex = 0;
+                    cancelButtonIndex = 0;
+            }
         }
 
         this.props.showActionSheetWithOptions(
@@ -519,13 +586,16 @@ export default class TinkoDetailScreen extends React.Component {
     render() {
         const { creatorLoadingDone, placePhotosLoadingDone, userUid, creatorUid, identity,
             creatorData, title, placePhotos, startTime, allowPeopleNearby, participatingUsersList,
-            maxNo, description, duration, participatingUsersData, placeName, placeCoordinate, placeAddress, placeId, tagsList, showMap } = this.state;
+            maxNo, description, duration, participatingUsersData, placeName, placeCoordinate, placeAddress, placeId, tagsList, showMap, meet, loadingVisible, userUploadedImages, userImagesLoadingDone } = this.state;
 
-        // if(!(creatorLoadingDone && placePhotosLoadingDone)){
+        // if(identity === 0 && (!meet.status || meet.dismissed)){
         //     return(
         //         <View style={styles.container}/>
         //     );
         // }
+
+        let headerSwiper = userUploadedImages.concat(placePhotos);
+        console.log(headerSwiper);
 
         let tagsString='';
         for(let i=0; i<tagsList.length; i++){
@@ -559,21 +629,26 @@ export default class TinkoDetailScreen extends React.Component {
                             {/*}*/}
                         {/*</ScrollView>*/}
 
-                        {placePhotosLoadingDone?
+                        {(userImagesLoadingDone && userUploadedImages.length!==0) || (userImagesLoadingDone && placePhotosLoadingDone) ?
                             <Swiper
-                                //loop
+                                loop={false}
                                 showsPagination = {false}
                             >
 
+                                {headerSwiper.length !== 0 ?
+                                    headerSwiper.map((l,i) => (
+                                    <CacheImage
+                                        resizeMethod={'auto'}
+                                        style={{width:SCREEN_WIDTH, height:SCREEN_WIDTH/2}}
+                                        key = {i}
+                                        preview = {require('../../../assets/images/placeholder-big.jpg')}
+                                        uri = {l.photo_reference ? `https://maps.googleapis.com/maps/api/place/photo?maxwidth=${Math.ceil(SCREEN_WIDTH)}&photoreference=${l.photo_reference}&key=AIzaSyCw_VwOF6hmY5yri8OpqOr9sCzTTT7JKiU` : l}
+                                        //source={{uri:l.photo_reference ? `https://maps.googleapis.com/maps/api/place/photo?maxwidth=${Math.ceil(SCREEN_WIDTH)}&photoreference=${l.photo_reference}&key=AIzaSyCw_VwOF6hmY5yri8OpqOr9sCzTTT7JKiU` : l}}
+                                    />
 
-                                {_.size(placePhotos) > 0 ?
-                                    placePhotos.map((l, i) =>(
-                                        <Image
-                                            resizeMethod={'auto'}
-                                            style={{width:SCREEN_WIDTH, height:SCREEN_WIDTH/2}}
-                                            key = {i}
-                                            source={{uri:`https://maps.googleapis.com/maps/api/place/photo?maxwidth=${Math.ceil(SCREEN_WIDTH)}&photoreference=${l.photo_reference}&key=AIzaSyCw_VwOF6hmY5yri8OpqOr9sCzTTT7JKiU`}}/>
+
                                     ))
+
                                     :
                                     <Image
                                         resizeMethod={'auto'}
@@ -581,6 +656,46 @@ export default class TinkoDetailScreen extends React.Component {
                                         key = {'placePhoto'}
                                         source={getImageSource(tagsList[0])}/>
                                 }
+
+                                {/*{userUploadedImages.map((uri) => (*/}
+                                    {/*<Image*/}
+                                        {/*resizeMethod={'auto'}*/}
+                                        {/*style={{width:SCREEN_WIDTH, height:SCREEN_WIDTH/2}}*/}
+                                        {/*key = {uri}*/}
+                                        {/*source={{uri:uri}}/>*/}
+                                {/*))}*/}
+
+                                {/*{placePhotos.map((l, i) =>(*/}
+                                    {/*<Image*/}
+                                        {/*resizeMethod={'auto'}*/}
+                                        {/*style={{width:SCREEN_WIDTH, height:SCREEN_WIDTH/2}}*/}
+                                        {/*key = {i}*/}
+                                        {/*source={{uri:`https://maps.googleapis.com/maps/api/place/photo?maxwidth=${Math.ceil(SCREEN_WIDTH)}&photoreference=${l.photo_reference}&key=AIzaSyCw_VwOF6hmY5yri8OpqOr9sCzTTT7JKiU`}}/>*/}
+                                {/*))}*/}
+
+                                {/*{userUploadedImages.length===0 && placePhotos.length===0 &&*/}
+                                {/*<Image*/}
+                                    {/*resizeMethod={'auto'}*/}
+                                    {/*style={{width:SCREEN_WIDTH, height:SCREEN_WIDTH/2}}*/}
+                                    {/*key = {'placePhoto'}*/}
+                                    {/*source={getImageSource(tagsList[0])}/>*/}
+                                {/*}*/}
+
+                                {/*{_.size(placePhotos) > 0 ?*/}
+                                    {/*placePhotos.map((l, i) =>(*/}
+                                        {/*<Image*/}
+                                            {/*resizeMethod={'auto'}*/}
+                                            {/*style={{width:SCREEN_WIDTH, height:SCREEN_WIDTH/2}}*/}
+                                            {/*key = {i}*/}
+                                            {/*source={{uri:`https://maps.googleapis.com/maps/api/place/photo?maxwidth=${Math.ceil(SCREEN_WIDTH)}&photoreference=${l.photo_reference}&key=AIzaSyCw_VwOF6hmY5yri8OpqOr9sCzTTT7JKiU`}}/>*/}
+                                    {/*))*/}
+                                    {/*:*/}
+                                    {/*<Image*/}
+                                        {/*resizeMethod={'auto'}*/}
+                                        {/*style={{width:SCREEN_WIDTH, height:SCREEN_WIDTH/2}}*/}
+                                        {/*key = {'placePhoto'}*/}
+                                        {/*source={getImageSource(tagsList[0])}/>*/}
+                                {/*}*/}
                             </Swiper>
                             :
                             <Image
@@ -611,12 +726,19 @@ export default class TinkoDetailScreen extends React.Component {
                         <TouchableWithoutFeedback
                             onPress={() => this.props.screenProps.showThisUser(creatorUid, this.props.navigation)}
                         >
-                            <Image
+                            {/*<Image*/}
+                                {/*onPress={() => this.props.screenProps.showThisUser(creatorUid, this.props.navigation)}*/}
+                                {/*style={{width:80, height:80, marginRight:15, borderWidth:1.5, borderColor:'white'}}*/}
+                                {/*key='creatorPhoto'*/}
+                                {/*source={{uri: creatorData.photoURL}}*/}
+                            {/*/>*/}
+                            <CacheImage
                                 onPress={() => this.props.screenProps.showThisUser(creatorUid, this.props.navigation)}
                                 style={{width:80, height:80, marginRight:15, borderWidth:1.5, borderColor:'white'}}
                                 key='creatorPhoto'
-                                source={{uri: creatorData.photoURL}}
-                            />
+                                preview={getAvatarPlaceholder}
+                                uri={creatorData.photoURL}
+                                />
                         </TouchableWithoutFeedback>
                     </View>
 
@@ -653,22 +775,35 @@ export default class TinkoDetailScreen extends React.Component {
                             {_.chunk(participatingUsersData, 3).map((chunk, chunkIndex) => (
                                 <View style={{ flexDirection: 'row', justifyContent: 'space-around', marginBottom: 10 }} key={chunkIndex}>
                                     {chunk.map(userData => (
-                                        <View
+                                        <TouchableOpacity
                                             key={userData.uid}
-                                            style = {{width:75}}>
-                                            <Avatar
-                                                size='large'
-                                                rounded
-                                                source={userData.photoURL ? { uri: userData.photoURL } : null}
-                                                title='TK'
+                                            style = {{width:75}}
+                                            onPress={() => {
+                                                this.props.screenProps.showThisUser(userData.uid, this.props.navigation)
+                                            }}
+                                        >
+                                            {/*<Avatar*/}
+                                                {/*size='large'*/}
+                                                {/*rounded*/}
+                                                {/*source={userData.photoURL ? { uri: userData.photoURL } : null}*/}
+                                                {/*title='TK'*/}
+                                                {/*key={userData.uid}*/}
+                                                {/*//onPress={() => this.props.screenProps.showThisUser(userData.uid, this.props.navigation)}*/}
+                                            {/*/>*/}
+                                            <CacheImage
                                                 key={userData.uid}
-                                                onPress={() => this.props.screenProps.showThisUser(userData.uid, this.props.navigation)}
+                                                preview={getAvatarPlaceholder}
+                                                //onPress={() => console.log('avatar pressed')}
+                                                uri={userData.photoURL ? userData.photoURL : null}
+                                                style={{width:75, height:75, borderRadius:37.5}}
                                             />
                                             <Text
+                                                //onPress={() => this.props.screenProps.showThisUser(userData.uid, this.props.navigation)}
+                                                textAlign={'center'}
                                                 numberOfLines={2}
-                                                style={{marginTop:3,color:'#626567'}}
+                                                style={{marginTop:3,color:'#626567', width:75}}
                                             >{userData.username}</Text>
-                                        </View>
+                                        </TouchableOpacity>
 
                                     ))}
                                 </View>
@@ -716,13 +851,29 @@ export default class TinkoDetailScreen extends React.Component {
                 <this.renderActivityBar />
 
 
+                <Overlay
+                    height={100}
+                    width={100}
+                    borderRadius={25}
+                    isVisible={loadingVisible}
+                    windowBackgroundColor={'transparent'}
+                    overlayBackgroundColor="#F2F3F4"
+                    overlayStyle={{justifyContent:'center', alignItems:'center'}}
+                    //onBackdropPress={()=>this.setState({loadingVisible:false})}
+                >
+
+                    <ActivityIndicator size={'large'}/>
+
+
+                </Overlay>
+
             </View>
 
         );
     }
 
     renderActivityBar(){
-        const {buttonShowLoading, identity, allowParticipantsInvite, meetId} = this.state;
+        const {buttonShowLoading, identity, allowParticipantsInvite, meetId,dismissed} = this.state;
 
         return(
             <Header
@@ -747,6 +898,9 @@ export default class TinkoDetailScreen extends React.Component {
                 </TouchableWithoutFeedback>
             }
             rightComponent={
+                dismissed ?
+                    null
+                    :
                 <View style={{flexDirection:'row', height:50, alignItems:'center'}}>
                     {(allowParticipantsInvite || identity===1) &&
                     <Entypo.Button

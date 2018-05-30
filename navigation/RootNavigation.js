@@ -13,7 +13,7 @@ import SocketIOClient from 'socket.io-client';
 import 'firebase/firestore';
 import UserDetailOverlay from '../screens/main/common/UserDetailOverlay'
 import {initNewFriendsRequestTable, insertNewFriendsRequest} from "../modules/SqliteClient";
-import {getUserData} from "../modules/CommonUtility";
+import {firestoreDB, getUserData, getUserDataFromDatabase} from "../modules/CommonUtility";
 
 let getPrivateHistory = false,
     getMeetsHistory = false;
@@ -77,7 +77,8 @@ export default class RootNavigator extends React.Component {
       //this.dropFriendsTable(uid);
       //this.initFriendsTable(uid);
       this.initChatTable(uid);
-      initNewFriendsRequestTable(uid);
+
+      //this.setNewFriendsRequestListener(uid);
 
 
       // this.socket = SocketIOClient('https://shuaiyixu.xyz');
@@ -91,9 +92,9 @@ export default class RootNavigator extends React.Component {
               console.log("新的群聊消息:",data);
           }
       });
-      this.socket.on("systemListener"+uid,msg=>{
-          this.getFriendRequestInfo(JSON.parse(msg))
-      });
+      // this.socket.on("systemListener"+uid,msg=>{
+      //     this.getFriendRequestInfo(JSON.parse(msg))
+      // });
   }
 
   render() {
@@ -304,6 +305,26 @@ export default class RootNavigator extends React.Component {
             type:type,
             msg:msg
         }));
+    }
+
+    setNewFriendsRequestListener(userUid){
+        let newFriendsRequestRef = firestoreDB().collection('Users').doc(userUid).collection('NewFriendsRequest');
+        newFriendsRequestRef.where("read", "==", false)
+            .onSnapshot(function(querySnapshot) {
+                querySnapshot.forEach(async (doc) => {
+                    let newFriendsRequest = doc.data();
+                     console.log('setNewFriendsRequestListener', doc.id, doc.data());
+                    await getUserDataFromDatabase(newFriendsRequest.responser,
+                        (userData) => {
+                            console.log('setNewFriendsRequestListener',userData);
+                            insertNewFriendsRequest(this.state.userUid, newFriendsRequest, userData);
+                            this.meRef.showBadge();
+                        },
+                        (error) => {});
+                });
+
+            });
+
     }
 
     getFriendRequestInfo(data){

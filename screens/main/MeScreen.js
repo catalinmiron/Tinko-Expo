@@ -1,7 +1,7 @@
 import React from 'react';
 import {
     View, Alert, TouchableWithoutFeedback, Image, ScrollView, SafeAreaView, StyleSheet, Text,
-    AsyncStorage, TouchableOpacity, Dimensions,DeviceEventEmitter, Platform
+    AsyncStorage, TouchableOpacity, Dimensions,DeviceEventEmitter, Platform, Share
 } from 'react-native';
 import { List, ListItem,Button } from 'react-native-elements';
 import Icon from 'react-native-vector-icons/FontAwesome';
@@ -11,7 +11,7 @@ import InfoMenu from '../../components/InfoMenu';
 import CreateStoryButton from '../../components/CreateStoryButton';
 import FriendsList from '../../components/FriendListView';
 import firebase from 'firebase';
-import {getUserData} from "../../modules/CommonUtility";
+import {getPostRequest, getUserData, getUserDataFromDatabase} from "../../modules/CommonUtility";
 import SubButton from '../../components/SettingSubButton';
 import {SQLite} from "expo";
 import Colors from "../../constants/Colors";
@@ -19,6 +19,8 @@ import IconBadge from '../../modules/react-native-icon-badge';
 import {Ionicons} from '@expo/vector-icons';
 import {writeInAsyncStorage, getFromAsyncStorage, firestoreDB} from "../../modules/CommonUtility";
 import {} from '../../modules/ChatStack';
+import { ifIphoneX } from 'react-native-iphone-x-helper';
+import {initNewFriendsRequestTable, insertNewFriendsRequest} from "../../modules/SqliteClient";
 
 const db = SQLite.openDatabase('db.db');
 const SCREEN_WIDTH = Dimensions.get('window').width;
@@ -76,27 +78,33 @@ export default class Me extends React.Component {
     };
 
 
-    componentDidMount(){
-        this.getThisUserData();
+    async componentDidMount(){
         //this.processFriendsList(this.state.userUid);
         this.initFriendsTableAndProcessFriendsList(this.state.userUid);
         this.props.screenProps.meRef(this);
+        this.setNewFriendsRequestListener();
+
+        await this.getThisUserData();
+        let fbAutoAdd = this.state.userData.fbAutoAdd;
+        console.log('after getThisUserData', this.state.userData);
+        this.fbAutoAdd(fbAutoAdd);
     }
 
 
 
 
     showBadge(){
+        console.log('Me showBadge called');
         this.setState({badgeHidden:false});
         this.props.navigation.setParams({badgeHidden:false});
         writeInAsyncStorage('NewFriendsBadgeHidden', false);
     }
 
-    getThisUserData(){
+    async getThisUserData(){
         const {userUid} = this.state;
         let firestoreDb = firestoreDB();
         let userRef = firestoreDb.collection("Users").doc(userUid);
-        userRef.get().then((userDoc) => {
+        await userRef.get().then((userDoc) => {
             if (userDoc.exists) {
                 //console.log("Document data:", userDoc.data());
                 let userData = userDoc.data();
@@ -113,6 +121,64 @@ export default class Me extends React.Component {
     }
 
 
+    async fbAutoAdd(fbAutoAdd){
+        const {userUid} = this.state;
+
+        if(!fbAutoAdd){
+            return;
+        }
+        await getFromAsyncStorage('lastFBAutoAddTimestamp').then((timestamp) =>{
+            if (timestamp && timestamp > new Date().getTime - 24*50*50*1000){
+                console.log('last fbAutoAdd check is within 24 hours');
+                return;
+            }
+        });
+
+        let userFBToken, userFBTokenExpires;
+        await getFromAsyncStorage('fbToken').then(async (fbToken) => {
+            if(!fbToken){
+                let secretsRef = firestoreDB().collection('Users').doc(userUid).collection('Settings').doc('secrets');
+                await secretsRef.get().then((secretsDoc) => {
+                    if (secretsDoc.exists) {
+                        console.log("Document data:", secretsDoc.data());
+                        let secrets = secretsDoc.data();
+                        userFBToken = secrets.fbToken;
+                        userFBTokenExpires = secrets.fbTokenExpires;
+                        console.log('fbAutoAdd', userFBToken, userFBTokenExpires);
+                        writeInAsyncStorage('fbToken', userFBToken);
+                        writeInAsyncStorage('fbTokenExpires', userFBTokenExpires);
+                    } else {
+                        console.log("No such document!");
+                    }
+                }).catch((error) => {
+                    console.log("Error getting document:", error);
+                });
+            }else{
+                userFBToken = fbToken;
+                await getFromAsyncStorage('fbTokenExpires').then((fbTokenExpires) => {
+                    userFBTokenExpires = fbTokenExpires;
+                })
+            }
+        });
+        console.log('fbAutoAdd', userFBTokenExpires*1000, new Date().getTime(), userFBToken);
+        if(userFBTokenExpires*1000 < new Date().getTime()){
+            return;
+        }
+        const response = await fetch(
+            `https://graph.facebook.com/me?access_token=${userFBToken}&fields=friends`
+        );
+        let dict = await response.json();
+        dict.userUid = userUid;
+        dict.facebookId = this.state.userData.facebookId;
+        console.log(dict);
+
+        getPostRequest('handleFBAutoAdd', dict,
+            ()=>{
+                console.log('fbAutoAdd success');
+                writeInAsyncStorage('lastFBAutoAddTimestamp', new Date().getTime())
+            },
+            (error)=>console.log(error));
+    }
 
 
 
@@ -209,78 +275,119 @@ export default class Me extends React.Component {
     newFriendsButtonPressed(){
         this.setState({badgeHidden:true});
         this.props.navigation.setParams({badgeHidden:true});
-        this.props.navigation.navigate('NewFriends');
+        this.props.navigation.navigate('NewFriends', {facebookId: this.state.userData.facebookId});
         writeInAsyncStorage('NewFriendsBadgeHidden', true);
+    }
+
+    async setNewFriendsRequestListener(){
+        const {userUid} = this.state;
+        await initNewFriendsRequestTable(userUid);
+        let newFriendsRequestRef = firestoreDB().collection('Users').doc(userUid).collection('NewFriendsRequest');
+        getFromAsyncStorage('LastNewFriendsRequestTimestamp').then((timestamp) => {
+            if(!timestamp){
+                timestamp=0;
+            }
+            newFriendsRequestRef.where("timestamp", ">", timestamp)
+                .onSnapshot((querySnapshot) => {
+                    querySnapshot.forEach(async (doc) => {
+                        let newFriendsRequest = doc.data();
+                        console.log('setNewFriendsRequestListener', doc.id, doc.data());
+                        await getUserDataFromDatabase(newFriendsRequest.requester,
+                            (userData) => {
+                                console.log('setNewFriendsRequestListener',userData);
+                                insertNewFriendsRequest(this.state.userUid, newFriendsRequest, userData);
+                                writeInAsyncStorage('LastNewFriendsRequestTimestamp',newFriendsRequest.timestamp)
+                                this.showBadge();
+                            },
+                            (error) => {});
+                    });
+
+                });
+        });
+
+
+
     }
 
     render() {
         const { userData ,badgeHidden} = this.state;
         return (
-            <SafeAreaView style={{flex: 1, backgroundColor:'white'}}>
-                <ScrollView style={{backgroundColor: "white", height: "100%" ,width: "100%"}}>
-                    <Ionicons
-                        onPress={() => this.props.navigation.navigate('Setting',{getThisUserData:this.getThisUserData.bind(this)})}
-                        style={{position:'absolute',zIndex:100,top:Platform.OS === 'android' ? 40 : 20, right:SCREEN_WIDTH*0.05}}
-                        name={'ios-settings'}
-                        size={30}
-                        color={'black'}
-                        backgroundColor={'transparent'}
-                    />
-                    <View style={styles.outerDiv}>
-                        <Image
-                            style={{width: 130,height: 130,marginTop:Platform.OS === 'android' ? 40 : 20,borderRadius: 25}}
-                            source={{uri:userData.photoURL}}/>
-                        <Text style={{marginTop:5,fontSize:22,color:"rgb(54,53,59)",fontWeight:"bold"}}>{userData.username}</Text>
-                    </View>
-                    <View style={{justifyContent: 'center', alignItems: 'center',}}>
-                        <View style={{
-                            width:"90%",
-                            marginTop:25,
-                            backgroundColor:"#F2F4F4",
-                            height:55,
-                            borderRadius:10,
-                            flexDirection: 'row'
-                        }}>
-                            <TouchableOpacity
-                                onPress={() => this.newFriendsButtonPressed()}
-                                style={{flex:1, height:55,alignItems: 'center',justifyContent: 'center',}}>
-                                <IconBadge
-                                    MainElement={
-                                        <View style={{height:35, width:35, alignItems: 'center',justifyContent: 'center',}}>
-                                            <Ionicons
-                                                name='md-person-add'
-                                                size={26}
-                                                color="#626567"
-                                             />
-                                        </View>
+            <ScrollView style={{flex:1, backgroundColor: "white", height: "100%" ,width: "100%"}}>
+                <Ionicons
+                    onPress={() => this.props.navigation.navigate('Setting',{getThisUserData:this.getThisUserData.bind(this)})}
+                    style={{position:'absolute',zIndex:100,top:ifIphoneX(54, 40), right:SCREEN_WIDTH*0.05}}
+                    name={'ios-settings'}
+                    size={30}
+                    color={'black'}
+                    backgroundColor={'transparent'}
+                />
+                <View style={styles.outerDiv}>
+                    <Image
+                        style={{width: 130,height: 130,marginTop: ifIphoneX(54, 40),borderRadius: 25}}
+                        source={{uri:userData.photoURL}}/>
+                    <Text style={{marginTop:5,fontSize:22,color:"rgb(54,53,59)",fontWeight:"bold"}}>{userData.username}</Text>
+                </View>
+                <View style={{justifyContent: 'center', alignItems: 'center',}}>
+                    <View style={{
+                        width:"90%",
+                        marginTop:25,
+                        backgroundColor:"#F2F4F4",
+                        height:55,
+                        borderRadius:10,
+                        flexDirection: 'row'
+                    }}>
+                        <TouchableOpacity
+                            onPress={() => this.newFriendsButtonPressed()}
+                            style={{flex:1, height:55,alignItems: 'center',justifyContent: 'center',}}>
+                            <IconBadge
+                                MainElement={
+                                    <View style={{height:35, width:35, alignItems: 'center',justifyContent: 'center',}}>
+                                        <Ionicons
+                                            name='md-person-add'
+                                            size={26}
+                                            color="#626567"
+                                        />
+                                    </View>
 
-                                    }
-                                    IconBadgeStyle={
-                                        {width:10, height:10, backgroundColor: 'red'}
-                                    }
-                                    Hidden={badgeHidden}
-                                />
-                            </TouchableOpacity>
-                            <SubButton
-                                index={1}
-                                onPress={() => console.log('second')}
-                                ViewStyle={{borderLeftWidth:2,borderRightWidth:2,borderColor:"white",}}
+                                }
+                                IconBadgeStyle={
+                                    {width:10, height:10, backgroundColor: 'red'}
+                                }
+                                Hidden={badgeHidden}
                             />
-                            <SubButton
-                                index={2}
-                                onPress={() => console.log('third')}
-                            />
-                        </View>
+                        </TouchableOpacity>
+                        <SubButton
+                            index={1}
+                            onPress={() => this.props.navigation.navigate('MyTinkos')}
+                            ViewStyle={{borderLeftWidth:2,borderRightWidth:2,borderColor:"white",}}
+                        />
+                        <SubButton
+                            index={2}
+                            onPress={() => {
+                                if(Platform.OS === 'android'){
+                                    this.props.navigation.navigate('TinkoWebView',{title:'SHARE', uri:'https://www.facebook.com/sharer/sharer.php?u=https://expo.io/'})
+                                } else {
+                                    Share.share({
+                                        title:'a beautiful title: http://www.foxnews.com/',
+                                        message:'some beautiful message',
+                                        url:'http://www.foxnews.com/'
+                                    },{
+                                        subject:'a beautiful subject',
+                                        dialogTitle:'a beautiful dialogTitle'
+                                    })
+                                }
+                            }}
+                        />
                     </View>
+                </View>
 
 
-                    <FriendsList
-                        showThisUser={this.props.screenProps.showThisUser}
-                        onRef={ref => this.friendsList = ref}
-                        navigation={this.props.navigation}
-                    />
-                </ScrollView>
-            </SafeAreaView>
+                <FriendsList
+                    showThisUser={this.props.screenProps.showThisUser}
+                    onRef={ref => this.friendsList = ref}
+                    navigation={this.props.navigation}
+                />
+            </ScrollView>
         );
     }
 }

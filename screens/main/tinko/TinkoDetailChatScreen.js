@@ -9,6 +9,7 @@ import {Header} from "react-native-elements";
 import { ifIphoneX } from 'react-native-iphone-x-helper';
 import SocketIOClient from 'socket.io-client';
 import KeyboardSpacer from "react-native-keyboard-spacer";
+import {MaterialIcons} from '@expo/vector-icons';
 
 let MeetId = "",
     uid = "",
@@ -91,7 +92,7 @@ export default class TinkoDetailChatScreen extends React.Component {
             loadEarlier: false,
             isLoadingEarlier:false,
             lastMeetId:-1,
-            limit:1,
+            limit:15,
             SafeAreaInsets:34,
         };
     }
@@ -193,22 +194,25 @@ export default class TinkoDetailChatScreen extends React.Component {
                 body: JSON.stringify(bodyData),
             }).then((response) => response.json())
                 .then((responseJson) => {
-                    if (responseJson.data){
-                        let data = responseJson.data;
-                        console.log('after fetch', data);
-                        let messages=[];
-                        this.processMessageData(data,1);
-                        if(data.length<limit){
-                            this.setState({loadEarlier:false, });
-                        } else {
-                            this.setState({loadEarlier:true, });
-                        }
-                        let lastId;
-                        if(data.length!==0){
-                            lastId=data[data.length-1].id;
-                        }
-                        this.setState({isLoadingEarlier:false, lastMeetId:lastId});
+                    let data = responseJson.data;
+                    console.log('after fetch', data);
+                    let messages=[];
+                    this.processMessageData(data,1);
+                    //console.log(data);
+                    // if(!data){
+                    //     return;
+                    // }
+
+                    if(data.length<limit){
+                        this.setState({loadEarlier:false, });
+                    } else {
+                        this.setState({loadEarlier:true, });
                     }
+                    let lastId;
+                    if(data.length!==0){
+                        lastId=data[data.length-1].id;
+                    }
+                    this.setState({isLoadingEarlier:false, lastMeetId:lastId});
                 })
                 .catch((error) => {
                     console.log("报错了");
@@ -290,6 +294,8 @@ export default class TinkoDetailChatScreen extends React.Component {
                 <Header
                     centerComponent={{ text: 'Discuss', style: { fontSize:18, fontFamily:'regular', color: '#fff' } }}
                     outerContainerStyles={ifIphoneX({height:88})}
+                    leftComponent={<MaterialIcons name='details' size={26} color={'white'} backgroundColor={'transparent'}
+                                                   onPress={()=>this.props.navigation.navigate('TinkoDetail')}/>}
                 />
                 <GiftedChat
 
@@ -304,7 +310,8 @@ export default class TinkoDetailChatScreen extends React.Component {
                             backgroundColor: 'white',
                         }
                     }}
-
+                    onPressAvatar={this.props.screenProps.showThisUser}
+                    navigation={this.props.navigation}
                     loadEarlier={loadEarlier}
                     onLoadEarlier={() => this.getGroupChatContents()}
                     isLoadingEarlier={isLoadingEarlier}

@@ -12,7 +12,7 @@ import {
     View,
     Alert
 } from 'react-native';
-import { Constants, ImagePicker } from 'expo';
+import {Constants, ImagePicker, Permissions} from 'expo';
 import uuid from 'uuid';
 import * as firebase from 'firebase';
 import {ifIphoneX} from "react-native-iphone-x-helper";
@@ -141,18 +141,30 @@ export default class AvatarUploadScreen extends React.Component {
 
 
     _takePhoto = async () => {
+        let { status } = await Permissions.askAsync(Permissions.CAMERA);
+        if (status !== 'granted') {
+            Alert.alert('Error', 'Please grant Camera Permission to use this feature.')
+        }
+        let { status2 } = await Permissions.askAsync(Permissions.CAMERA_ROLL);
+        // if (status2 !== 'granted') {
+        //     Alert.alert('Error', 'Please grant Camera Roll Permission to use this feature.')
+        // }
         let pickerResult = await ImagePicker.launchCameraAsync({
             allowsEditing: true,
-            aspect: [4, 3],
+            aspect: [1, 1],
         });
 
         this._handleImagePicked(pickerResult);
     };
 
     _pickImage = async () => {
+        let { status } = await Permissions.askAsync(Permissions.CAMERA_ROLL);
+        if (status !== 'granted') {
+            Alert.alert('Error', 'Please grant Camera Roll Permission to use this feature.')
+        }
         let pickerResult = await ImagePicker.launchImageLibraryAsync({
             allowsEditing: true,
-            aspect: [4, 3],
+            aspect: [1, 1],
         });
 
         this._handleImagePicked(pickerResult);
@@ -164,7 +176,7 @@ export default class AvatarUploadScreen extends React.Component {
             this.setState({ uploading: true });
 
             if (!pickerResult.cancelled) {
-                uploadUrl = await uploadImageAsync(pickerResult.uri, userUid);
+                let uploadUrl = await uploadImageAsync(pickerResult.uri, userUid);
                 let userRef = firestoreDB().collection('Users').doc(userUid);
                 userRef.update({photoURL:uploadUrl}).then(()=>{
                     this.setState({ image: uploadUrl });

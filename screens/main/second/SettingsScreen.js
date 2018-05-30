@@ -1,10 +1,13 @@
 import React from 'react';
-import {Alert, View, Button, StyleSheet, Text} from "react-native";
+import {Alert, View, StyleSheet, Text, Switch, ScrollView, Dimensions} from "react-native";
 import firebase from "firebase";
-import {Avatar, Header, ListItem} from 'react-native-elements';
-import {getFromAsyncStorage} from "../../../modules/CommonUtility";
+import {Avatar, Header, ListItem, Button} from 'react-native-elements';
+import {firestoreDB, getAvatarPlaceholder, getFromAsyncStorage} from "../../../modules/CommonUtility";
 import {ifIphoneX} from "react-native-iphone-x-helper";
 import {logoutFromNotification} from '../../../modules/CommonUtility';
+import {Image as CacheImage} from "react-native-expo-image-cache";
+
+const SCREEN_WIDTH = Dimensions.get('window').width;
 
 export default class SettingsScreen extends React.Component {
     static navigationOptions = ({
@@ -31,13 +34,19 @@ export default class SettingsScreen extends React.Component {
     }
 
     onLogoutButtonPressed(){
-        logoutFromNotification(this.state.userUid);
-        firebase.auth().signOut()
-            .then(console.log('after signout'))
-            .catch((error) => {
-                console.log(error);
-                Alert.alert("Error", error.message);
-            });
+        Alert.alert("Alert", "Are you sure to logout?",
+            [
+                {text: 'Cancel', onPress: () => console.log('Cancel Pressed'), style: 'cancel'},
+                {text: 'Yes', onPress: () => {
+                        logoutFromNotification(this.state.userUid);
+                        firebase.auth().signOut()
+                            .then(console.log('after signout'))
+                            .catch((error) => {
+                                console.log(error);
+                                Alert.alert("Error", error.message);
+                            });
+                    }, style:"destructive"},
+            ]);
 
     }
 
@@ -65,75 +74,132 @@ export default class SettingsScreen extends React.Component {
         })
     }
 
+    onFBAutoAddSwitchChanged(fbAutoAdd){
+        this.setState((state)=>{
+            let userData = state.userData;
+            userData.fbAutoAdd = fbAutoAdd;
+            return {userData};
+        })
+        let userRef = firestoreDB().collection('Users').doc(this.state.userUid);
+        userRef.update({fbAutoAdd:fbAutoAdd}).then(()=>{
+            this.props.navigation.state.params.getThisUserData();
+        }).catch((error)=>{
+            Alert.alert('Error', error);
+        })
+    }
     //onPress={() => this.onLogoutButtonPressed()}
 
     render() {
         const {userData} = this.state;
         return (
-            <View>
+            <View style={{flex:1}}>
                 <Header
                     leftComponent={{ icon: 'chevron-left', color: '#fff', onPress:()=>this.props.navigation.goBack()}}
                     centerComponent={{ text: 'Settings', style: { fontSize:18, fontFamily:'regular', color: '#fff' } }}
                     outerContainerStyles={ifIphoneX({height:88})}
                 />
-                <ListItem
-                    title='Avatar'
-                    titleStyle={styles.titleStyle}
-                    chevron
-                    chevronColor={'black'}
-                    rightElement={
-                        <Avatar
-                            size='medium'
-                            source={{uri: userData.photoURL}}
-                        />
-                    }
-                    onPress={()=> this.props.navigation.navigate('AvatarUpload',{
-                        getThisUserData:this.props.navigation.state.params.getThisUserData,
-                        setPhotoURL:this.setPhotoURL.bind(this)
-                    })}
-                />
-                <ListItem
-                    title='Username'
-                    titleStyle={styles.titleStyle}
-                    chevron
-                    chevronColor={'black'}
-                    rightElement={
-                        <Text>{userData.username}</Text>
-                    }
-                    onPress={()=>this.props.navigation.navigate('UpdateUsername',{
-                        getThisUserData:this.props.navigation.state.params.getThisUserData,
-                        setUsername:this.setUsername.bind(this),
-                        username:userData.username
-                    })}
-                />
-                <ListItem
-                    title='Location'
-                    titleStyle={styles.titleStyle}
-                    chevron
-                    chevronColor={'black'}
-                    rightElement={
-                        <Text>{userData.location}</Text>
-                    }
-                    onPress={() => this.props.navigation.navigate('GooglePlacesAutocomplete', {
-                        getThisUserData:this.props.navigation.state.params.getThisUserData,
-                        setLocation: this.setLocation.bind(this),
-                        citySearchMode:true
-                    })}
-                />
-                <Button
-                    onPress={() => this.onLogoutButtonPressed()}
-                    title="Logout"
-                    titleStyle={{ fontWeight: "700" }}
-                    buttonStyle={{
-                        backgroundColor: "rgba(92, 99,216, 1)",
-                        width: 300,
-                        height: 45,
-                        borderColor: "transparent",
-                        borderWidth: 0,
-                        borderRadius: 5
-                    }}
-                    containerStyle={{ marginTop: 20 }}
-                />
+                <ScrollView>
+                    <ListItem
+                        title='Avatar'
+                        titleStyle={styles.titleStyle}
+                        chevron
+                        chevronColor={'black'}
+                        rightElement={
+                            <CacheImage
+                                preview={getAvatarPlaceholder}
+                                uri={userData.photoURL}
+                                style={{width:50, height:50}}
+                            />
+                        }
+                        onPress={()=> this.props.navigation.navigate('AvatarUpload',{
+                            getThisUserData:this.props.navigation.state.params.getThisUserData,
+                            setPhotoURL:this.setPhotoURL.bind(this)
+                        })}
+                    />
+                    <ListItem
+                        title='Username'
+                        titleStyle={styles.titleStyle}
+                        chevron
+                        chevronColor={'black'}
+                        rightElement={
+                            <Text>{userData.username}</Text>
+                        }
+                        onPress={()=>this.props.navigation.navigate('UpdateUsername',{
+                            getThisUserData:this.props.navigation.state.params.getThisUserData,
+                            setUsername:this.setUsername.bind(this),
+                            username:userData.username
+                        })}
+                    />
+                    <ListItem
+                        title='Location'
+                        titleStyle={styles.titleStyle}
+                        chevron
+                        chevronColor={'black'}
+                        rightElement={
+                            <Text>{userData.location}</Text>
+                        }
+                        onPress={() => this.props.navigation.navigate('GooglePlacesAutocomplete', {
+                            getThisUserData:this.props.navigation.state.params.getThisUserData,
+                            setLocation: this.setLocation.bind(this),
+                            citySearchMode:true
+                        })}
+                    />
+                    <ListItem
+                        title='Email'
+                        titleStyle={styles.titleStyle}
+                        rightElement={
+                            <Text>{userData.email}</Text>
+                        }
+                    />
+                    <ListItem
+                        title='Auto add Facebook Friends'
+                        titleStyle={{fontFamily:'regular', fontSize:17,}}
+                        rightElement={
+                            <Switch
+                                value={userData.fbAutoAdd}
+                                onValueChange={(fbAutoAdd) => this.onFBAutoAddSwitchChanged(fbAutoAdd)}
+                            />
+                        }
+                    />
+                    <ListItem
+                        title='Privacy Policy'
+                        titleStyle={styles.titleStyle}
+                        containerStyle={{marginTop:20}}
+                        chevron
+                        chevronColor={'black'}
+                        onPress={()=>this.props.navigation.navigate('TinkoWebView',{title:'Privacy Policy', uri:'https://termsfeed.com/privacy-policy/11f395148fd94535328c9cda80d1ca86'})}
+                    />
+                    <ListItem
+                        title='Services Terms'
+                        titleStyle={styles.titleStyle}
+                        chevron
+                        chevronColor={'black'}
+                        onPress={()=>this.props.navigation.navigate('TinkoWebView',{title:'Services Terms', uri:'https://termsfeed.com/terms-conditions/5f13460a2ff8f4a683d5ee096fa3a5f1'})}
+                    />
+
+                    <ListItem
+                        title='Logout'
+                        titleStyle={{fontFamily:'regular', fontSize:18}}
+                        containerStyle={{marginTop:20}}
+                        onPress={()=>this.onLogoutButtonPressed()}
+                    />
+                    {/*<View style={{width:SCREEN_WIDTH, justifyContent:'center', alignItems:'center'}}>*/}
+                        {/*<Button*/}
+                            {/*onPress={() => this.onLogoutButtonPressed()}*/}
+                            {/*title="Logout"*/}
+                            {/*titleStyle={{ fontWeight: "700" }}*/}
+                            {/*buttonStyle={{*/}
+                                {/*backgroundColor: "rgba(92, 99,216, 1)",*/}
+                                {/*width: 300,*/}
+                                {/*height: 45,*/}
+                                {/*borderColor: "transparent",*/}
+                                {/*borderWidth: 0,*/}
+                                {/*borderRadius: 5*/}
+                            {/*}}*/}
+                            {/*containerStyle={{ marginTop: 20 }}*/}
+                        {/*/>*/}
+                    {/*</View>*/}
+                </ScrollView>
             </View>
         )
     }

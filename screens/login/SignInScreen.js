@@ -6,7 +6,7 @@ import {Facebook, Font} from 'expo';
 import firebase from "firebase";
 import { NavigationActions } from 'react-navigation';
 //import Icon from 'react-native-vector-icons/FontAwesome';
-import {getPostRequest} from "../../modules/CommonUtility";
+import {firestoreDB, getPostRequest, writeInAsyncStorage} from "../../modules/CommonUtility";
 
 const SCREEN_WIDTH = Dimensions.get('window').width;
 const SCREEN_HEIGHT = Dimensions.get('window').height;
@@ -70,60 +70,68 @@ export default class SignInScreen extends Component {
     }
 
 
-    initializeNewUser = async (token, uid) => {
+    initializeNewUser = async (token, uid, expires) => {
         const response = await fetch(
             `https://graph.facebook.com/me?access_token=${token}&fields=id,name,email,friends,location,gender,picture`
         );
         //const responseJSON = JSON.stringify(await response.json());
-        console.log(await response.json());
         var dict = await response.json();
+        console.log(dict);
         dict.uid = uid;
+        dict.fbToken = token;
+        dict.fbTokenExpires = expires;
         console.log(dict);
         const {email} = dict;
         console.log(email);
 
         this.resetNavigation('Register', email);
-        fetch('https://us-central1-tinko-64673.cloudfunctions.net/initializeNewUser', {
-            method:'POST',
-            headers: {
-                Accept: 'application/json',
-                'Content-Type': 'application/json',
-            },
-            body: JSON.stringify(dict),
-        }).then ((response) => {
-            console.log(response);
-
-        }).catch((error) => {
-            console.log(error);
-            Alert.alert('Error ' + error);
-        });
+        getPostRequest('initializeNewUser', dict,
+            ()=>{},
+            (error)=>Alert.alert('Error', error));
     };
 
-    async logInFirebase(token){
+    async logInFirebase(token, expires){
         const credential = firebase.auth.FacebookAuthProvider.credential(token);
         firebase.auth().signInWithCredential(credential).then((user) => {
             console.log("Login: ", user);
             const { a, b } = user.metadata;
             console.log(a, b); //a = creationTime, b = lastSignInTime
-            //this.initializeNewUser(token, user.uid);
+
+            writeInAsyncStorage('fbToken', token);
+            writeInAsyncStorage('fbTokenExpires', expires);
+
+            //this.initializeNewUser(token, user.uid, expires);
             if(a===b){ //first time login
-                this.initializeNewUser(token, user.uid);
+                this.initializeNewUser(token, user.uid, expires);
             } else {
                 console.log('goingToMain');
+                let secretsRef = firestoreDB().collection('Users').doc(user.uid).collection('Settings').doc('secrets');
+
+                secretsRef.update({fbToken:token, fbTokenExpires:expires})
+                    .catch((error)=>{
+                        console.log(error);
+                    });
                 this.props.screenProps.handleUserLoggedIn();
             }
         }).catch((error) => {
             console.log(error);
+            this.setState({showLoading:false});
+            Alert.alert('Error', error);
         })
     }
 
     async logInFB() {
-        const { type, token } = await Facebook.logInWithReadPermissionsAsync('765640913609406', {
+        this.setState({showLoading:true});
+        const { type, token, expires } = await Facebook.logInWithReadPermissionsAsync('765640913609406', {
             permissions: ['public_profile', 'email', 'user_friends', 'user_location'],
         });
         if (type === 'success') {
-            this.logInFirebase(token);
+            console.log(token,expires);
+            this.logInFirebase(token, expires);
+        } else{
+            this.setState({showLoading:false})
         }
+
     }
 
     render() {
@@ -208,10 +216,10 @@ export default class SignInScreen extends Component {
                                     New here?
                                 </Text>
                                 <Button
-                                    title="Sign up / Sign In with Facebook"
+                                    title="Sign In with Facebook"
                                     clear
                                     activeOpacity={0.5}
-                                    titleStyle={{color: 'white', fontSize: 15}}
+                                    titleStyle={{color: 'white', fontSize: 20}}
                                     containerStyle={{marginTop: -10}}
                                     onPress={() => this.logInFB()}
                                 />

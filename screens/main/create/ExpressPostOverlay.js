@@ -169,12 +169,14 @@ export default class ExpressPostOverlay extends Component{
                 console.log("Document written with ID: ", meetRef.id);
                 createMeet(userUid, meetRef.id);
                 this.props.tinkoGetMeets();
-                this.setState({activityIndicator:false,isVisible:false})
+                this.setState({activityIndicatorVisible:false,isVisible:false})
             })
             .catch((error) => {
                 console.log("Error adding document: ", error);
+                this.setState({activityIndicatorVisible:false});
                 Alert.alert('Error', error);
             });
+
 
     }
 

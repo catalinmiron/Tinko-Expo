@@ -25,6 +25,7 @@ import ParticipantsManagementScreen from "../screens/main/create/ParticipantsMan
 import AvatarUploadScreen from "../screens/main/settings/AvatarUploadScreen";
 import UpdateUsernameScreen from "../screens/main/settings/UpdateUsernameScreen";
 import TinkoDetailScreen from '../screens/main/tinko/TinkoDetailScreen';
+import MyTinkosScreen from "../screens/main/second/MyTinkosScreen";
 
 
 const MainTabNavigator = TabNavigator(
@@ -138,6 +139,9 @@ const MainTabNavigatorWithDetailScreens = StackNavigator(
         TheTinkoDetailScreen:{
             screen: TinkoDetailScreen,
         },
+        MyTinkos:{
+            screen:MyTinkosScreen,
+        }
     },
     { headerMode: 'none' }
 );
