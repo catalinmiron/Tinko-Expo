@@ -330,14 +330,14 @@ export const getListTime = (time) => {
         mM = YMD[1],
         mD = YMD[2],
         mh = hms[0],
-        mm = hms[1],
+        mm = parseInt(hms[1]),
         ms = hms[2];
     if (thisTime.isSame(moment(),"day")){
         if (mm<10){
             mm = "0"+parseInt(mm);
         }
         if (mh<10){
-            mm = "0"+parseInt(mm);
+            mm = parseInt(mm);
         }
         return (mh+":"+mm);
     }else if (thisTime.isSame(moment(),"week")){
