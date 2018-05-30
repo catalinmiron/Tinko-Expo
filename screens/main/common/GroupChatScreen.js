@@ -137,7 +137,6 @@ export default class PrivateChatScreen extends Component {
 
 
     renderAvatar(props){
-        console.log(props)
         return(
             <TouchableOpacity
                 onPress={() => props.onPressAvatar(props.currentMessage.user._id,this.props.navigation)}

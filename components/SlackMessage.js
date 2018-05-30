@@ -58,7 +58,6 @@ export default class Message extends React.Component {
         }
 
         const avatarProps = this.getInnerComponentProps();
-        console.log(avatarProps);
         return (
             <TouchableOpacity
                 onPress={() => avatarProps.onPressAvatar(avatarProps.currentMessage.user._id,avatarProps.navigation)}

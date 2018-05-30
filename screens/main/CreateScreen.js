@@ -624,8 +624,10 @@ export default class CreateScreen extends React.Component {
                 {text: 'Delete', onPress: () => {
                     this.setState((state) => {
                         let userUploadedImages = state.userUploadedImages;
+                        let userUploadedImagesLocalUri = state.userUploadedImagesLocalUri;
                         _.pull(userUploadedImages, uri);
-                        return {userUploadedImages};
+                        _.pull(userUploadedImagesLocalUri, uri);
+                        return {userUploadedImages, userUploadedImagesLocalUri};
                     })
                     }, style:"destructive"},
             ]);
