@@ -259,8 +259,9 @@ export default class PrivateChatScreen extends Component {
                         "meetingId," +
                         "meetUserData," +
                         "isSystem," +
-                        "sendCode) VALUES (?,?,?,?,?,?,?,?)",[pid,text,0,1,1,"","",0,code],(_, { insertId }) => {
+                        "sendCode) VALUES (?,?,?,?,?,?,?,?,?)",[pid,0,text,1,1,"","",0,code],(_, { insertId }) => {
                                 //被修改了的数量
+                        console.log("已经存进去了，id是",insertId);
                             this.socket.emit("privateChat",uid,pid,text,insertId);
                             this.setState(previousState => ({
                                 messages: GiftedChat.append(previousState.messages, messages[0]),

@@ -284,10 +284,15 @@ export default class RootNavigator extends React.Component {
         if (data["userData"]!==undefined){
             userData = JSON.stringify(data["userData"]);
         }
-        console.log("INSERT INTO db"+uid+" (fromId,msg,status,type,meetingId,meetUserData) VALUES (?,?,?,?,?,?)",[from,message,status,type,meetingId,userData]);
+        let sql = "INSERT INTO db"+uid+" (fromId,msg,status,type,meetingId,meetUserData) VALUES (?,?,?,?,?,?)",
+            sqlParams = [from,message,status,type,meetingId,userData];
+        if (meetingId!==""&&from===uid){
+            sql = "INSERT INTO db"+uid+" (fromId,msg,status,type,meetingId,meetUserData,hasRead) VALUES (?,?,?,?,?,?,?)";
+            sqlParams = [from,message,status,type,meetingId,userData,0];
+        }
         db.transaction(
             tx => {
-                tx.executeSql("INSERT INTO db"+uid+" (fromId,msg,status,type,meetingId,meetUserData) VALUES (?,?,?,?,?,?)",[from,message,status,type,meetingId,userData]);
+                tx.executeSql(sql,sqlParams);
             },
             null,
             null
