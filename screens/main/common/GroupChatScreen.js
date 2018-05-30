@@ -274,6 +274,41 @@ export default class PrivateChatScreen extends Component {
         }))
     }
 
+    SendMSG(messages = []) {
+        let text = messages[0].text;
+        let code =  Date.parse( new Date())/1000;
+        if (code !== timeSTP){
+            timeSTP = code;
+            updateLastMessage(pid,text);
+            db.transaction(
+                tx => {
+                    tx.executeSql("INSERT INTO db"+uid+" (" +
+                        "fromId," +
+                        "hasRead,"+
+                        "msg," +
+                        "status," +
+                        "type," +
+                        "meetingId," +
+                        "meetUserData," +
+                        "isSystem," +
+                        "sendCode) VALUES (?,?,?,?,?,?,?,?)",[pid,text,0,1,1,"","",0,code],(_, { insertId }) => {
+                            //被修改了的数量
+                            this.socket.emit("privateChat",uid,pid,text,insertId);
+                            this.setState(previousState => ({
+                                messages: GiftedChat.append(previousState.messages, messages[0]),
+                            }))
+                        }
+                    );
+                },
+                (error) => {
+
+                },
+                () => {
+                }
+            );
+        }
+    }
+
 
 }
 

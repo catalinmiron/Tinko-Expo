@@ -233,6 +233,7 @@ export default class PrivateChatScreen extends Component {
 
     utcTime(time){
         //2018-04-17 2:19:51
+        console.log(time);
         if (time !== undefined) {
             let timeArr = time.split(" "),
                 year = timeArr[0].split("-"),
@@ -251,13 +252,14 @@ export default class PrivateChatScreen extends Component {
                 tx => {
                     tx.executeSql("INSERT INTO db"+uid+" (" +
                         "fromId," +
+                        "hasRead,"+
                         "msg," +
                         "status," +
                         "type," +
                         "meetingId," +
                         "meetUserData," +
                         "isSystem," +
-                        "sendCode) VALUES (?,?,?,?,?,?,?,?)",[pid,text,1,1,"","",0,code],(_, { insertId }) => {
+                        "sendCode) VALUES (?,?,?,?,?,?,?,?)",[pid,text,0,1,1,"","",0,code],(_, { insertId }) => {
                                 //被修改了的数量
                             this.socket.emit("privateChat",uid,pid,text,insertId);
                             this.setState(previousState => ({
