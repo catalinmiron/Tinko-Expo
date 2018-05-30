@@ -126,7 +126,6 @@ export default class CreateScreen extends React.Component {
             tagInputWidth:50,
             postTime:null,
             userUploadedImages:[],
-            userUploadedImagesLocalUri:[],
             loadingVisible:false,
         };
     }
@@ -317,15 +316,19 @@ export default class CreateScreen extends React.Component {
 
 
     async processLocalUri(){
-        const {userUploadedImages, userUploadedImagesLocalUri, userUid} = this.state;
-        await userUploadedImagesLocalUri.reduce((p,e,i) => p.then(async ()=> {
+        const {userUploadedImages, userUid} = this.state;
+        await userUploadedImages.reduce((p,e,i) => p.then(async ()=> {
             //console.log(p, e.data(), i);
             let uri = e;
-            let uploadUrl = await uploadImageAsync(uri, userUid);
-            userUploadedImages.push(uploadUrl);
+            if(!uri.startsWith('https')){
+                let uploadUrl = await uploadImageAsync(uri, userUid);
+                userUploadedImages[i] = uploadUrl;
+            }
+
 
         }),Promise.resolve());
 
+        console.log(userUploadedImages);
         return userUploadedImages;
     }
 
@@ -602,10 +605,9 @@ export default class CreateScreen extends React.Component {
                 console.log('manipResult: ',manipResult)
                 //let uploadUrl = await uploadImageAsync(pickerResult.uri, userUid);
                 this.setState((state) => {
-                    let userUploadedImagesLocalUri = state.userUploadedImagesLocalUri;
-                    //userUploadedImagesLocalUri.push(pickerResult.uri);
-                    userUploadedImagesLocalUri.push(manipResult.uri);
-                    return {userUploadedImagesLocalUri};
+                    let userUploadedImages = state.userUploadedImages;
+                    userUploadedImages.push(manipResult.uri);
+                    return {userUploadedImages};
                 })
             }
         } catch (e) {
@@ -617,27 +619,54 @@ export default class CreateScreen extends React.Component {
     };
 
 
-    onUploadedImageLongPress(uri){
+    deleteUploadedImage(uri){
         Alert.alert("Delete this image?", '',
             [
                 {text: 'Cancel', onPress: () => console.log('Cancel Pressed'), style: 'cancel'},
                 {text: 'Delete', onPress: () => {
-                    this.setState((state) => {
-                        let userUploadedImages = state.userUploadedImages;
-                        let userUploadedImagesLocalUri = state.userUploadedImagesLocalUri;
-                        _.pull(userUploadedImages, uri);
-                        _.pull(userUploadedImagesLocalUri, uri);
-                        return {userUploadedImages, userUploadedImagesLocalUri};
-                    })
+                        this.setState((state) => {
+                            let userUploadedImages = state.userUploadedImages;
+                            _.pull(userUploadedImages, uri);
+                            return {userUploadedImages};
+                        })
                     }, style:"destructive"},
             ]);
+    }
+
+    setImageAsCover(uri){
+        this.setState((state) => {
+            let userUploadedImages = state.userUploadedImages;
+            _.pull(userUploadedImages, uri);
+            userUploadedImages.splice(0,0,uri);
+            return {userUploadedImages};
+        })
+    }
+
+    onUploadedImageLongPress(uri){
+        let options = ['Set as Cover', 'Delete', 'Cancel'];
+        let destructiveButtonIndex = 1;
+        let cancelButtonIndex = 2;
+        this.props.showActionSheetWithOptions(
+            {
+                options,
+                destructiveButtonIndex,
+                cancelButtonIndex,
+            },
+            buttonIndex => {
+                if(buttonIndex===0){
+                    this.setImageAsCover(uri);
+                } else if(buttonIndex===1){
+                    this.deleteUploadedImage(uri);
+                }
+            }
+        );
     }
 
     render() {
         const {title, startTime, placeName, placeAddress, description, inputHeight, allFriends, allowParticipantsInvite, allowPeopleNearby,
             selectedFriendsList, maxNo, descriptionHeight, tagsString, tagInputString, tagInputWidth, duration, durationUnit,titleHeight,
-            tagsList, editingMode, meetId, userUploadedImages, userUploadedImagesLocalUri, loadingVisible} = this.state;
-        let editedUserUploadedImages = userUploadedImages.concat(userUploadedImagesLocalUri).concat(['UPLOAD']);
+            tagsList, editingMode, meetId, userUploadedImages, loadingVisible} = this.state;
+        let editedUserUploadedImages = userUploadedImages.concat(['UPLOAD']);
         let temp = placeAddress.split(',');
         let area = temp[temp.length-1];
         var dateTimeParts = startTime.split(' '),
