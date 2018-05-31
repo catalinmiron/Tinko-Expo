@@ -468,6 +468,7 @@ export default class FriendChatListView extends Component {
 
     removeData(id){
         removeChat(id);
+        writeInAsyncStorage("chatStack",getData());
         this.setState({
             messages:getData()
         });
@@ -528,6 +529,8 @@ export default class FriendChatListView extends Component {
                             currentOnSelectUser(messages.id);
                             // totalUnReadMessageNum = totalUnReadMessageNum - getLength(messages.id);
                             // this.totalUnreadMessageNumChanged(totalUnReadMessageNum);
+
+                            writeInAsyncStorage("chatStack",getData());
                             this.props.navigation.navigate('PrivateChatPage', {
                                 avatar:messages.imageURL,
                                 name:messages.personName,
@@ -540,6 +543,8 @@ export default class FriendChatListView extends Component {
                             currentOnSelectUser(messages.id);
                             // totalUnReadMessageNum = totalUnReadMessageNum - getLength(messages.id);
                             // this.totalUnreadMessageNumChanged(totalUnReadMessageNum);
+
+                            writeInAsyncStorage("chatStack",getData());
                             this.props.navigation.navigate('GroupChatPage', {
                                 avatar:messages.imageURL,
                                 name:messages.personName,
