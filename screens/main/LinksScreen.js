@@ -291,20 +291,6 @@ export default class FriendChatListView extends Component {
         }
     }
 
-
-    //处理时间
-    unixTime(timeStamp) {
-        let date = new Date(timeStamp);
-        Y = date.getFullYear() + '-';
-        M = (date.getMonth()+1 < 10 ? '0'+(date.getMonth()+1) : date.getMonth()+1) + '-';
-        D = date.getDate() + ' ';
-        h = date.getHours() + ':';
-        m = date.getMinutes() + ':';
-        s = date.getSeconds();
-        return (Y+M+D+h+m+s);
-    };
-
-
     insertChatSql(uid,data){
         let type = data["type"],
             message = data["message"],
@@ -315,7 +301,7 @@ export default class FriendChatListView extends Component {
             status = 0,
             readStatus = (currentOnSelectId === from)?0:1;
         if (data["time"]){
-            time = this.unixTime(data["time"]);
+            time = data["time"];
         }
         if (data["meetId"]!==undefined){
             meetingId = data["meetId"];
@@ -342,6 +328,7 @@ export default class FriendChatListView extends Component {
             sqlStr = "INSERT INTO db"+uid+" (fromId,msg,status,type,meetingId,meetUserData,timeStamp,hasRead) VALUES (?,?,?,?,?,?,?,?)";
             sqlParams =[from,message,status,type,meetingId,userData,time,readStatus];
         }
+        console.log(sqlStr);
         db.transaction(
             tx => {
                 tx.executeSql(sqlStr,sqlParams);
