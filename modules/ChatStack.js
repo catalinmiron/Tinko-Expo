@@ -15,6 +15,7 @@ export const setUid = (id) => {
 
 export const setDataStore = (data) =>{
     dataStore = data;
+    updateTotalUnReadNum();
 };
 
 export const currentOnSelectUser = (id) => {
