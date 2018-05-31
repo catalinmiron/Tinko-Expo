@@ -33,66 +33,15 @@ const MainTabNavigator = TabNavigator(
     Home: {
       screen: TinkoTabNavigator,
     },
-    Links: {
-      screen: LinksScreen,
-        header: null,
-    },
+    // Links: {
+    //   screen: LinksScreen,
+    //     header: null,
+    // },
     Settings: {
       screen: MeScreen,
     },
   },
   {
-    // navigationOptions: ({ navigation }) => ({
-    //   tabBarIcon: ({ focused }) => {
-    //     const { routeName } = navigation.state;
-    //     let iconName;
-    //     switch (routeName) {
-    //       case 'Home':
-    //         iconName =
-    //           Platform.OS === 'ios'
-    //             ? `ios-information-circle${focused ? '' : '-outline'}`
-    //             : 'md-information-circle';
-    //         break;
-    //       case 'Links':
-    //         iconName = Platform.OS === 'ios' ? `ios-link${focused ? '' : '-outline'}` : 'md-link';
-    //         break;
-    //       case 'Settings':
-    //         iconName =
-    //           Platform.OS === 'ios' ? `ios-person${focused ? '' : '-outline'}` : 'md-person';
-    //     }
-    //     return (
-    //         <View>
-    //             {/*<Ionicons*/}
-    //                 {/*name={iconName}*/}
-    //                 {/*size={28}*/}
-    //                 {/*style={{ marginBottom: -3 }}*/}
-    //                 {/*color={focused ? Colors.tabIconSelected : Colors.tabIconDefault}*/}
-    //             {/*/>*/}
-    //             <IconBadge
-    //                 MainElement={
-    //                     <View style={{height:30, width:30, alignItems: 'center',
-    //                         justifyContent: 'center',}}>
-    //                         <Ionicons
-    //                             name={iconName}
-    //                             size={30}
-    //                             style={{ marginBottom: -3 }}
-    //                             color={focused ? Colors.tabIconSelected : Colors.tabIconDefault}
-    //                         />
-    //                     </View>
-    //
-    //                 }
-    //                 BadgeElement={
-    //                     <Text style={{color:'#FFFFFF'}}>{''}</Text>
-    //                 }
-    //                 IconBadgeStyle={
-    //                     {width:10, height:10, backgroundColor: 'red'}
-    //                 }
-    //                 Hidden={false}
-    //             />
-    //         </View>
-    //     );
-    //   },
-    // }),
     tabBarComponent: TabBarBottom,
     tabBarPosition: 'bottom',
     animationEnabled: false,

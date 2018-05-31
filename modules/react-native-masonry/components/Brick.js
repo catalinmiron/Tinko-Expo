@@ -14,7 +14,7 @@ export default function Brick (props) {
 	const image =_getTouchableUnit(props, props.gutter);
 	//const footer = (props.renderFooter) ? props.renderFooter(props.data) : null;
 	//const header = (props.renderHeader) ? props.renderHeader(props.data) : null;
-    console.log(props);
+    //console.log(props);
     const data = props.data;
 	return (
 		<View key={props.brickKey} >

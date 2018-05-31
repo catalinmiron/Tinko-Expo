@@ -147,7 +147,7 @@ export default class TinkoScreen extends Component {
         }
 
         query.get().then(async (querySnapshot) => {
-            console.log('getMeets', querySnapshot.docs);
+            //console.log('getMeets', querySnapshot.docs);
             var meetsData = await this.processMeets(querySnapshot.docs);
             this.setState({meetsData});
             console.log("Done");
@@ -220,36 +220,41 @@ export default class TinkoScreen extends Component {
     }
 
     async handleOnEndReached(){
-        console.log('handleOnEndReached,lastVisible');
+        console.log('handleOnEndReached,lastVisible before');
+
+        if(this.state.meetsData===0){
+            return;
+        }
+
         console.log('handleOnEndReached,lastVisible', this.state.lastVisible);
-        // const {orderByPostTime, lastVisible} = this.state;
-        // if(lastVisible){
-        //     const firestoreDb = firestoreDB();
-        //     let query;
-        //     if(orderByPostTime){
-        //         query = firestoreDb.collection("Meets").orderBy(`selectedFriendsList.${this.state.userUid}.postTime`,'desc').startAfter(lastVisible).limit(10);
-        //     } else {
-        //         query = firestoreDb.collection("Meets").orderBy(`selectedFriendsList.${this.state.userUid}.startTime`).startAfter(lastVisible).limit(10);
-        //     }
-        //
-        //     query.get().then(async (querySnapshot) => {
-        //         let addMeetsData = await this.processMeets(querySnapshot.docs);
-        //         let lastVisible = querySnapshot.docs[querySnapshot.docs.length-1];
-        //         //console.log(addMeetsData);
-        //         this.setState((state) => {
-        //             let meetsData = _.concat(state.meetsData, addMeetsData);
-        //             return {meetsData, lastVisible};
-        //         });
-        //         querySnapshot.forEach(doc => {
-        //             //console.log(doc.id, '=>', doc.data());
-        //             let meetId = doc.id;
-        //             let meetData = doc.data();
-        //             this.insertMeetData(meetId, meetData);
-        //         });
-        //     }).catch((error)=>{
-        //         console.log(error);
-        //     });
-        // }
+        const {orderByPostTime, lastVisible} = this.state;
+        if(lastVisible){
+            const firestoreDb = firestoreDB();
+            let query;
+            if(orderByPostTime){
+                query = firestoreDb.collection("Meets").orderBy(`selectedFriendsList.${this.state.userUid}.postTime`,'desc').startAfter(lastVisible).limit(10);
+            } else {
+                query = firestoreDb.collection("Meets").orderBy(`selectedFriendsList.${this.state.userUid}.startTime`).startAfter(lastVisible).limit(10);
+            }
+
+            query.get().then(async (querySnapshot) => {
+                let addMeetsData = await this.processMeets(querySnapshot.docs);
+                let lastVisible = querySnapshot.docs[querySnapshot.docs.length-1];
+                //console.log(addMeetsData);
+                this.setState((state) => {
+                    let meetsData = _.concat(state.meetsData, addMeetsData);
+                    return {meetsData, lastVisible};
+                });
+                querySnapshot.forEach(doc => {
+                    //console.log(doc.id, '=>', doc.data());
+                    let meetId = doc.id;
+                    let meetData = doc.data();
+                    this.insertMeetData(meetId, meetData);
+                });
+            }).catch((error)=>{
+                console.log(error);
+            });
+        }
     }
 
     navigateToDetail(meetId){

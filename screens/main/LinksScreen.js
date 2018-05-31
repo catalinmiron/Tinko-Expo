@@ -154,6 +154,7 @@ export default class FriendChatListView extends Component {
             let data = JSON.parse(msg),
                 type = data.type;
             //历史记录
+            console.log('initSocket data:', data);
             if (type === 3 && !getPrivateHistory){
                 console.log("hst:",data);
                 getPrivateHistory = true;
@@ -348,8 +349,9 @@ export default class FriendChatListView extends Component {
             tx => {
                 tx.executeSql('select * from db'+uid, [], (_, { rows }) => {
                     let dataArr =  rows['_array'];
-                    //console.log("===",dataArr);
+                    console.log("===",dataArr);
                     for (let i = 0;i < dataArr.length ;i++){
+                        console.log('inside first loop');
                         let type = dataArr[i].type;
                         if (dataArr[i].hasRead === 1){
                             if (dataArr[i].meetingId !== ""&&dataArr[i].fromId !== uid){
@@ -378,6 +380,7 @@ export default class FriendChatListView extends Component {
                     this.totalUnreadMessageNumChanged(totalUnReadMessageNum);
                     let chat = getData();
                     for (element in chat){
+                        console.log('inside second loop');
                         let ele = chat[element];
                         if (ele.imageURL === "http://larissayuan.com/home/img/prisma.png"&&(ele.type === 1||ele.type ===3)){
                             this.upDateAvatar(ele.id);
@@ -415,7 +418,7 @@ export default class FriendChatListView extends Component {
     async getMeetsName(id){
         await getMeetInfo(id,
             (title, tagName, coverImageUri)=>{
-            //console.log(title, tagName, coverImageUri);
+            console.log(title, tagName, 'coverImageUri');
             let uri;
             if(coverImageUri){
                 uri = coverImageUri;

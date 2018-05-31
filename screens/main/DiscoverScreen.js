@@ -333,7 +333,7 @@ export default class DiscoverScreen extends Component {
                 {selectedMeetData ? //&& !redoSearching ?
                     <TouchableWithoutFeedback
                         style={Platform.OS === 'android' ?
-                            {width: SCREEN_WIDTH, height:listHeight}
+                            {}
                             :
                             {position:'absolute', zIndex:100, top: containerHeight-listHeight-marginBottomValue, width: SCREEN_WIDTH, height:listHeight+marginBottomValue}
                         }
@@ -341,7 +341,11 @@ export default class DiscoverScreen extends Component {
                     >
 
                         <View
-                            style={{position:'absolute', zIndex:100, top: containerHeight-listHeight-marginBottomValue, width: SCREEN_WIDTH, height:listHeight+marginBottomValue, justifyContent: 'flex-start', alignItems: 'center',}}
+                            style={Platform.OS === 'android' ?
+                                {width: SCREEN_WIDTH, height:listHeight, justifyContent: 'flex-start', alignItems: 'center'}
+                                :
+                                {position:'absolute', zIndex:100, top: containerHeight-listHeight-marginBottomValue, width: SCREEN_WIDTH, height:listHeight+marginBottomValue, justifyContent: 'flex-start', alignItems: 'center'}
+                            }
                         >
                             {selectedMeetData.coverImageUri ?
                                 <CacheImage
@@ -350,7 +354,7 @@ export default class DiscoverScreen extends Component {
                                         { width: SCREEN_WIDTH, height: listHeight }
                                         :
                                         { borderRadius:10, width: SCREEN_WIDTH-10, height: listHeight }}
-                                    preview={getCoverImagePlaceholder}
+                                    preview={require('../../assets/images/placeholder-big.jpg')}
                                     uri={selectedMeetData.coverImageUri}
                                 />
                                 :
@@ -369,7 +373,7 @@ export default class DiscoverScreen extends Component {
                                 <Text style={styles.meetTitle} numberOfLines={1}>{selectedMeetData.title}</Text>
                                 <View style={{flexDirection:'row'}}>
                                     <CacheImage
-                                        preview={getAvatarPlaceholder}
+                                        //preview={require('../../assets/images/avatar-placeholder.png')}
                                         uri={selectedMeetData.creator.photoURL}
                                         style={styles.userPic}/>
                                     <View style={{marginTop:10}}>
@@ -386,7 +390,7 @@ export default class DiscoverScreen extends Component {
                     :
                     <TouchableWithoutFeedback
                         style={Platform.OS === 'android' ?
-                            {width: SCREEN_WIDTH, height:listHeight}
+                            {}
                             :
                             {position:'absolute', zIndex:100, top: containerHeight-listHeight-marginBottomValue, width: SCREEN_WIDTH, height:listHeight+marginBottomValue}
                         }
@@ -398,7 +402,11 @@ export default class DiscoverScreen extends Component {
                     >
 
                         <View
-                            style={{ width: SCREEN_WIDTH, height:listHeight+marginBottomValue, justifyContent: 'flex-start', alignItems: 'center',}}
+                            style={Platform.OS === 'android' ?
+                                {width: SCREEN_WIDTH, height:listHeight, justifyContent: 'flex-start', alignItems: 'center'}
+                                :
+                                {position:'absolute', zIndex:100, top: containerHeight-listHeight-marginBottomValue, width: SCREEN_WIDTH, height:listHeight+marginBottomValue, justifyContent: 'flex-start', alignItems: 'center'}
+                            }
                         >
                             <Image
                                 resizeMethod={'auto'}
