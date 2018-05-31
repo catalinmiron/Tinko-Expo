@@ -20,7 +20,7 @@ import PrivateChatScreen from './common/PrivateChatScreen';
 import GroupChatScreen from './common/GroupChatScreen';
 import Colors from "../../constants/Colors";
 import TinkoScreen from "./TinkoScreen";
-import {getMeetInfo, getUserDataFromDatabase, getMeetAvatarUri,getListTime,getCurrentTime} from "../../modules/CommonUtility";
+import {getMeetInfo, getUserDataFromDatabase, getMeetAvatarUri,getListTime,getCurrentTime,writeInAsyncStorage,getFromAsyncStorage} from "../../modules/CommonUtility";
 import {
     appendChatData,
     updateUserInfo,
@@ -32,7 +32,7 @@ import {
     getTotalUnReadNum,
     unReadNumNeedsUpdates,
     currentOnSelectUser,
-    removeChat
+    removeChat, setDataStore
 } from "../../modules/ChatStack";
 
 
@@ -139,9 +139,28 @@ export default class FriendChatListView extends Component {
 
     componentDidMount(){
         this.totalUnreadMessageNumChanged(totalUnReadMessageNum);
+        getFromAsyncStorage("chatStack").then((chatInfo) => {
+            if(chatInfo){
+                console.log("::::",chatInfo);
+                setDataStore(chatInfo);
+                let chat = getData();
+                for (element in chat){
+                    let ele = chat[element];
+                    if (ele.imageURL === "http://larissayuan.com/home/img/prisma.png"&&(ele.type === 1||ele.type ===3)){
+                        this.upDateAvatar(ele.id);
+                    }else if (ele.imageURL === "http://larissayuan.com/home/img/prisma.png"&&(ele.type === 2||ele.type ===4)){
+                        this.getMeetsName(ele.id);
+                    }
+                }
+                this.setState({
+                    messages:getData()
+                });
+            }
+        });
     }
 
     componentWillUnmount(){
+        writeInAsyncStorage("chatStack",getData());
         this.listener.remove();
         this.selectListener.remove();
         this.avatarListener.remove();
@@ -154,9 +173,7 @@ export default class FriendChatListView extends Component {
             let data = JSON.parse(msg),
                 type = data.type;
             //历史记录
-            console.log('initSocket data:', data);
             if (type === 3 && !getPrivateHistory){
-                console.log("hst:",data);
                 getPrivateHistory = true;
                 if (data.message){
                     let unReadDataArr = data.message;
@@ -177,6 +194,7 @@ export default class FriendChatListView extends Component {
                         }
                     }
 
+                    writeInAsyncStorage("chatStack",getData());
                     this.setState({
                         messages:getData()
                     });
@@ -201,6 +219,8 @@ export default class FriendChatListView extends Component {
                             appendChatData(getListTime(moment(dataArr.time, format).format(format)),type,dataArr.meetId,dataArr.msg,true);
                             unReadNumNeedsUpdates(dataArr.meetId,1);
                         }
+
+                        writeInAsyncStorage("chatStack",getData());
                         this.setState({
                             messages:getData()
                         });
@@ -227,6 +247,8 @@ export default class FriendChatListView extends Component {
                         appendChatData(getCurrentTime(),type,data.activityId,data.message);
                     }
                 }
+
+                writeInAsyncStorage("chatStack",getData());
                 this.setState({
                     messages:getData()
                 });
@@ -338,70 +360,75 @@ export default class FriendChatListView extends Component {
             (error) => console.log("db create:" + error),
             () => {
                 console.log('db create complete db'+uid);
-                this.getDBData();
+               // this.getDBData();
             }
         );
     }
 
-    //status -1带表自己发送的
+    //status -1带表自己发送的    待删除
     getDBData(){
-        db.transaction(
-            tx => {
-                tx.executeSql('select * from db'+uid, [], (_, { rows }) => {
-                    let dataArr =  rows['_array'];
-                    console.log("===",dataArr);
-                    for (let i = 0;i < dataArr.length ;i++){
-                        console.log('inside first loop');
-                        let type = dataArr[i].type;
-                        if (dataArr[i].hasRead === 1){
-                            if (dataArr[i].meetingId !== ""&&dataArr[i].fromId !== uid){
-                                totalUnReadMessageNum ++;
-                            }
-                        }
-                        let hasRead = (dataArr[i].hasRead === 1);
-                        if (type === 1){
-                            if (hasRead){
-                                appendChatData(getListTime(dataArr[i].timeStamp),type,dataArr[i].fromId,dataArr[i]['msg'],hasRead);
-                            }else{
-                                appendChatData(getListTime(dataArr[i].timeStamp),type,dataArr[i].fromId,dataArr[i]['msg']);
-                            }
-
-                            updateUnReadNum(1,dataArr[i].fromId);
-                        }else{
-                            if (hasRead){
-                                appendChatData(getListTime(dataArr[i].timeStamp),type,dataArr[i].meetingId,dataArr[i]['msg'],hasRead);
-                            }else{
-                                appendChatData(getListTime(dataArr[i].timeStamp),type,dataArr[i].meetingId,dataArr[i]['msg']);
-                            }
-
-                            updateUnReadNum(2,dataArr[i].meetingId);
-                        }
-                    }
-                    this.totalUnreadMessageNumChanged(totalUnReadMessageNum);
-                    let chat = getData();
-                    for (element in chat){
-                        console.log('inside second loop');
-                        let ele = chat[element];
-                        if (ele.imageURL === "http://larissayuan.com/home/img/prisma.png"&&(ele.type === 1||ele.type ===3)){
-                            this.upDateAvatar(ele.id);
-                        }else if (ele.imageURL === "http://larissayuan.com/home/img/prisma.png"&&(ele.type === 2||ele.type ===4)){
-                            this.getMeetsName(ele.id);
-                        }
-                    }
-                    this.setState({
-                        messages:getData()
-                    });
-                });
-            },
-            (error) => console.log("聊天获取 :" + error),
-            () => {
-                console.log('聊天数据获取成功');
-            }
-        )
+        // db.transaction(
+        //     tx => {
+        //         tx.executeSql('select * from db'+uid, [], (_, { rows }) => {
+        //             let dataArr =  rows['_array'];
+        //             for (let i = 0;i < dataArr.length ;i++){
+        //                 let type = dataArr[i].type;
+        //                 if (dataArr[i].hasRead === 1){
+        //                     if (dataArr[i].meetingId !== ""&&dataArr[i].fromId !== uid){
+        //                         totalUnReadMessageNum ++;
+        //                     }
+        //                 }
+        //                 let hasRead = (dataArr[i].hasRead === 1);
+        //                 if (type === 1){
+        //                     if (hasRead){
+        //                         appendChatData(getListTime(dataArr[i].timeStamp),type,dataArr[i].fromId,dataArr[i]['msg'],hasRead);
+        //                     }else{
+        //                         appendChatData(getListTime(dataArr[i].timeStamp),type,dataArr[i].fromId,dataArr[i]['msg']);
+        //                     }
+        //
+        //                     updateUnReadNum(1,dataArr[i].fromId);
+        //                 }else{
+        //                     if (hasRead){
+        //                         appendChatData(getListTime(dataArr[i].timeStamp),type,dataArr[i].meetingId,dataArr[i]['msg'],hasRead);
+        //                     }else{
+        //                         appendChatData(getListTime(dataArr[i].timeStamp),type,dataArr[i].meetingId,dataArr[i]['msg']);
+        //                     }
+        //
+        //                     updateUnReadNum(2,dataArr[i].meetingId);
+        //                 }
+        //             }
+        //
+        //             this.totalUnreadMessageNumChanged(totalUnReadMessageNum);
+        //             let chat = getData();
+        //             for (element in chat){
+        //                 console.log('inside second loop');
+        //                 let ele = chat[element];
+        //                 if (ele.imageURL === "http://larissayuan.com/home/img/prisma.png"&&(ele.type === 1||ele.type ===3)){
+        //                     this.upDateAvatar(ele.id);
+        //                 }else if (ele.imageURL === "http://larissayuan.com/home/img/prisma.png"&&(ele.type === 2||ele.type ===4)){
+        //                     this.getMeetsName(ele.id);
+        //                 }
+        //             }
+        //
+        //             // console.log("data:",getData());
+        //             // writeInAsyncStorage("chatStack",getData());
+        //             getFromAsyncStorage('chatStack').then((meetsData) => {
+        //                 console.log("~~~~~",meetsData);
+        //             });
+        //
+        //             this.setState({
+        //                 messages:getData()
+        //             });
+        //         });
+        //     },
+        //     (error) => console.log("聊天获取 :" + error),
+        //     () => {
+        //         console.log('聊天数据获取成功');
+        //     }
+        // )
     }
 
     async upDateAvatar(id){
-        console.log("updateAvatar:",id);
         await getUserDataFromDatabase(id,
             (userData) => {
                 updateUserInfo(userData);

@@ -33,10 +33,10 @@ const MainTabNavigator = TabNavigator(
     Home: {
       screen: TinkoTabNavigator,
     },
-    // Links: {
-    //   screen: LinksScreen,
-    //     header: null,
-    // },
+    Links: {
+      screen: LinksScreen,
+        header: null,
+    },
     Settings: {
       screen: MeScreen,
     },

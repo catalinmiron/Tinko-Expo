@@ -13,6 +13,10 @@ export const setUid = (id) => {
     uid = id;
 };
 
+export const setDataStore = (data) =>{
+    dataStore = data;
+};
+
 export const currentOnSelectUser = (id) => {
     currentOnSelect = id
 };
