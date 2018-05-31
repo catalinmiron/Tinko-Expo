@@ -600,9 +600,9 @@ export default class CreateScreen extends React.Component {
             this.setState({ loadingVisible: true });
 
             if (!pickerResult.cancelled) {
-                console.log('pickerResult: ', pickerResult);
+                //console.log('pickerResult: ', pickerResult);
                 const manipResult = await ImageManipulator.manipulate(pickerResult.uri,[{resize:{width:1000}}], {compress:0.5});
-                console.log('manipResult: ',manipResult)
+                //console.log('manipResult: ',manipResult)
                 //let uploadUrl = await uploadImageAsync(pickerResult.uri, userUid);
                 this.setState((state) => {
                     let userUploadedImages = state.userUploadedImages;
