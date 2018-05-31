@@ -348,7 +348,7 @@ export default class FriendChatListView extends Component {
             tx => {
                 tx.executeSql('select * from db'+uid, [], (_, { rows }) => {
                     let dataArr =  rows['_array'];
-                    console.log("===",dataArr);
+                    //console.log("===",dataArr);
                     for (let i = 0;i < dataArr.length ;i++){
                         let type = dataArr[i].type;
                         if (dataArr[i].hasRead === 1){
@@ -415,7 +415,7 @@ export default class FriendChatListView extends Component {
     async getMeetsName(id){
         await getMeetInfo(id,
             (title, tagName, coverImageUri)=>{
-            console.log(title, tagName, coverImageUri);
+            //console.log(title, tagName, coverImageUri);
             let uri;
             if(coverImageUri){
                 uri = coverImageUri;

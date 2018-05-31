@@ -468,4 +468,8 @@ export const getTagName = (tagName) => {
 
 export const getAvatarPlaceholder = () => {
     return require('../assets/images/avatar-placeholder.png');
+};
+
+export const getCoverImagePlaceholder = () => {
+    return require('../assets/images/placeholder-big.jpg');
 }

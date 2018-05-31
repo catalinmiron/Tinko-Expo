@@ -14,7 +14,7 @@ export default function Brick (props) {
 	const image =_getTouchableUnit(props, props.gutter);
 	//const footer = (props.renderFooter) ? props.renderFooter(props.data) : null;
 	//const header = (props.renderHeader) ? props.renderHeader(props.data) : null;
-    //console.log(props);
+    console.log(props);
     const data = props.data;
 	return (
 		<View key={props.brickKey} >
@@ -38,8 +38,9 @@ export default function Brick (props) {
                     }}
                 />
                 <CacheImage
-                    preview={getAvatarPlaceholder}
+                    //preview={getAvatarPlaceholder}
                     uri={data.creator.photoURL}
+                    //source={{uri:data.creator.photoURL}}
                     style={styles.userPic}/>
                 <View style={{marginTop: 5, width:SCREEN_WIDTH/2-10-50}}>
                     <Text style={styles.userName}>{data.creator.username}</Text>
@@ -121,7 +122,7 @@ export function _getImageTag (image, gutter = 0) {
 
 // _getTouchableUnit :: Image, Number -> TouchableTag
 export function _getTouchableUnit (props, gutter = 0) {
-    console.log(props);
+    //console.log(props);
 	return (
 		<TouchableHighlight
           key={props.data.meetId}

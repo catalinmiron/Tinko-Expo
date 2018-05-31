@@ -21,6 +21,7 @@ import {writeInAsyncStorage, getFromAsyncStorage, firestoreDB} from "../../modul
 import {} from '../../modules/ChatStack';
 import { ifIphoneX } from 'react-native-iphone-x-helper';
 import {initNewFriendsRequestTable, insertNewFriendsRequest} from "../../modules/SqliteClient";
+import {Image as CacheImage} from 'react-native-expo-image-cache'
 
 const db = SQLite.openDatabase('db.db');
 const SCREEN_WIDTH = Dimensions.get('window').width;

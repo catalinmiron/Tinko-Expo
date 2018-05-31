@@ -3,10 +3,10 @@ import React, {
 } from 'react'
 import {Text, Image, AsyncStorage, DeviceEventEmitter, Alert} from 'react-native';
 import {Button, Header, Avatar, Overlay, Input} from 'react-native-elements'
-import {firestoreDB, getFromAsyncStorage} from "../../../modules/CommonUtility";
+import {firestoreDB, getAvatarPlaceholder, getFromAsyncStorage} from "../../../modules/CommonUtility";
 import {getLength,updateUnReadNum} from "../../../modules/ChatStack";
 import {sendFriendRequest} from "../../../modules/SocketClient";
-import {CacheManager} from "react-native-expo-image-cache";
+import {CacheManager, Image as CacheImage} from "react-native-expo-image-cache";
 
 import {
     View
@@ -47,7 +47,6 @@ export default class UserDetailScreen extends Component{
             requestMessage:'',
             loading:true,
             thisUserData:{},
-            photoLocalPath:''
         };
         getFromAsyncStorage('ThisUser').then((userData) => {
             if(userData) {
@@ -61,10 +60,6 @@ export default class UserDetailScreen extends Component{
         //this.getUserDataFromFirebase();
     }
 
-    async setPhotoLocalPath(photoURL){
-        let path = await CacheManager.get(photoURL).getPath();
-        this.setState({photoLocalPath:path})
-    }
 
     showThisUser(uid, navigation, updateMethod){
         if(uid===this.state.userUid){
@@ -83,7 +78,6 @@ export default class UserDetailScreen extends Component{
                 //console.log(value);
                 let userData = JSON.parse(value);
                 this.setState({userData, isFriends:true, loading:false});
-                this.setPhotoLocalPath(userData.photoURL);
             }
         } catch (error) {
             // Error retrieving data
@@ -116,7 +110,6 @@ export default class UserDetailScreen extends Component{
                             isFriends:isFriends,
                             loading:false,
                         });
-                        this.setPhotoLocalPath(userData.photoURL);
                         this.getUserDataFromFirebase(uid, isFriends);
                     }
                 });
@@ -146,7 +139,6 @@ export default class UserDetailScreen extends Component{
                         isFriends:isFriends,
                         loading:false,
                     });
-                    this.setPhotoLocalPath(userData.photoURL);
                     let callUpdateMethod = userData !== {};
                     this.updateFriendSql(this.state.userUid, user, isFriends, callUpdateMethod);
                 }
@@ -193,7 +185,7 @@ export default class UserDetailScreen extends Component{
 
     render() {
         //console.log(this.props);
-        const { thisUserData, userData, userUid, isFriends, isVisible, requestMessage, loading, photoLocalPath}  = this.state;
+        const { thisUserData, userData, userUid, isFriends, isVisible, requestMessage, loading}  = this.state;
         console.log(thisUserData, userData);
         return (
             <Overlay
@@ -214,14 +206,12 @@ export default class UserDetailScreen extends Component{
                                 <Text style={{fontFamily:'regular', fontSize:20}}>{userData.location}</Text>
 
                             </View>
-                            <Avatar
-                                size='large'
-                                rounded
-                                source={{uri: photoLocalPath}}
-                                //onPress={() => console.log("Works!")}
-                                activeOpacity={0.7}
-                            />
 
+                            <CacheImage
+                                style={{width:75, height:75, borderRadius:75/2}}
+                                preview={getAvatarPlaceholder}
+                                uri={userData.photoURL}
+                            />
                             {/*<Image*/}
                             {/*style={{height:75, width:75}}*/}
                             {/*source={{uri:userData.photoURL}}*/}
@@ -262,7 +252,7 @@ export default class UserDetailScreen extends Component{
                                     onPress={() => {
                                         this.sendNewFriendsRequest(userData.uid,0,requestMessage);
                                         //sendFriendRequest(userUid, userData.uid, 0, requestMessage);
-                                        this.setState({isVisible:false, photoLocalPath:''});
+                                        this.setState({isVisible:false});
                                     }}
                                 />
                             </View>

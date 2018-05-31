@@ -2,4 +2,3 @@ node_modules/**/*
 .expo/**/*
 #webstorm project files
 .idea
-assets/.DS_Store

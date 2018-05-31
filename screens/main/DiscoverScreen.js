@@ -11,9 +11,10 @@ import {
     getPostTimeString,
     getImageSource,
     firestoreDB,
-    getUserDataFromDatabase
+    getUserDataFromDatabase, getAvatarPlaceholder, getCoverImagePlaceholder
 } from "../../modules/CommonUtility";
 import { Header } from 'react-navigation';
+import {Image as CacheImage} from "react-native-expo-image-cache";
 import {getData, updateUserInfo} from "../../modules/ChatStack";
 
 const SCREEN_HEIGHT = Dimensions.get('window').height;
@@ -260,7 +261,7 @@ export default class DiscoverScreen extends Component {
         return (
             <View
                 style = {styles.container}
-                //onLayout={(event) => { this.find_dimesions(event.nativeEvent.layout) }}
+                onLayout={(event) => { this.find_dimesions(event.nativeEvent.layout) }}
             >
 
                 {showRedoSearchButton ?
@@ -340,23 +341,36 @@ export default class DiscoverScreen extends Component {
                     >
 
                         <View
-                            style={{ width: SCREEN_WIDTH, height:listHeight+marginBottomValue, justifyContent: 'flex-start', alignItems: 'center',}}
+                            style={{position:'absolute', zIndex:100, top: containerHeight-listHeight-marginBottomValue, width: SCREEN_WIDTH, height:listHeight+marginBottomValue, justifyContent: 'flex-start', alignItems: 'center',}}
                         >
-                            <Image
-                                resizeMethod={'auto'}
-                                source={selectedMeetData.coverImageUri ? {uri:selectedMeetData.coverImageUri} : getImageSource(selectedMeetData.tags[0])}
-                                style={Platform.OS === 'android' ?
-                                    { width: SCREEN_WIDTH, height: listHeight }
-                                    :
-                                    { borderRadius:10, width: SCREEN_WIDTH-10, height: listHeight }}
-                            />
+                            {selectedMeetData.coverImageUri ?
+                                <CacheImage
+                                    resizeMethod={'auto'}
+                                    style={Platform.OS === 'android' ?
+                                        { width: SCREEN_WIDTH, height: listHeight }
+                                        :
+                                        { borderRadius:10, width: SCREEN_WIDTH-10, height: listHeight }}
+                                    preview={getCoverImagePlaceholder}
+                                    uri={selectedMeetData.coverImageUri}
+                                />
+                                :
+                                <Image
+                                    resizeMethod={'auto'}
+                                    source={getImageSource(selectedMeetData.tags[0])}
+                                    style={Platform.OS === 'android' ?
+                                        { width: SCREEN_WIDTH, height: listHeight }
+                                        :
+                                        { borderRadius:10, width: SCREEN_WIDTH-10, height: listHeight }}
+                                />
+                            }
                             <View
                                 style={styles.headerTop}
                             >
                                 <Text style={styles.meetTitle} numberOfLines={1}>{selectedMeetData.title}</Text>
                                 <View style={{flexDirection:'row'}}>
-                                    <Image
-                                        source={{ uri: selectedMeetData.creator.photoURL }}
+                                    <CacheImage
+                                        preview={getAvatarPlaceholder}
+                                        uri={selectedMeetData.creator.photoURL}
                                         style={styles.userPic}/>
                                     <View style={{marginTop:10}}>
 
@@ -457,6 +471,20 @@ export default class DiscoverScreen extends Component {
             </View>
 
         );
+    }
+
+
+    find_dimesions(layout){
+        const { height } = layout;
+        console.log('ScreenHeight:', SCREEN_HEIGHT, 'containerHeight:', height);
+        this.setState({containerHeight: height});
+        // const { containerHeight, listHeight, marginBottomValue } = this.state;
+        // let listTopHeight = height-listHeight-marginBottomValue;
+        // this._previousTop = listTopHeight;
+        // this._circleStyles.style.top = listTopHeight;
+        // this._updateNativeStyles();
+        // this._minTop=listTopHeight;
+
     }
 
 

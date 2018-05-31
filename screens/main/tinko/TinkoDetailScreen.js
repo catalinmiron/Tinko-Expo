@@ -4,7 +4,16 @@ import {View, Alert, TouchableWithoutFeedback, Image, ScrollView, Text, StyleShe
 import firebase from 'firebase';
 import 'firebase/firestore';
 import Swiper from 'react-native-swiper';
-import { getStartTimeString,  getDurationString, getUserData, getImageSource, getUserDataFromDatabase, firestoreDB, getAvatarPlaceholder } from "../../../modules/CommonUtility";
+import {
+    getStartTimeString,
+    getDurationString,
+    getUserData,
+    getImageSource,
+    getUserDataFromDatabase,
+    firestoreDB,
+    getAvatarPlaceholder,
+    getCoverImagePlaceholder
+} from "../../../modules/CommonUtility";
 import {MapView, SQLite} from 'expo';
 import { Ionicons, MaterialIcons, Entypo, MaterialCommunityIcons, Feather  } from '@expo/vector-icons';
 import { Avatar, Button, Header, Overlay} from 'react-native-elements';
@@ -51,7 +60,7 @@ export default class TinkoDetailScreen extends React.Component {
                         onPress = {threeDots}/>
                 </View>
                 ),
-            headerStyle:{ position: 'absolute', backgroundColor: 'transparent', zIndex: 100, top: 0, left: 0, right: 0, borderBottomWidth: 0,borderBottomColor: 'transparent',elevation:0}
+            headerStyle:{ position: 'absolute', backgroundColor: 'transparent', zIndex: 100, top: 0, left: 0, right: 0, borderBottomWidth: 0,borderBottomColor: 'transparent',elevation:0},
         };
     };
 
@@ -641,7 +650,7 @@ export default class TinkoDetailScreen extends React.Component {
                                         resizeMethod={'auto'}
                                         style={{width:SCREEN_WIDTH, height:SCREEN_WIDTH/2}}
                                         key = {i}
-                                        preview = {require('../../../assets/images/placeholder-big.jpg')}
+                                        preview = {getCoverImagePlaceholder}
                                         uri = {l.photo_reference ? `https://maps.googleapis.com/maps/api/place/photo?maxwidth=${Math.ceil(SCREEN_WIDTH)}&photoreference=${l.photo_reference}&key=AIzaSyCw_VwOF6hmY5yri8OpqOr9sCzTTT7JKiU` : l}
                                         //source={{uri:l.photo_reference ? `https://maps.googleapis.com/maps/api/place/photo?maxwidth=${Math.ceil(SCREEN_WIDTH)}&photoreference=${l.photo_reference}&key=AIzaSyCw_VwOF6hmY5yri8OpqOr9sCzTTT7JKiU` : l}}
                                     />
@@ -723,23 +732,15 @@ export default class TinkoDetailScreen extends React.Component {
                         <Text
                             onPress={() => this.props.screenProps.showThisUser(creatorUid, this.props.navigation)}
                             style={{marginRight:30, color:'white', fontSize: 18, fontWeight:'bold'}}>{creatorData.username}</Text>
-                        <TouchableWithoutFeedback
+                        <TouchableOpacity
                             onPress={() => this.props.screenProps.showThisUser(creatorUid, this.props.navigation)}
                         >
-                            {/*<Image*/}
-                                {/*onPress={() => this.props.screenProps.showThisUser(creatorUid, this.props.navigation)}*/}
-                                {/*style={{width:80, height:80, marginRight:15, borderWidth:1.5, borderColor:'white'}}*/}
-                                {/*key='creatorPhoto'*/}
-                                {/*source={{uri: creatorData.photoURL}}*/}
-                            {/*/>*/}
                             <CacheImage
-                                onPress={() => this.props.screenProps.showThisUser(creatorUid, this.props.navigation)}
                                 style={{width:80, height:80, marginRight:15, borderWidth:1.5, borderColor:'white'}}
-                                key='creatorPhoto'
                                 preview={getAvatarPlaceholder}
                                 uri={creatorData.photoURL}
                                 />
-                        </TouchableWithoutFeedback>
+                        </TouchableOpacity>
                     </View>
 
                     <View style={{margin:26}}>
@@ -749,7 +750,7 @@ export default class TinkoDetailScreen extends React.Component {
                         <View style={{marginTop:30, flexDirection:'row', justifyContent:'space-between'}}>
                             <View style={{flex:1, flexDirection:'row'}}>
                                 <Entypo name="calendar" size={26} color="#1C2833" />
-                                <Text style={{marginLeft: 5, fontSize:20, fontFamily:'regular', color:'#2C3E50'}}>{getStartTimeString(startTime)}</Text>
+                                <Text style={{marginLeft: 5, fontSize:19, fontFamily:'regular', color:'#2C3E50'}}>{getStartTimeString(startTime)}</Text>
                             </View>
 
                             <View style={{flex:1, flexDirection:'row'}}>
