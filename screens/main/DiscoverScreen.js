@@ -335,7 +335,7 @@ export default class DiscoverScreen extends Component {
                         style={Platform.OS === 'android' ?
                             {}
                             :
-                            {position:'absolute', zIndex:100, top: containerHeight-listHeight-marginBottomValue, width: SCREEN_WIDTH, height:listHeight+marginBottomValue}
+                            {position:'absolute', zIndex:100, top: containerHeight-listHeight-marginBottomValue, width: SCREEN_WIDTH, height:listHeight}
                         }
                         onPress={() => (this.props.screenProps.navigation.navigate('TinkoDetail', {meetId:selectedMeetData.key}))}
                     >
@@ -344,7 +344,7 @@ export default class DiscoverScreen extends Component {
                             style={Platform.OS === 'android' ?
                                 {width: SCREEN_WIDTH, height:listHeight, justifyContent: 'flex-start', alignItems: 'center'}
                                 :
-                                {position:'absolute', zIndex:100, top: containerHeight-listHeight-marginBottomValue, width: SCREEN_WIDTH, height:listHeight+marginBottomValue, justifyContent: 'flex-start', alignItems: 'center'}
+                                {position:'absolute', zIndex:100, top: containerHeight-listHeight-marginBottomValue, width: SCREEN_WIDTH, height:listHeight, justifyContent: 'flex-start', alignItems: 'center'}
                             }
                         >
                             {selectedMeetData.coverImageUri ?
@@ -354,7 +354,7 @@ export default class DiscoverScreen extends Component {
                                         { width: SCREEN_WIDTH, height: listHeight }
                                         :
                                         { borderRadius:10, width: SCREEN_WIDTH-10, height: listHeight }}
-                                    preview={require('../../assets/images/placeholder-big.jpg')}
+                                    //preview={getCoverImagePlaceholder()}
                                     uri={selectedMeetData.coverImageUri}
                                 />
                                 :
@@ -376,7 +376,7 @@ export default class DiscoverScreen extends Component {
                                         //preview={require('../../assets/images/avatar-placeholder.png')}
                                         uri={selectedMeetData.creator.photoURL}
                                         style={styles.userPic}/>
-                                    <View style={{marginTop:10}}>
+                                    <View style={{marginTop:10, maxWidth:SCREEN_WIDTH-85}}>
 
                                         <Text style={styles.userName}>{selectedMeetData.creator.username}</Text>
                                         <Text style={styles.startTime}>{selectedMeetData.startTime}</Text>
