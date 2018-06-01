@@ -12,7 +12,8 @@ import registerForPushNotificationsAsync from '../api/registerForPushNotificatio
 import * as firebase from "firebase";
 import SocketIOClient from 'socket.io-client';
 import 'firebase/firestore';
-import UserDetailOverlay from '../screens/main/common/UserDetailOverlay'
+import UserDetailOverlay from '../screens/main/common/UserDetailOverlay';
+import AvatarDisplayOverlay from '../screens/main/common/AvatarDisplayOverlay';
 import {initNewFriendsRequestTable, insertNewFriendsRequest} from "../modules/SqliteClient";
 import {firestoreDB, getUserData, getUserDataFromDatabase} from "../modules/CommonUtility";
 
@@ -110,7 +111,11 @@ export default class RootNavigator extends React.Component {
                         }}/>
                     <UserDetailOverlay
                         onRef={ref => this.userDetailOverlay = ref}
+                        showAvatarDisplay={this.showAvatarDisplay.bind(this)}
                         isVisible={false}
+                    />
+                    <AvatarDisplayOverlay
+                        onRef={ref => this.avatarDisplayOverlay = ref}
                     />
                 </View>)
 
@@ -123,6 +128,10 @@ export default class RootNavigator extends React.Component {
 
   showThisUser(uid, navigation, updateMethod){
         this.userDetailOverlay.showThisUser(uid, navigation, updateMethod);
+  }
+
+  showAvatarDisplay(){
+        this.avatarDisplayOverlay.showAvatarDisplay();
   }
 
 

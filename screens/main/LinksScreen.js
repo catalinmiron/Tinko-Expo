@@ -139,6 +139,23 @@ export default class FriendChatListView extends Component {
 
     componentDidMount(){
         this.totalUnreadMessageNumChanged(totalUnReadMessageNum);
+        this.initChatStack();
+        getFromAsyncStorage('chatTest').then((data) => {
+            console.log('chatTest: ', data);
+        })
+    }
+
+    componentWillUnmount(){
+        console.log('link page componentwillunmount');
+        writeInAsyncStorage("chatTest",{chatTest:0});
+        writeInAsyncStorage("chatStack",getData());
+        this.listener.remove();
+        this.selectListener.remove();
+        this.avatarListener.remove();
+        this.updateBadgeListener.remove();
+    }
+
+    initChatStack(){
         getFromAsyncStorage("chatStack").then((chatInfo) => {
             if(chatInfo){
                 setDataStore(chatInfo);
@@ -156,14 +173,6 @@ export default class FriendChatListView extends Component {
                 });
             }
         });
-    }
-
-    componentWillUnmount(){
-        writeInAsyncStorage("chatStack",getData());
-        this.listener.remove();
-        this.selectListener.remove();
-        this.avatarListener.remove();
-        this.updateBadgeListener.remove();
     }
 
     initSocket(){

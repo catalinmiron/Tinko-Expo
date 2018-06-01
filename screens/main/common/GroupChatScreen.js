@@ -2,7 +2,7 @@ import React, {
     Component
 } from 'react';
 import {
-    View, DeviceEventEmitter, Platform, TouchableOpacity, StyleSheet
+    View, DeviceEventEmitter, Platform, TouchableOpacity, StyleSheet, Alert
 } from 'react-native';
 import {getUserDataFromDatabase, getMeetInfo, getAvatarPlaceholder} from "../../../modules/CommonUtility";
 import {Image as CacheImage} from "react-native-expo-image-cache";

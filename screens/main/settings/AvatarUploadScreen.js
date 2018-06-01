@@ -12,12 +12,13 @@ import {
     View,
     Alert
 } from 'react-native';
-import {Constants, ImagePicker, Permissions} from 'expo';
+import {Constants, ImageManipulator, ImagePicker, Permissions} from 'expo';
 import uuid from 'uuid';
 import * as firebase from 'firebase';
 import {ifIphoneX} from "react-native-iphone-x-helper";
 import {Header} from "react-native-elements";
 import {firestoreDB, getFromAsyncStorage} from "../../../modules/CommonUtility";
+import { Image as CacheImage } from 'react-native-expo-image-cache';
 
 
 console.disableYellowBox = true;
@@ -124,7 +125,7 @@ export default class AvatarUploadScreen extends React.Component {
                         shadowRadius: 5,
                         overflow: 'hidden',
                     }}>
-                    <Image source={{ uri: image }} style={{ width: 250, height: 250, borderRadius:25 }} />
+                    <CacheImage uri={image} style={{ width: 250, height: 250, borderRadius:25 }} />
                 </View>
             </View>
         );
@@ -176,7 +177,8 @@ export default class AvatarUploadScreen extends React.Component {
             this.setState({ uploading: true });
 
             if (!pickerResult.cancelled) {
-                let uploadUrl = await uploadImageAsync(pickerResult.uri, userUid);
+                const manipResult = await ImageManipulator.manipulate(pickerResult.uri,[{resize:{width:1000}}], {compress:0.5});
+                let uploadUrl = await uploadImageAsync(manipResult.uri, userUid);
                 let userRef = firestoreDB().collection('Users').doc(userUid);
                 userRef.update({photoURL:uploadUrl}).then(()=>{
                     this.setState({ image: uploadUrl });

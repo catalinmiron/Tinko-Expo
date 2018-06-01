@@ -1,7 +1,7 @@
 import React, {
     Component
 } from 'react'
-import {Text, Image, AsyncStorage, DeviceEventEmitter, Alert} from 'react-native';
+import {Text, Image, AsyncStorage, DeviceEventEmitter, Alert, TouchableOpacity} from 'react-native';
 import {Button, Header, Avatar, Overlay, Input} from 'react-native-elements'
 import {firestoreDB, getAvatarPlaceholder, getFromAsyncStorage} from "../../../modules/CommonUtility";
 import {getLength,updateUnReadNum} from "../../../modules/ChatStack";
@@ -189,10 +189,10 @@ export default class UserDetailScreen extends Component{
         console.log(thisUserData, userData);
         return (
             <Overlay
-                height={300}
+                height={295}
                 borderRadius={25}
                 isVisible={isVisible}
-                onBackdropPress={()=>this.setState({isVisible:false})}
+                onBackdropPress={()=>this.setState({isVisible:false, userData:{}})}
             >
                 {loading ?
                     <View/>
@@ -201,22 +201,21 @@ export default class UserDetailScreen extends Component{
                         <View
                             style={{width:'90%', marginLeft:'5%', marginTop:30, marginBottom:30, flexDirection:'row', justifyContent:'space-between'}}
                         >
-                            <View>
+                            <View style={{width:180}}>
                                 <Text style={{fontFamily:'bold', fontSize:26}}>{userData.username}</Text>
                                 <Text style={{fontFamily:'regular', fontSize:20}}>{userData.location}</Text>
 
                             </View>
 
-                            <CacheImage
-                                style={{width:75, height:75, borderRadius:75/2}}
-                                preview={getAvatarPlaceholder}
-                                uri={userData.photoURL}
-                            />
-                            {/*<Image*/}
-                            {/*style={{height:75, width:75}}*/}
-                            {/*source={{uri:userData.photoURL}}*/}
-                            {/*//source={{uri:'https://s-media-cache-ak0.pinimg.com/736x/b1/21/df/b121df29b41b771d6610dba71834e512.jpg'}}*/}
-                            {/*/>*/}
+                            <TouchableOpacity
+                                onPress={()=>this.props.showAvatarDisplay()}
+                            >
+                                <CacheImage
+                                    style={{width:75, height:75, borderRadius:75/2}}
+                                    preview={getAvatarPlaceholder}
+                                    uri={userData.photoURL}
+                                />
+                            </TouchableOpacity>
 
                         </View>
 
@@ -236,7 +235,7 @@ export default class UserDetailScreen extends Component{
                                         personId:userData.uid,
                                         myId:userUid
                                     });
-                                    this.setState({isVisible:false})
+                                    this.setState({isVisible:false, userData:{}})
                                 }}
                             />
                             :
@@ -252,7 +251,7 @@ export default class UserDetailScreen extends Component{
                                     onPress={() => {
                                         this.sendNewFriendsRequest(userData.uid,0,requestMessage);
                                         //sendFriendRequest(userUid, userData.uid, 0, requestMessage);
-                                        this.setState({isVisible:false});
+                                        this.setState({isVisible:false, userData:{}});
                                     }}
                                 />
                             </View>
