@@ -107,6 +107,7 @@ export default class RootNavigator extends React.Component {
                         screenProps={{
                             //friendsListIsReady:this.friendsListIsReady.bind(this),
                             showThisUser:this.showThisUser.bind(this),
+                            showAvatarDisplay:this.showAvatarDisplay.bind(this),
                             meRef:ref => this.meRef = ref,
                         }}/>
                     <UserDetailOverlay
