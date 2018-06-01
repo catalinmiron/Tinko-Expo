@@ -1,6 +1,7 @@
 import React, {
     Component
 } from 'react'
+import { TouchableWithoutFeedback } from 'react-native';
 import {Overlay} from 'react-native-elements'
 import {Image as CacheImage} from "react-native-expo-image-cache";
 
@@ -35,13 +36,16 @@ export default class AvatarDisplayOverlay extends Component{
                 borderRadius={25}
                 isVisible={isVisible}
                 overlayStyle={{padding:0}}
-                onBackdropPress={()=>this.setState({isVisible:false})}
+                onBackdropPress={()=>this.setState({isVisible:false,photoURL:null})}
             >
-                <CacheImage
-                    style={{height:295, width:295, borderRadius:25}}
-                    uri={photoURL}
-                />
-
+                <TouchableWithoutFeedback
+                    onPress={()=>this.setState({isVisible:false,photoURL:null})}
+                >
+                    <CacheImage
+                        style={{height:295, width:295, borderRadius:25}}
+                        uri={photoURL}
+                    />
+                </TouchableWithoutFeedback>
             </Overlay>
         )
     }

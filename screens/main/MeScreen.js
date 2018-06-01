@@ -323,9 +323,13 @@ export default class Me extends React.Component {
                     backgroundColor={'transparent'}
                 />
                 <View style={styles.outerDiv}>
-                    <Image
-                        style={{width: 130,height: 130,marginTop: ifIphoneX(54, 40),borderRadius: 25}}
-                        source={{uri:userData.photoURL}}/>
+                    <TouchableOpacity
+                        onPress={() => this.props.screenProps.showAvatarDisplay(userData.photoURL)}
+                    >
+                        <Image
+                            style={{width: 130,height: 130,marginTop: ifIphoneX(54, 40),borderRadius: 25}}
+                            source={{uri:userData.photoURL}}/>
+                    </TouchableOpacity>
                     <Text style={{marginTop:5,fontSize:22,color:"rgb(54,53,59)",fontWeight:"bold"}}>{userData.username}</Text>
                 </View>
                 <View style={{justifyContent: 'center', alignItems: 'center',}}>
