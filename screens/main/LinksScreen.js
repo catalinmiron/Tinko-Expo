@@ -181,7 +181,7 @@ export default class FriendChatListView extends Component {
             let data = JSON.parse(msg),
                 type = data.type;
             //历史记录
-            if (type === 3 && !getPrivateHistory){
+            if (type === 3){
                 getPrivateHistory = true;
                 if (data.message){
                     let unReadDataArr = data.message;
@@ -208,7 +208,7 @@ export default class FriendChatListView extends Component {
                     });
                 }
                 //历史记录
-            }else if (type === 4 && !getMeetsHistory){
+            }else if (type === 4){
                 getMeetsHistory = true;
                 if (data.message.length){
                     if (data.message.length!==0){
@@ -278,6 +278,7 @@ export default class FriendChatListView extends Component {
             }else{
                 appendChatData(getCurrentTime(),type,data.activityId,data.message);
             }
+            writeInAsyncStorage("chatStack",getData());
             this.setState({
                 messages:getData()
             });
