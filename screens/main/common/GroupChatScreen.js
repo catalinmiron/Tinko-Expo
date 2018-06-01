@@ -15,6 +15,7 @@ import {ifIphoneX} from "react-native-iphone-x-helper";
 import {Header} from "react-native-elements";
 import {MaterialIcons} from '@expo/vector-icons'
 import KeyboardSpacer from "react-native-keyboard-spacer";
+import moment from 'moment';
 
 let uid = "",
     MeetId = "",
@@ -53,7 +54,7 @@ export default class PrivateChatScreen extends Component {
             if (data.type === 2){
                 if (MeetId === data.activityId){
                     data.fromId = data.from;
-                    data.time = new Date();
+                    data.timeStamp = new Date();
                     data.msg = data.message;
                     if (data.fromId!==uid){
                         data.status = 0;
@@ -83,14 +84,14 @@ export default class PrivateChatScreen extends Component {
                                     name: userData.username,
                                     avatar: userData.photoURL,
                                 },
-                                createdAt:(e.time)?e.time:this.utcTime(e.timeStamp),
+                                createdAt:e.timeStamp,
                                 sent: (e.status === 0)
                             };
                         }else{
                             message = {
                                 _id: Math.round(Math.random() * 10000),
                                 text: e.msg,
-                                createdAt: (e.time)?e.time:this.utcTime(e.timeStamp),
+                                createdAt: e.timeStamp,
                                 user: {
                                     _id: 1,
                                     name: 'Developer',
@@ -103,7 +104,7 @@ export default class PrivateChatScreen extends Component {
                             message = {
                                 _id: Math.round(Math.random() * 10000),
                                 text: e.msg,
-                                createdAt: (e.time)?e.time:this.utcTime(e.timeStamp),
+                                createdAt: e.timeStamp,
                                 user: {
                                     _id: 1,
                                     name: 'Developer',
@@ -113,7 +114,7 @@ export default class PrivateChatScreen extends Component {
                             message = {
                                 _id: Math.round(Math.random() * 10000),
                                 text: e.msg,
-                                createdAt: (e.time)?e.time:this.utcTime(e.timeStamp),
+                                createdAt: e.timeStamp,
                                 system:true
                             };
                         }
@@ -252,17 +253,6 @@ export default class PrivateChatScreen extends Component {
             null,
             null,
         );
-    }
-
-    utcTime(time){
-        //2018-04-17 2:19:51
-        if (time !== undefined) {
-            let timeArr = time.split(" "),
-                year = timeArr[0].split("-"),
-                hour = timeArr[1].split(":"),
-                date = new Date(parseInt(year[0]), parseInt(year[1])-1, parseInt(year[2]), hour[0], hour[1], hour[2]);
-            return date.toUTCString();
-        }
     }
 
     onSend(messages = []) {

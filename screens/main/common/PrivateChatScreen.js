@@ -15,6 +15,7 @@ import {Header} from "react-native-elements";
 import {unReadNumNeedsUpdates,updateLastMessage,currentOnSelectUser} from "../../../modules/ChatStack";
 import KeyboardSpacer from 'react-native-keyboard-spacer';
 import {getAvatarPlaceholder} from "../../../modules/CommonUtility";
+import moment from "moment";
 
 let uid = "",
     pid = "",
@@ -91,6 +92,7 @@ export default class PrivateChatScreen extends Component {
             tx => {
                 tx.executeSql("SELECT * from db" + uid + " WHERE fromId = '" + pid + "' and meetingId = '' ORDER by id DESC", [], (_, {rows}) => {
                     let dataArr = rows['_array'];
+                    console.log("dataTotal:",dataArr);
                     if (dataArr.length>limit){
                         let processIng = [];
                         for (let i = 0;i<limit;i++){
@@ -161,7 +163,7 @@ export default class PrivateChatScreen extends Component {
         let messages = [{
             _id: Math.round(Math.random() * 10000),
             text: msg,
-            createdAt: this.utcTime(time),
+            createdAt: time,
             user: {
                 _id: 1,
                 name: 'Developer',
@@ -178,10 +180,11 @@ export default class PrivateChatScreen extends Component {
     }
 
     appendSystemMessage(isCache,msg,time){
+        console.log("time:~~~~~~",time);
         let chatData = [{
             _id: Math.round(Math.random() * 10000),
             text: msg,
-            createdAt: this.utcTime(time),
+            createdAt: time,
             system:true
         }];
         if (isCache){
@@ -212,7 +215,7 @@ export default class PrivateChatScreen extends Component {
             chatData = [{
                 _id: key,
                 text: msg,
-                createdAt: this.utcTime(time),
+                createdAt: time,
                 user: {
                     _id: Math.random()*100000,
                     name: userName,
@@ -231,17 +234,6 @@ export default class PrivateChatScreen extends Component {
         })
     }
 
-    utcTime(time){
-        //2018-04-17 2:19:51
-        console.log(time);
-        if (time !== undefined) {
-            let timeArr = time.split(" "),
-                year = timeArr[0].split("-"),
-                hour = timeArr[1].split(":");
-            return new Date(year[0], parseInt(year[1])-1, year[2], hour[0], hour[1], hour[2])
-        }
-    }
-
     SendMSG(messages = []) {
         let text = messages[0].text;
         let code =  Date.parse( new Date())/1000;
@@ -251,6 +243,7 @@ export default class PrivateChatScreen extends Component {
             db.transaction(
                 tx => {
                     tx.executeSql("INSERT INTO db"+uid+" (" +
+                        "timeStamp,"+
                         "fromId," +
                         "hasRead,"+
                         "msg," +
@@ -259,7 +252,7 @@ export default class PrivateChatScreen extends Component {
                         "meetingId," +
                         "meetUserData," +
                         "isSystem," +
-                        "sendCode) VALUES (?,?,?,?,?,?,?,?,?)",[pid,0,text,1,1,"","",0,code],(_, { insertId }) => {
+                        "sendCode) VALUES (?,?,?,?,?,?,?,?,?,?)",[moment().format(),pid,0,text,1,1,"","",0,code],(_, { insertId }) => {
                                 //被修改了的数量
                         console.log("已经存进去了，id是",insertId);
                             this.socket.emit("privateChat",uid,pid,text,insertId);
@@ -270,7 +263,7 @@ export default class PrivateChatScreen extends Component {
                     );
                 },
                 (error) => {
-
+                    console.log("error:",error)
                 },
                 () => {
                 }

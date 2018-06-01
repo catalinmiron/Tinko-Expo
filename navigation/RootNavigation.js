@@ -4,6 +4,7 @@ const db = SQLite.openDatabase('db.db');
 import React from 'react';
 import { StyleSheet, SafeAreaView,View,Text } from 'react-native';
 import { StackNavigator } from 'react-navigation';
+import moment from 'moment';
 
 import MainTabNavigator from './MainTabNavigator';
 import LoginNavigator from './LoginNavigaor';
@@ -278,9 +279,9 @@ export default class RootNavigator extends React.Component {
             meetingId = "",
             userData = "",
             status = (isSend === undefined)?0:1;
-        if (status === 1){
-            console.log("这里是发送啦");
-        }
+        // if (status === 1){
+        //     console.log("这里是发送啦");
+        // }
         if (data["meetId"]!==undefined){
             meetingId = data["meetId"];
         }else if (data["activityId"]!==undefined){
@@ -292,12 +293,13 @@ export default class RootNavigator extends React.Component {
         if (data["userData"]!==undefined){
             userData = JSON.stringify(data["userData"]);
         }
-        let sql = "INSERT INTO db"+uid+" (fromId,msg,status,type,meetingId,meetUserData) VALUES (?,?,?,?,?,?)",
-            sqlParams = [from,message,status,type,meetingId,userData];
+        let sql = "INSERT INTO db"+uid+" (fromId,msg,status,type,meetingId,meetUserData,timeStamp) VALUES (?,?,?,?,?,?,?)",
+            sqlParams = [from,message,status,type,meetingId,userData,moment().format()];
         if (meetingId!==""&&from===uid){
-            sql = "INSERT INTO db"+uid+" (fromId,msg,status,type,meetingId,meetUserData,hasRead) VALUES (?,?,?,?,?,?,?)";
-            sqlParams = [from,message,status,type,meetingId,userData,0];
+            sql = "INSERT INTO db"+uid+" (fromId,msg,status,type,meetingId,meetUserData,hasRead,timeStamp) VALUES (?,?,?,?,?,?,?,?)";
+            sqlParams = [from,message,status,type,meetingId,userData,0,moment().format()];
         }
+        console.log(sql , sqlParams);
         db.transaction(
             tx => {
                 tx.executeSql(sql,sqlParams);

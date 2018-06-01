@@ -158,7 +158,6 @@ export default class FriendChatListView extends Component {
     initChatStack(){
         getFromAsyncStorage("chatStack").then((chatInfo) => {
             if(chatInfo){
-                console.log("::::",chatInfo);
                 setDataStore(chatInfo);
                 let chat = getData();
                 for (element in chat){
@@ -196,7 +195,7 @@ export default class FriendChatListView extends Component {
                             };
                         if (dataArr!==""){
                             this.insertChatSql(uid,sqlObj);
-                            appendChatData(getListTime(moment(dataArr.time, format).format(format)),type,dataArr.fromId,dataArr.msg,true);
+                            appendChatData(getListTime(moment(dataArr.time).format(format)),type,dataArr.fromId,dataArr.msg,true);
                             if (!personalInfo[dataArr.fromId]){
                                 this.upDateAvatar(dataArr.fromId);
                             }
@@ -225,7 +224,7 @@ export default class FriendChatListView extends Component {
                                     meetUserData:dataArr.data
                                 };
                             this.insertChatSql(uid,sqlObj);
-                            appendChatData(getListTime(moment(dataArr.time, format).format(format)),type,dataArr.meetId,dataArr.msg,true);
+                            appendChatData(getListTime(moment(dataArr.time).format(format)),type,dataArr.meetId,dataArr.msg,true);
                             unReadNumNeedsUpdates(dataArr.meetId,1);
                         }
 
@@ -242,6 +241,7 @@ export default class FriendChatListView extends Component {
             }
             //正常的聊天
             if (type !== 3 && type !== 4){
+                console.log("recieved data:",data);
                 this.insertChatSql(uid,data);
                 if (parseInt(type) === 0){
                     //系统
@@ -322,13 +322,12 @@ export default class FriendChatListView extends Component {
         let sqlStr = "",
             sqlParams = [];
         if (time === ""){
-            sqlStr = "INSERT INTO db"+uid+" (fromId,msg,status,type,meetingId,meetUserData,hasRead) VALUES (?,?,?,?,?,?,?)";
-            sqlParams =[from,message,status,type,meetingId,userData,readStatus];
+            sqlStr = "INSERT INTO db"+uid+" (fromId,msg,status,type,meetingId,meetUserData,hasRead,timeStamp) VALUES (?,?,?,?,?,?,?,?)";
+            sqlParams =[from,message,status,type,meetingId,userData,readStatus,moment().format()];
         }else{
             sqlStr = "INSERT INTO db"+uid+" (fromId,msg,status,type,meetingId,meetUserData,timeStamp,hasRead) VALUES (?,?,?,?,?,?,?,?)";
-            sqlParams =[from,message,status,type,meetingId,userData,time,readStatus];
+            sqlParams =[from,message,status,type,meetingId,userData,moment(time, format).format(),readStatus];
         }
-        console.log(sqlStr);
         db.transaction(
             tx => {
                 tx.executeSql(sqlStr,sqlParams);
@@ -339,6 +338,7 @@ export default class FriendChatListView extends Component {
     }
 
     initChatTableAndGetDBData(uid){
+        console.log("uid:",uid);
         db.transaction(
             tx => {
                 tx.executeSql('create table if not exists db'+ uid +' (' +
