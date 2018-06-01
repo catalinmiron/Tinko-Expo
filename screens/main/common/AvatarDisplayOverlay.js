@@ -1,21 +1,10 @@
 import React, {
     Component
 } from 'react'
-import {Text, Image, AsyncStorage, DeviceEventEmitter, Alert} from 'react-native';
-import {Button, Header, Avatar, Overlay, Input} from 'react-native-elements'
-import {firestoreDB, getAvatarPlaceholder, getFromAsyncStorage} from "../../../modules/CommonUtility";
-import {getLength,updateUnReadNum} from "../../../modules/ChatStack";
-import {sendFriendRequest} from "../../../modules/SocketClient";
-import {CacheManager, Image as CacheImage} from "react-native-expo-image-cache";
+import {Overlay} from 'react-native-elements'
+import {Image as CacheImage} from "react-native-expo-image-cache";
 
-import {
-    View
-} from 'react-native'
-import firebase from "firebase";
-import {Ionicons} from '@expo/vector-icons'
-import {SQLite} from "expo";
 
-const db = SQLite.openDatabase('db.db');
 
 export default class AvatarDisplayOverlay extends Component{
 
@@ -33,19 +22,25 @@ export default class AvatarDisplayOverlay extends Component{
     }
 
 
-    showAvatarDisplay(){
-        this.setState({isVisible:true})
+    showAvatarDisplay(photoURL){
+        this.setState({isVisible:true, photoURL:photoURL})
+        console.log(photoURL);
     }
 
     render() {
-        const {isVisible} = this.state;
+        const {isVisible,photoURL} = this.state;
         return (
             <Overlay
                 height={295}
                 borderRadius={25}
                 isVisible={isVisible}
+                overlayStyle={{padding:0}}
                 onBackdropPress={()=>this.setState({isVisible:false})}
             >
+                <CacheImage
+                    style={{height:295, width:295, borderRadius:25}}
+                    uri={photoURL}
+                />
 
             </Overlay>
         )

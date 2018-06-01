@@ -111,7 +111,6 @@ export default class RootNavigator extends React.Component {
                     <UserDetailOverlay
                         onRef={ref => this.userDetailOverlay = ref}
                         showAvatarDisplay={this.showAvatarDisplay.bind(this)}
-                        isVisible={false}
                     />
                     <AvatarDisplayOverlay
                         onRef={ref => this.avatarDisplayOverlay = ref}
@@ -129,8 +128,8 @@ export default class RootNavigator extends React.Component {
         this.userDetailOverlay.showThisUser(uid, navigation, updateMethod);
   }
 
-  showAvatarDisplay(){
-        this.avatarDisplayOverlay.showAvatarDisplay();
+  showAvatarDisplay(photoURL){
+        this.avatarDisplayOverlay.showAvatarDisplay(photoURL);
   }
 
 

@@ -41,7 +41,7 @@ export default class UserDetailScreen extends Component{
             userUid:user.uid,
             userData:{},
             isFriends:true,
-            isVisible:props.isVisible,
+            isVisible:false,
             navigation:null,
             updateMethod:null,
             requestMessage:'',
@@ -208,7 +208,7 @@ export default class UserDetailScreen extends Component{
                             </View>
 
                             <TouchableOpacity
-                                onPress={()=>this.props.showAvatarDisplay()}
+                                onPress={()=>this.props.showAvatarDisplay(userData.photoURL)}
                             >
                                 <CacheImage
                                     style={{width:75, height:75, borderRadius:75/2}}
