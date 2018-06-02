@@ -349,7 +349,7 @@ export default class DiscoverScreen extends Component {
                         >
                             {selectedMeetData.coverImageUri ?
                                 <CacheImage
-                                    resizeMethod={'auto'}
+                                    //resizeMethod={'auto'}
                                     style={Platform.OS === 'android' ?
                                         { width: SCREEN_WIDTH, height: listHeight }
                                         :

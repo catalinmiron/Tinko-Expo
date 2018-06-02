@@ -1,5 +1,16 @@
 import React from 'react';
-import {Alert, View, Button, StyleSheet, Text, FlatList, Dimensions, Image, TouchableOpacity} from "react-native";
+import {
+    Alert,
+    View,
+    Button,
+    StyleSheet,
+    Text,
+    FlatList,
+    Dimensions,
+    Image,
+    TouchableOpacity,
+    Platform
+} from "react-native";
 import firebase from "firebase";
 import {Avatar, Header, ListItem} from 'react-native-elements';
 import {
@@ -11,6 +22,7 @@ import {
 import {ifIphoneX} from "react-native-iphone-x-helper";
 import {logoutFromNotification} from '../../../modules/CommonUtility';
 import _ from "lodash";
+import {Image as CacheImage} from 'react-native-expo-image-cache';
 
 const SCREEN_WIDTH = Dimensions.get('window').width;
 
@@ -40,9 +52,9 @@ export default class MyTinkosScreen extends React.Component {
         const firestoreDb = firestoreDB();
         let query;
         if(!lastSnapshot){
-            query = firestoreDb.collection("Meets").orderBy(`participatingUsersList.${userUid}.startTime`).limit(10);
+            query = firestoreDb.collection("Meets").orderBy(`participatingUsersList.${userUid}.startTime`,'desc').limit(10);
         } else {
-            query = firestoreDb.collection("Meets").orderBy(`participatingUsersList.${userUid}.startTime`).startAfter(lastSnapshot).limit(10);
+            query = firestoreDb.collection("Meets").orderBy(`participatingUsersList.${userUid}.startTime`,'desc').startAfter(lastSnapshot).limit(10);
         }
 
 
@@ -104,6 +116,11 @@ export default class MyTinkosScreen extends React.Component {
     buildBrick(meet, meetId, user){
         let startTimeString = getStartTimeString(meet.startTime.toDate());
         let postTimeString = getPostTimeString(meet.postTime.toDate());
+        let userUploadedImages = meet.userUploadedImages;
+        let coverImageUri = null;
+        if(userUploadedImages && userUploadedImages.length>0){
+            coverImageUri = userUploadedImages[0];
+        }
         return {
             meetId: meetId,
             title: meet.title,
@@ -116,6 +133,7 @@ export default class MyTinkosScreen extends React.Component {
             },
             tags: meet.tagsList,
             dismissed:meet.dismissed,
+            coverImageUri:coverImageUri,
         };
     }
 
@@ -137,11 +155,18 @@ export default class MyTinkosScreen extends React.Component {
                 <View
                     style={{flex:1, width: SCREEN_WIDTH, height:140, justifyContent: 'flex-start', alignItems: 'center',}}
                 >
-                    <Image
-                        resizeMethod={'auto'}
-                        source={getImageSource(tagName)}
-                        style={{ borderRadius:10, width: SCREEN_WIDTH-10, height: 135 }}
-                    />
+                    {item.coverImageUri ?
+                        <CacheImage
+                            style={{borderRadius: 10, width: SCREEN_WIDTH - 10, height: 135}}
+                            uri={item.coverImageUri}
+                        />
+                        :
+                        <Image
+                            resizeMethod={'auto'}
+                            source={getImageSource(tagName)}
+                            style={{borderRadius: 10, width: SCREEN_WIDTH - 10, height: 135}}
+                        />
+                    }
                     <View
                         style={styles.headerTop}
                     >
@@ -150,7 +175,7 @@ export default class MyTinkosScreen extends React.Component {
                             <Image
                                 source={{ uri: item.creator.photoURL }}
                                 style={styles.userPic}/>
-                            <View style={{marginTop:10}}>
+                            <View style={{marginTop:10, maxWidth:SCREEN_WIDTH-85}}>
 
                                 <Text style={styles.userName}>{item.creator.username}</Text>
                                 <Text style={styles.startTime}>{item.startTime}</Text>

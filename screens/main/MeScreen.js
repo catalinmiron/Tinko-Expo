@@ -80,15 +80,11 @@ export default class Me extends React.Component {
 
 
     async componentDidMount(){
-        //this.processFriendsList(this.state.userUid);
         this.initFriendsTableAndProcessFriendsList(this.state.userUid);
         this.props.screenProps.meRef(this);
-        this.setNewFriendsRequestListener();
+         //this.setNewFriendsRequestListener();
 
-        await this.getThisUserData();
-        let fbAutoAdd = this.state.userData.fbAutoAdd;
-        console.log('after getThisUserData', this.state.userData);
-        this.fbAutoAdd(fbAutoAdd);
+        this.getThisUserData();
     }
 
 
@@ -101,15 +97,15 @@ export default class Me extends React.Component {
         writeInAsyncStorage('NewFriendsBadgeHidden', false);
     }
 
-    async getThisUserData(){
+    getThisUserData(){
         const {userUid} = this.state;
         let firestoreDb = firestoreDB();
         let userRef = firestoreDb.collection("Users").doc(userUid);
-        await userRef.get().then((userDoc) => {
+        userRef.get().then((userDoc) => {
             if (userDoc.exists) {
                 //console.log("Document data:", userDoc.data());
                 let userData = userDoc.data();
-                this.setState({userData});
+                this.setState({userData},()=>this.fbAutoAdd());
                 writeInAsyncStorage('ThisUser', userData);
             } else {
                 console.log("No such document!");
@@ -122,9 +118,10 @@ export default class Me extends React.Component {
     }
 
 
-    async fbAutoAdd(fbAutoAdd){
-        const {userUid} = this.state;
-
+    async fbAutoAdd(){
+        const {userUid, userData} = this.state;
+        let fbAutoAdd = userData.fbAutoAdd;
+        console.log('inside fbAutoAdd', fbAutoAdd);
         if(!fbAutoAdd){
             return;
         }
@@ -171,7 +168,7 @@ export default class Me extends React.Component {
         let dict = await response.json();
         dict.userUid = userUid;
         dict.facebookId = this.state.userData.facebookId;
-        console.log(dict);
+        //console.log(dict);
 
         getPostRequest('handleFBAutoAdd', dict,
             ()=>{
@@ -191,7 +188,7 @@ export default class Me extends React.Component {
             let usersData = [];
             await snapshot.docChanges.reduce((p,change,i) => p.then(async () => {
                 if (change.type === "added") {
-                    //console.log("New city: ", change.doc.data());
+                    console.log("FriendsList: ", change.doc.data());
                     let userUid = change.doc.id;
                     let userRef = firebaseDb.collection("Users").doc(userUid);
                     await userRef.get().then((userDoc) => {
@@ -219,6 +216,7 @@ export default class Me extends React.Component {
     }
 
     initFriendsTableAndProcessFriendsList(uid){
+        //console.log('MeScreen uid:', uid);
         db.transaction(
             tx => {
                 tx.executeSql('create table if not exists friend_list'+ uid +' (' +
@@ -241,6 +239,7 @@ export default class Me extends React.Component {
     }
 
     insertFriendsSql(uid, usersData){
+        //console.log('insertFriendsSql', usersData);
         db.transaction(
             tx => {
                 usersData.map((userData) => {
@@ -256,9 +255,25 @@ export default class Me extends React.Component {
             () => {
                 console.log('insertCompleteFriendSql complete');
                 //this.props.screenProps.friendsListIsReady();
+                //this.getSql();
                 this.friendsList.getSql();
+                this.setNewFriendsRequestListener();
             }
         );
+    }
+
+    getSql(){
+        const { userUid } = this.state;
+        db.transaction(
+            tx => {
+                tx.executeSql(`select * from friend_list${userUid} WHERE isFriend = 1`, [], (_, { rows }) => {
+                    let dataArr =  rows['_array'];
+                    console.log(dataArr);
+                });
+            },
+            null,
+            null
+        )
     }
 
     seeTables(uid){
@@ -292,10 +307,10 @@ export default class Me extends React.Component {
                 .onSnapshot((querySnapshot) => {
                     querySnapshot.forEach(async (doc) => {
                         let newFriendsRequest = doc.data();
-                        console.log('setNewFriendsRequestListener', doc.id, doc.data());
+                        //console.log('setNewFriendsRequestListener', doc.id, doc.data());
                         await getUserDataFromDatabase(newFriendsRequest.requester,
                             (userData) => {
-                                console.log('setNewFriendsRequestListener',userData);
+                                //console.log('setNewFriendsRequestListener',userData);
                                 insertNewFriendsRequest(this.state.userUid, newFriendsRequest, userData);
                                 writeInAsyncStorage('LastNewFriendsRequestTimestamp',newFriendsRequest.timestamp)
                                 this.showBadge();
