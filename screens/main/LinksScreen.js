@@ -479,16 +479,19 @@ export default class FriendChatListView extends Component {
                         <IconBadge
                             MainElement={
                                 messages.type===1 ?
-                                    <CacheImage
+                                    <Image
                                         style={{width:50, height:50, borderRadius:25}}
-                                        uri={messages.imageURL}
+                                        //uri={messages.imageURL}
+                                        source={{uri:messages.imageURL}}
                                     />
 
                                     :
 
-                                    <CacheImage
+                                    <Image
                                         style={{width: 50,height: 50,borderRadius: 10}}
-                                        uri={messages.imageURL}/>
+                                        //uri={messages.imageURL}
+                                        source={{uri:messages.imageURL}}
+                                    />
 
 
                             }
