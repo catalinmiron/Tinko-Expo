@@ -39,6 +39,7 @@ export default class FriendListView extends Component {
 
     getSql(){
         const { userUid } = this.state;
+        //console.log('friendsListView userUid', userUid);
         db.transaction(
             tx => {
                 tx.executeSql(`select * from friend_list${userUid} WHERE isFriend = 1`, [], (_, { rows }) => {
@@ -80,7 +81,7 @@ export default class FriendListView extends Component {
         const{selectedUid, overlayIsVisible} = this.state;
         let friendList = [];
         for (let i = 0;i<this.state.sqlRows.length ; i++){
-            console.log(this.state.sqlRows[i]);
+            //console.log(this.state.sqlRows[i]);
             friendList.push(
                 <ListItem
                     hideChevron

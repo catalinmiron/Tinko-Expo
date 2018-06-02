@@ -1,6 +1,6 @@
 import React from 'react';
 import {StyleSheet,View, TouchableOpacity} from 'react-native';
-import { Entypo, Ionicons, Feather} from '@expo/vector-icons'
+import { Entypo, Ionicons, Feather, MaterialIcons} from '@expo/vector-icons'
 export default class SettingSubButton extends React.Component {
     constructor(props){
         super(props);
@@ -16,8 +16,9 @@ export default class SettingSubButton extends React.Component {
                         color="#626567"
                     />);
             case 1:
-                return (<Ionicons
-                name='logo-nodejs'
+                return (
+                    <MaterialIcons
+                name='details'
                 size={26}
                 color="#626567"
             />);
