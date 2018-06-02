@@ -1,7 +1,7 @@
 import React, {
     Component
 } from 'react'
-import {StyleSheet, View, WebView, ScrollView, Text, DeviceEventEmitter, Image, Alert} from 'react-native'
+import {StyleSheet, View, WebView, ScrollView, Text, DeviceEventEmitter, Image, Alert,AppState} from 'react-native'
 import { ListItem, Header, Avatar } from 'react-native-elements'
 import Expo, { SQLite } from 'expo';
 const db = SQLite.openDatabase('db.db');
@@ -139,6 +139,7 @@ export default class FriendChatListView extends Component {
 
     componentDidMount(){
         this.totalUnreadMessageNumChanged(totalUnReadMessageNum);
+        AppState.addEventListener('change', this._handleAppStateChange);
         this.initChatStack();
         getFromAsyncStorage('chatTest').then((data) => {
             console.log('chatTest: ', data);
@@ -146,7 +147,7 @@ export default class FriendChatListView extends Component {
     }
 
     componentWillUnmount(){
-        console.log('link page componentwillunmount');
+        AppState.removeEventListener('change', this._handleAppStateChange);
         writeInAsyncStorage("chatTest",{chatTest:0});
         writeInAsyncStorage("chatStack",getData());
         this.listener.remove();
@@ -154,6 +155,10 @@ export default class FriendChatListView extends Component {
         this.avatarListener.remove();
         this.updateBadgeListener.remove();
     }
+
+    _handleAppStateChange = (nextAppState) => {
+        this.socket.emit("userLogin",uid);
+    };
 
     initChatStack(){
         getFromAsyncStorage("chatStack").then((chatInfo) => {
@@ -362,75 +367,13 @@ export default class FriendChatListView extends Component {
         );
     }
 
-    //status -1带表自己发送的    待删除
-    getDBData(){
-        // db.transaction(
-        //     tx => {
-        //         tx.executeSql('select * from db'+uid, [], (_, { rows }) => {
-        //             let dataArr =  rows['_array'];
-        //             for (let i = 0;i < dataArr.length ;i++){
-        //                 let type = dataArr[i].type;
-        //                 if (dataArr[i].hasRead === 1){
-        //                     if (dataArr[i].meetingId !== ""&&dataArr[i].fromId !== uid){
-        //                         totalUnReadMessageNum ++;
-        //                     }
-        //                 }
-        //                 let hasRead = (dataArr[i].hasRead === 1);
-        //                 if (type === 1){
-        //                     if (hasRead){
-        //                         appendChatData(getListTime(dataArr[i].timeStamp),type,dataArr[i].fromId,dataArr[i]['msg'],hasRead);
-        //                     }else{
-        //                         appendChatData(getListTime(dataArr[i].timeStamp),type,dataArr[i].fromId,dataArr[i]['msg']);
-        //                     }
-        //
-        //                     updateUnReadNum(1,dataArr[i].fromId);
-        //                 }else{
-        //                     if (hasRead){
-        //                         appendChatData(getListTime(dataArr[i].timeStamp),type,dataArr[i].meetingId,dataArr[i]['msg'],hasRead);
-        //                     }else{
-        //                         appendChatData(getListTime(dataArr[i].timeStamp),type,dataArr[i].meetingId,dataArr[i]['msg']);
-        //                     }
-        //
-        //                     updateUnReadNum(2,dataArr[i].meetingId);
-        //                 }
-        //             }
-        //
-        //             this.totalUnreadMessageNumChanged(totalUnReadMessageNum);
-        //             let chat = getData();
-        //             for (element in chat){
-        //                 console.log('inside second loop');
-        //                 let ele = chat[element];
-        //                 if (ele.imageURL === "http://larissayuan.com/home/img/prisma.png"&&(ele.type === 1||ele.type ===3)){
-        //                     this.upDateAvatar(ele.id);
-        //                 }else if (ele.imageURL === "http://larissayuan.com/home/img/prisma.png"&&(ele.type === 2||ele.type ===4)){
-        //                     this.getMeetsName(ele.id);
-        //                 }
-        //             }
-        //
-        //             // console.log("data:",getData());
-        //             // writeInAsyncStorage("chatStack",getData());
-        //             getFromAsyncStorage('chatStack').then((meetsData) => {
-        //                 console.log("~~~~~",meetsData);
-        //             });
-        //
-        //             this.setState({
-        //                 messages:getData()
-        //             });
-        //         });
-        //     },
-        //     (error) => console.log("聊天获取 :" + error),
-        //     () => {
-        //         console.log('聊天数据获取成功');
-        //     }
-        // )
-    }
 
     async upDateAvatar(id){
+        console.log("we are waiting for User:" ,id);
         await getUserDataFromDatabase(id,
             (userData) => {
-                updateUserInfo(userData);
                 this.setState({
-                    messages:getData()
+                    messages:updateUserInfo(userData)
                 });
 
             },
@@ -440,6 +383,7 @@ export default class FriendChatListView extends Component {
     }
 
     async getMeetsName(id){
+        console.log("we are waiting for Activity:" ,id);
         await getMeetInfo(id,
             (title, tagName, coverImageUri)=>{
             console.log(title, tagName, 'coverImageUri');
@@ -449,13 +393,17 @@ export default class FriendChatListView extends Component {
             } else {
                 uri = getMeetAvatarUri(tagName);
             }
-                updateMeets({
-                    name:title,
-                    photoURL:uri,
-                    id:id
-                });
+                // updateMeets({
+                //     name:title,
+                //     photoURL:uri,
+                //     id:id
+                // });
                 this.setState({
-                    messages:getData()
+                    messages:updateMeets({
+                        name:title,
+                        photoURL:uri,
+                        id:id
+                    })
                 });
             },
             (error) => {
