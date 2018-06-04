@@ -32,7 +32,8 @@ import {
     getTotalUnReadNum,
     unReadNumNeedsUpdates,
     currentOnSelectUser,
-    removeChat, setDataStore
+    removeChat, setDataStore,
+    updateTime
 } from "../../modules/ChatStack";
 
 
@@ -141,8 +142,8 @@ export default class FriendChatListView extends Component {
         this.totalUnreadMessageNumChanged(totalUnReadMessageNum);
         AppState.addEventListener('change', this._handleAppStateChange);
         this.initChatStack();
-        getFromAsyncStorage('chatTest').then((data) => {
-            console.log('chatTest: ', data);
+        getFromAsyncStorage('chatStack').then((data) => {
+            console.log('chatStack: ', data);
         })
     }
 
@@ -165,6 +166,7 @@ export default class FriendChatListView extends Component {
             if(chatInfo){
                 setDataStore(chatInfo);
                 let chat = getData();
+                updateTime();
                 for (element in chat){
                     let ele = chat[element];
                     if (ele.imageURL === "http://larissayuan.com/home/img/prisma.png"&&(ele.type === 1||ele.type ===3)){
@@ -172,6 +174,7 @@ export default class FriendChatListView extends Component {
                     }else if (ele.imageURL === "http://larissayuan.com/home/img/prisma.png"&&(ele.type === 2||ele.type ===4)){
                         this.getMeetsName(ele.id);
                     }
+
                 }
                 this.setState({
                     messages:getData()
@@ -200,7 +203,7 @@ export default class FriendChatListView extends Component {
                             };
                         if (dataArr!==""){
                             this.insertChatSql(uid,sqlObj);
-                            appendChatData(getListTime(moment(dataArr.time).format(format)),type,dataArr.fromId,dataArr.msg,true);
+                            appendChatData(moment(dataArr.time).format(format),getListTime(moment(dataArr.time).format(format)),type,dataArr.fromId,dataArr.msg,true);
                             if (!personalInfo[dataArr.fromId]){
                                 this.upDateAvatar(dataArr.fromId);
                             }
@@ -229,7 +232,7 @@ export default class FriendChatListView extends Component {
                                     meetUserData:dataArr.data
                                 };
                             this.insertChatSql(uid,sqlObj);
-                            appendChatData(getListTime(moment(dataArr.time).format(format)),type,dataArr.meetId,dataArr.msg,true);
+                            appendChatData(moment(dataArr.time).format(format),getListTime(moment(dataArr.time).format(format)),type,dataArr.meetId,dataArr.msg,true);
                             unReadNumNeedsUpdates(dataArr.meetId,1);
                         }
 
@@ -250,15 +253,15 @@ export default class FriendChatListView extends Component {
                 this.insertChatSql(uid,data);
                 if (parseInt(type) === 0){
                     //系统
-                    appendChatData(getCurrentTime(),type,data.activityId,data.message,true);
+                    appendChatData(moment().format(format),getCurrentTime(),type,data.activityId,data.message,true);
                 }else if (parseInt(type)===1){
                     //私聊
-                    appendChatData(getCurrentTime(),type,data.from,data.message,true);
+                    appendChatData(moment().format(format),getCurrentTime(),type,data.from,data.message,true);
                 }else{
                     if (data.from!==uid){
-                        appendChatData(getCurrentTime(),type,data.activityId,data.message,true);
+                        appendChatData(moment().format(format),getCurrentTime(),type,data.activityId,data.message,true);
                     }else{
-                        appendChatData(getCurrentTime(),type,data.activityId,data.message);
+                        appendChatData(moment().format(format),getCurrentTime(),type,data.activityId,data.message);
                     }
                 }
 
@@ -274,14 +277,14 @@ export default class FriendChatListView extends Component {
             let type = data.type;
             if (parseInt(type) === 0){
                 //系统
-                appendChatData(getCurrentTime(),type,data.activityId,data.message);
+                appendChatData(moment().format(format),getCurrentTime(),type,data.activityId,data.message);
             }else if (parseInt(type)===1){
                 //私聊
-                appendChatData(getCurrentTime(),type,data.toId,data.msg);
+                appendChatData(moment().format(format),getCurrentTime(),type,data.toId,data.msg);
             }else if (parseInt(type) === 999){
-                appendChatData(getCurrentTime(),1,data.requester,data.msg);
+                appendChatData(moment().format(format),getCurrentTime(),1,data.requester,data.msg);
             }else{
-                appendChatData(getCurrentTime(),type,data.activityId,data.message);
+                appendChatData(moment().format(format),getCurrentTime(),type,data.activityId,data.message);
             }
             writeInAsyncStorage("chatStack",getData());
             this.setState({
