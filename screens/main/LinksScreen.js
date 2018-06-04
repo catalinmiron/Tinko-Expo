@@ -142,14 +142,10 @@ export default class FriendChatListView extends Component {
         this.totalUnreadMessageNumChanged(totalUnReadMessageNum);
         AppState.addEventListener('change', this._handleAppStateChange);
         this.initChatStack();
-        getFromAsyncStorage('chatStack').then((data) => {
-            console.log('chatStack: ', data);
-        })
     }
 
     componentWillUnmount(){
         AppState.removeEventListener('change', this._handleAppStateChange);
-        writeInAsyncStorage("chatTest",{chatTest:0});
         writeInAsyncStorage("chatStack",getData());
         this.listener.remove();
         this.selectListener.remove();
@@ -163,6 +159,7 @@ export default class FriendChatListView extends Component {
 
     initChatStack(){
         getFromAsyncStorage("chatStack").then((chatInfo) => {
+            console.log('initChatStack', chatInfo);
             if(chatInfo){
                 setDataStore(chatInfo);
                 let chat = getData();
@@ -179,6 +176,8 @@ export default class FriendChatListView extends Component {
                 this.setState({
                     messages:getData()
                 });
+            } else {
+                setDataStore([]);
             }
         });
     }
@@ -519,6 +518,7 @@ export default class FriendChatListView extends Component {
 
     render() {
 
+        console.log('this.state.messages', this.state.messages);
         return (
             <View style={{flex:1}}>
                 <Header

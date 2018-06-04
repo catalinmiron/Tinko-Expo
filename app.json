@@ -13,7 +13,7 @@
     "facebookAppId": "765640913609406",
     "facebookDisplayName": "Tinko",
     "splash": {
-      "image": "./assets/images/splash.png",
+      "image": "./assets/images/bg_screen1_tinko.png",
       "resizeMode": "cover",
       "backgroundColor": "#ffffff"
     },

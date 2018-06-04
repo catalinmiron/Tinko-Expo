@@ -223,6 +223,14 @@ export default class SignInScreen extends Component {
                                     containerStyle={{marginTop: -10}}
                                     onPress={() => this.logInFB()}
                                 />
+                                <Button
+                                    title="Sign Up with Email"
+                                    clear
+                                    activeOpacity={0.5}
+                                    titleStyle={{color: 'white', fontSize: 20}}
+                                    containerStyle={{marginTop: -10}}
+                                    onPress={() => this.props.navigation.navigate('Register')}
+                                />
                             </View>
                         </View> :
                         <Text>Loading...</Text>
