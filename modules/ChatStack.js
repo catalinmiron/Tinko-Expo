@@ -6,7 +6,7 @@ import {
 
 let uid,
     currentOnSelect,
-    dataStore = [],
+    chatStackDataStore = [],
     personalInfo = {};
 
 export const setUid = (id) => {
@@ -14,7 +14,7 @@ export const setUid = (id) => {
 };
 
 export const setDataStore = (data) =>{
-    dataStore = data;
+    chatStackDataStore = data;
     updateTotalUnReadNum();
 };
 
@@ -24,25 +24,25 @@ export const currentOnSelectUser = (id) => {
 
 export const removeChat = (id) => {
         let arr = [];
-        for (let i = 0;i<dataStore.length;i++){
-            arr.push(dataStore[i].id);
+        for (let i = 0;i<chatStackDataStore.length;i++){
+            arr.push(chatStackDataStore[i].id);
         }
     let indexOf = arr.indexOf(id);
     if (indexOf !== -1){
-        dataStore.splice(indexOf,1);
+        chatStackDataStore.splice(indexOf,1);
         updateTotalUnReadNum();
     }
-    return dataStore;
+    return chatStackDataStore
 };
 
 export const appendChatData = (time,type,id,msg,hasRead) =>{
         let arr = [];
-        for (let i = 0;i<dataStore.length;i++){
-            arr.push(dataStore[i].id);
+        for (let i = 0;i<chatStackDataStore.length;i++){
+            arr.push(chatStackDataStore[i].id);
         }
         let indexOf = arr.indexOf(id);
         if (indexOf !== -1){
-            let d = dataStore[indexOf];
+            let d = chatStackDataStore[indexOf];
             d.msg = msg;
             if (hasRead){
                 d.length = d.length+1;
@@ -52,8 +52,8 @@ export const appendChatData = (time,type,id,msg,hasRead) =>{
             }
             d.time = time;
             let data = d;
-            dataStore.splice(indexOf,1);
-            dataStore.unshift(data);
+            chatStackDataStore.splice(indexOf,1);
+            chatStackDataStore.unshift(data);
         }else{
             //这里是新建
             let rtnData = {};
@@ -91,10 +91,10 @@ export const appendChatData = (time,type,id,msg,hasRead) =>{
                 };
                 unReadNumNeedsUpdates(id,1);
             }
-            dataStore.unshift(rtnData);
+            chatStackDataStore.unshift(rtnData);
         }
         updateTotalUnReadNum();
-        return dataStore;
+        return chatStackDataStore;
 };
 
 export const updateTotalUnReadNum = () => {
@@ -105,33 +105,39 @@ export const updateTotalUnReadNum = () => {
 
 export const updateUserInfo = (data) => {
         let uid = data.uid;
-        for (element in dataStore){
-            let ele = dataStore[element];
+        console.log("input data = ",data);
+        console.log("the chatStackDataStore = ",chatStackDataStore);
+        for (element in chatStackDataStore){
+            let ele = chatStackDataStore[element];
+            console.log("测试:",ele.id,uid,(ele.id===uid));
             if (ele.id === uid){
                 ele.imageURL = data.photoURL;
                 ele.personName = data.username
             }
         }
+        console.log(chatStackDataStore);
+        return chatStackDataStore;
 };
 
 export const updateMeets = (data) => {
         let meetId = data.id;
-        for (element in dataStore){
-            let ele = dataStore[element];
+        for (element in chatStackDataStore){
+            let ele = chatStackDataStore[element];
             if (ele.id === meetId){
                 ele.personName = data.name;
                 ele.imageURL = data.photoURL;
             }
         }
+        return chatStackDataStore;
 };
 
 export const getLength = (id) => {
-        for (element in dataStore){
-            let ele = dataStore[element];
+        for (element in chatStackDataStore){
+            let ele = chatStackDataStore[element];
             if (ele.id === id){
                 console.log("ele.length:",ele.length);
                 let eleLength = ele.length;
-                dataStore[element].length = 0;
+                chatStackDataStore[element].length = 0;
                 return eleLength;
             }
         }
@@ -141,25 +147,25 @@ export const getLength = (id) => {
 
 export const getTotalUnReadNum = () => {
     let number = 0;
-    for (element in dataStore){
-        let ele = dataStore[element];
-        number += dataStore[element].length;
+    for (element in chatStackDataStore){
+        let ele = chatStackDataStore[element];
+        number += chatStackDataStore[element].length;
     }
     return number;
 };
 
 export const updateLastMessage = (id,message) => {
-    for (element in dataStore){
-        let ele = dataStore[element];
+    for (element in chatStackDataStore){
+        let ele = chatStackDataStore[element];
         if (ele.id === id){
-            dataStore[element].msg = message;
+            chatStackDataStore[element].msg = message;
         }
     }
 };
 
 
 export const getData = () => {
-    return dataStore;
+    return chatStackDataStore;
 };
 
 
