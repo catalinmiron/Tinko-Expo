@@ -152,7 +152,7 @@ export default class SettingsScreen extends React.Component {
                         }
                     />
                     <ListItem
-                        title='Auto add Facebook Friends'
+                        title='Add Facebook Friends'
                         titleStyle={{fontFamily:'regular', fontSize:17,}}
                         rightElement={
                             <Switch
