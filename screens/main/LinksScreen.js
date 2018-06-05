@@ -97,7 +97,7 @@ export default class FriendChatListView extends Component {
         this.renderChatList= this.renderChatList.bind(this);
         uid = user.uid;
         setUid(uid);
-        this.socket = SocketIOClient('https://shuaiyixu.xyz/');
+        this.socket = SocketIOClient('https://gotinko.com/');
         //this.getAvatar();
         //this.getDBData();
         this.initChatTableAndGetDBData(uid);

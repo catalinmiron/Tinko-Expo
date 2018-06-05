@@ -49,7 +49,7 @@ export default class PrivateChatScreen extends Component {
     componentDidMount(){
         //unReadNumNeedsUpdates(pid,0);
         this.getFromDB(uid,pid);
-        this.socket = SocketIOClient('https://shuaiyixu.xyz');
+        this.socket = SocketIOClient('https://gotinko.com');
         // this.socket = SocketIOClient('http://47.89.187.42:4000/');
         this.socket.on("connect" + uid,(msg)=>{
             let data = JSON.parse(msg),

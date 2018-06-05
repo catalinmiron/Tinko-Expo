@@ -293,7 +293,7 @@ export const getPostTimeString = (postTime) => {
 
 export const logoutFromNotification = (uid) => {
     try{
-        fetch('https://shuaiyixu.xyz/logout', {
+        fetch('https://gotinko.com/logout', {
             method: 'POST',
             headers: {
                 Accept: 'application/json',
@@ -355,7 +355,7 @@ export const getCurrentTime = () => {
 
 export const getListWhoParticipatedInMeetsByMeetId = (meetId) => {
     try{
-        fetch('https://shuaiyixu.xyz/getListWhoParticipatedInMeetsByMeetId', {
+        fetch('https://gotinko.com/getListWhoParticipatedInMeetsByMeetId', {
             method: 'POST',
             headers: {
                 Accept: 'application/json',
