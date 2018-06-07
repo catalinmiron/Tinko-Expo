@@ -99,7 +99,7 @@ export default class TinkoDetailChatScreen extends React.Component {
 
     componentDidMount(){
         this.getGroupChatContents();
-        this.socket = SocketIOClient('https://shuaiyixu.xyz/');
+        this.socket = SocketIOClient('https://gotinko.com/');
         this.socket.on("activity" + MeetId,(msg)=>{
             try {
                 let data = JSON.parse(msg);
@@ -185,7 +185,7 @@ export default class TinkoDetailChatScreen extends React.Component {
         };
         try {
             console.log('before fetch');
-            fetch('https://shuaiyixu.xyz/getChatHistory', {
+            fetch('https://gotinko.com/getChatHistory', {
                 method: 'POST',
                 headers: {
                     Accept: 'application/json',

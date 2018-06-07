@@ -3,6 +3,7 @@ const db = SQLite.openDatabase('db.db');
 import {
     DeviceEventEmitter
 } from 'react-native';
+import {getListTime} from './CommonUtility'
 
 let uid,
     currentOnSelect,
@@ -16,6 +17,12 @@ export const setUid = (id) => {
 export const setDataStore = (data) =>{
     chatStackDataStore = data;
     updateTotalUnReadNum();
+};
+
+export const updateTime = () => {
+    for (let i = 0;i<chatStackDataStore.length;i++){
+        chatStackDataStore[i].time = getListTime(chatStackDataStore[i].dateTime);
+    }
 };
 
 export const currentOnSelectUser = (id) => {
@@ -35,7 +42,7 @@ export const removeChat = (id) => {
     return chatStackDataStore
 };
 
-export const appendChatData = (time,type,id,msg,hasRead) =>{
+export const appendChatData = (dateTime,time,type,id,msg,hasRead) =>{
         let arr = [];
         for (let i = 0;i<chatStackDataStore.length;i++){
             arr.push(chatStackDataStore[i].id);
@@ -74,6 +81,7 @@ export const appendChatData = (time,type,id,msg,hasRead) =>{
                     length:(hasRead)?1:0,
                     msg:msg,
                     time:time,
+                    dateTime:dateTime,
                     imageURL:imageURL,
                     personName:personName
                 };
@@ -86,6 +94,7 @@ export const appendChatData = (time,type,id,msg,hasRead) =>{
                     length:(hasRead)?1:0,
                     msg:msg,
                     time:time,
+                    dateTime:dateTime,
                     imageURL:"http://larissayuan.com/home/img/prisma.png",
                     personName :id,
                 };
@@ -109,7 +118,6 @@ export const updateUserInfo = (data) => {
         console.log("the chatStackDataStore = ",chatStackDataStore);
         for (element in chatStackDataStore){
             let ele = chatStackDataStore[element];
-            console.log("测试:",ele.id,uid,(ele.id===uid));
             if (ele.id === uid){
                 ele.imageURL = data.photoURL;
                 ele.personName = data.username

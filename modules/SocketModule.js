@@ -1,7 +1,7 @@
 import SocketIOClient from "socket.io-client";
 
 // module.exports = SocketIOClient('https://shuaiyixu.xyz');
-module.exports = SocketIOClient('https://shuaiyixu.xyz/');
+module.exports = SocketIOClient('https://gotinko.com/');
 
 // 服务器配置需要这样
 //

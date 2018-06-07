@@ -32,7 +32,7 @@ async function getToken() {
     }
     let value = await Expo.Notifications.getExpoPushTokenAsync();
     //这个是我们的token需要传给服务器
-    fetch('https://shuaiyixu.xyz/login', {
+    fetch('https://gotinko.com/login', {
         method: 'POST',
         headers: {
             Accept: 'application/json',
@@ -83,8 +83,8 @@ export default class RootNavigator extends React.Component {
       //this.setNewFriendsRequestListener(uid);
 
 
-      // this.socket = SocketIOClient('https://shuaiyixu.xyz');
-      this.socket = SocketIOClient('https://shuaiyixu.xyz/');
+      // this.socket = SocketIOClient('https://gotinko.com');
+      this.socket = SocketIOClient('https://gotinko.com/');
       this.socket.on("mySendBox"+uid,msg=>{
           let data = JSON.parse(msg);
           if (data.type!==999&&data.type!==1){
