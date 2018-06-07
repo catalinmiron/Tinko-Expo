@@ -100,6 +100,7 @@ export default class SignInScreen extends Component {
             writeInAsyncStorage('fbToken', token);
             writeInAsyncStorage('fbTokenExpires', expires);
 
+            //this.resetNavigation('Register', '');
             //this.initializeNewUser(token, user.uid, expires);
             if(a===b){ //first time login
                 this.initializeNewUser(token, user.uid, expires);
@@ -229,7 +230,7 @@ export default class SignInScreen extends Component {
                                     activeOpacity={0.5}
                                     titleStyle={{color: 'white', fontSize: 20}}
                                     containerStyle={{marginTop: -10}}
-                                    onPress={() => this.props.navigation.navigate('Register')}
+                                    onPress={() => this.props.navigation.navigate('Register',{email:''})}
                                 />
                             </View>
                         </View> :
