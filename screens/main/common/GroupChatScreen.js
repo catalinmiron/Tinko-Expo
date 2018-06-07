@@ -16,6 +16,7 @@ import {Header} from "react-native-elements";
 import {MaterialIcons} from '@expo/vector-icons'
 import KeyboardSpacer from "react-native-keyboard-spacer";
 import moment from 'moment';
+import Composer from '../../../components/Composer';
 
 let uid = "",
     MeetId = "",
@@ -150,6 +151,12 @@ export default class PrivateChatScreen extends Component {
             </TouchableOpacity>)
     }
 
+    renderComposer(props) {
+        return <Composer
+            {...props}
+        />;
+    }
+
     render() {
         return (
             <View
@@ -163,6 +170,7 @@ export default class PrivateChatScreen extends Component {
                     outerContainerStyles={ifIphoneX({height:88})}
                 />
                 <GiftedChat
+                    renderComposer={props => this.renderComposer(props)}
                     ref={(c) => this.giftedChatRef = c}
                     messages={this.state.messages}
                     onSend={messages => this.onSend(messages)}

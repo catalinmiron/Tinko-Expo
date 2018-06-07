@@ -35,6 +35,10 @@ export default class TextInput extends React.Component {
         this.props.onFocus();
     }
 
+    clear(){
+        this.input.clear();
+    }
+
     render() {
         if (this.state.refresh) {
             return null;
