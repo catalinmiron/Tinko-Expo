@@ -25,7 +25,9 @@ export default class TextInput extends React.Component {
 
     componentDidUpdate(prevProps) {
         if (prevProps.value !== this.props.value && this.props.value === '') {
-            this.setState({ value: '', refresh: true }, () => this.setState({ refresh: false }));
+            this.setState({ value: '', refresh: true }, () => {
+                this.setState({ refresh: false }, ()=> this.input.focus());
+            });
         }
     }
 

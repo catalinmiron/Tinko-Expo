@@ -4,6 +4,7 @@ import PropTypes from 'prop-types';
 import React from 'react';
 import { Platform, StyleSheet, TextInput as Input } from 'react-native';
 import TextInput from "./TextInput";
+//import TextInput from "./TextInput";
 
 const MIN_COMPOSER_HEIGHT = Platform.select({
     ios: 33,
@@ -35,7 +36,8 @@ export default class Composer extends React.Component {
     //
     // constructor(props) {
     //     super(props);
-    //
+    //     console.log(props);
+    //     props.textInputProps.ref(this);
     //     this.state = {
     //         value: this.props.text,
     //         refresh: false,
@@ -60,7 +62,9 @@ export default class Composer extends React.Component {
     //     this.input.focus();
     //
     //     this.props.onFocus();
-    // }
+    // };
+
+    //-----------------------------------------------------
 
     onContentSizeChange(e) {
         const { contentSize } = e.nativeEvent;
@@ -82,13 +86,33 @@ export default class Composer extends React.Component {
         this.props.onTextChanged(text);
     }
 
+    // clear(){
+    //     console.log('Composer clear');
+    //     // if (Platform.OS === 'ios') {
+    //     //     this.input.setNativeProps({ text: ' ' });
+    //     // }
+    //     //
+    //     // setTimeout(() => {
+    //     //     this.input.setNativeProps({ text: '' });
+    //     // });
+    //     this.input.clear();
+    //     // this.input.setNativeProps({text: ''})
+    //     //this.setState({value:''})
+    //     // setTimeout(() => {
+    //     //     this.input.setNativeProps({ text: '' });
+    //     // });
+    // }
 
     render() {
 
+        // if (this.state.refresh) {
+        //     return null;
+        // }
+
         return (
             <TextInput
-                // onFocus={this.onFocus}
-                // ref={(ref) => { this.input = ref; }}
+                //onFocus={this.onFocus}
+                ref={(ref) => { this.input = ref; }}
                 testID={this.props.placeholder}
                 accessible
                 accessibilityLabel={this.props.placeholder}
@@ -101,10 +125,12 @@ export default class Composer extends React.Component {
                 style={[styles.textInput, this.props.textInputStyle, { height: this.props.composerHeight }]}
                 autoFocus={this.props.textInputAutoFocus}
                 value={this.props.text}
+                //value={this.state.value}
                 enablesReturnKeyAutomatically
                 underlineColorAndroid="transparent"
                 keyboardAppearance={this.props.keyboardAppearance}
-                {...this.props.textInputProps}
+                blurOnSubmit={true}
+                //{...this.props.textInputProps}
             />
         );
     }
