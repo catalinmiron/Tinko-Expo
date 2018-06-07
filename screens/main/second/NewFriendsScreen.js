@@ -28,6 +28,7 @@ export default class NewFriendsScreen extends Component {
             searchText:'',
             searched:false,
             buttonShowLoading:false,
+            processingRequesterUid:''
         }
         this.renderRightElement = this.renderRightElement.bind(this);
     }
@@ -77,7 +78,7 @@ export default class NewFriendsScreen extends Component {
 
     acceptRequestButtonPressed(request){
         console.log(request.requesterUid, this.state.userUid);
-        this.setState({buttonShowLoading:true});
+        this.setState({buttonShowLoading:true,processingRequesterUid:request.requesterUid});
         let bodyData = {
             requester:request.requesterUid,
             responser:this.state.userUid,
@@ -108,7 +109,7 @@ export default class NewFriendsScreen extends Component {
                 return (
                     <Button
                         title='Accept'
-                        loading={this.state.buttonShowLoading}
+                        loading={request.requesterUid === this.state.processingRequesterUid?this.state.buttonShowLoading:false}
                         //loadingProps={{size: 'small', color: 'white'}}
                         onPress={() => this.acceptRequestButtonPressed(request)}
                     />

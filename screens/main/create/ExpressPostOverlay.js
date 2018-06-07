@@ -9,6 +9,7 @@ import {Button, Header, Avatar, Overlay, Input} from 'react-native-elements'
 import {firestoreDB, getMeetAvatarUri, getTagName} from "../../../modules/CommonUtility";
 import {getLength,updateUnReadNum} from "../../../modules/ChatStack";
 import {createMeet, sendFriendRequest} from "../../../modules/SocketClient";
+import {Image as CacheImage} from 'react-native-expo-image-cache';
 
 import {
     View
@@ -184,7 +185,7 @@ export default class ExpressPostOverlay extends Component{
         const {isVisible, activityIndicatorVisible} = this.state;
         return (
             <Overlay
-                height={370}
+                height={350}
                 borderRadius={25}
                 isVisible={isVisible}
                 overlayBackgroundColor='rgba(255, 255, 255, 0.9)'
@@ -199,12 +200,16 @@ export default class ExpressPostOverlay extends Component{
                                     onPress={() => this.createExpressMeet(tagName)}
                                     key={tagName}
                                     style = {{width:75}}>
-                                    <Avatar
-                                        size='large'
-                                        rounded
-                                        source={{ uri: getMeetAvatarUri(tagName) }}
-                                        title='TK'
+                                    <CacheImage
+                                        style={{width:75, height:75, borderRadius:75/2}}
+                                        uri={getMeetAvatarUri(tagName)}
                                     />
+                                    {/*<Avatar*/}
+                                        {/*size='large'*/}
+                                        {/*rounded*/}
+                                        {/*source={{ uri: getMeetAvatarUri(tagName) }}*/}
+                                        {/*title='TK'*/}
+                                    {/*/>*/}
                                     <Text
                                         style={{marginTop:3,color:'#626567', textAlign: 'center'}}
                                     >{tagName}</Text>

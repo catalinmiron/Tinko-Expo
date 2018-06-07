@@ -384,18 +384,26 @@ export default class Me extends React.Component {
                         <SubButton
                             index={2}
                             onPress={() => {
-                                if(Platform.OS === 'android'){
-                                    this.props.navigation.navigate('TinkoWebView',{title:'SHARE', uri:'https://www.facebook.com/sharer/sharer.php?u=https://expo.io/'})
-                                } else {
-                                    Share.share({
-                                        title:'a beautiful title: http://www.foxnews.com/',
-                                        message:'some beautiful message',
-                                        url:'http://www.foxnews.com/'
-                                    },{
-                                        subject:'a beautiful subject',
-                                        dialogTitle:'a beautiful dialogTitle'
-                                    })
-                                }
+                                Share.share({
+                                    title:'I am using TINKO',
+                                    message:'Come to join me. https://gotinko.com/',
+                                    url:'https://gotinko.com/'
+                                },{
+                                    subject:'I am using TINKO.',
+                                    dialogTitle:'I am using TINKO.'
+                                })
+                                // if(Platform.OS === 'android'){
+                                //     this.props.navigation.navigate('TinkoWebView',{title:'SHARE', uri:'https://www.facebook.com/sharer/sharer.php?u=https://expo.io/'})
+                                // } else {
+                                //     Share.share({
+                                //         title:'I am using TINKO',
+                                //         message:'Come to join me. https://gotinko.com/',
+                                //         url:'https://gotinko.com/'
+                                //     },{
+                                //         subject:'I am using TINKO.',
+                                //         dialogTitle:'I am using TINKO.'
+                                //     })
+                                // }
                             }}
                         />
                     </View>

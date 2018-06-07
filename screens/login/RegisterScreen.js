@@ -79,6 +79,7 @@ export default class RegisterScreen extends Component {
                         gender:'',
                         location:'',
                         fbAutoAdd:false,
+                        facebookId:'',
                     }
                     firestoreDB().collection('Users').doc(uid).set(userData)
                         .then(()=>{
