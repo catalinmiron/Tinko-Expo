@@ -1,9 +1,10 @@
 import React from 'react';
 import {Alert, View, StyleSheet, Text, Keyboard} from "react-native";
 import firebase from "firebase";
-import {Avatar, Header, ListItem, Button, Input} from 'react-native-elements';
+import {Avatar, Header, ListItem, Button} from 'react-native-elements';
 import {ifIphoneX} from "react-native-iphone-x-helper";
 import {firestoreDB} from "../../../modules/CommonUtility";
+import TextInput from '../../../components/TextInput';
 
 export default class UpdateUsernameScreen extends React.Component {
     static navigationOptions = ({
@@ -47,10 +48,10 @@ export default class UpdateUsernameScreen extends React.Component {
                     outerContainerStyles={ifIphoneX({height:88})}
                 />
 
-                <Input
-                    inputContainerStyle={{borderBottomColor:'transparent', borderBottomWidth:0, backgroundColor:'white'}}
+                <TextInput
+                    style={{borderBottomColor:'transparent', borderBottomWidth:0, backgroundColor:'white',marginTop:50, width:'100%', height:40}}
                     placeholder='Username'
-                    containerStyle={{marginTop:50, width:'100%', backgroundColor:'white'}}
+                    //containerStyle={{marginTop:50, width:'100%', backgroundColor:'white'}}
                     onChangeText ={username => {
                         console.log('onChangeText',username);
                         this.setState({username});

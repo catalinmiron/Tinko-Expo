@@ -177,8 +177,16 @@ export default class AvatarUploadScreen extends React.Component {
             this.setState({ uploading: true });
 
             if (!pickerResult.cancelled) {
-                const manipResult = await ImageManipulator.manipulate(pickerResult.uri,[{resize:{width:1000}}], {compress:0.5});
-                let uploadUrl = await uploadImageAsync(manipResult.uri, userUid);
+                let uri;
+                if (pickerResult.width < 1000){
+                    uri = pickerResult.uri;
+                    console.log('pickerResult width < 1000')
+                } else {
+                    console.log('pickerResult manipResult');
+                    const manipResult = await ImageManipulator.manipulate(pickerResult.uri,[{resize:{width:1000}}], {compress:0.5});
+                    uri = manipResult.uri;
+                }
+                let uploadUrl = await uploadImageAsync(uri, userUid);
                 let userRef = firestoreDB().collection('Users').doc(userUid);
                 userRef.update({photoURL:uploadUrl}).then(()=>{
                     this.setState({ image: uploadUrl });
