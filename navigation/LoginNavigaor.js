@@ -3,6 +3,7 @@ import React from 'react';
 import { StackNavigator } from 'react-navigation';
 import SignInScreen from '../screens/login/SignInScreen';
 import RegisterScreen from '../screens/login/RegisterScreen';
+import TinkoWebView from "../screens/main/common/TinkoWebView";
 
 export default LoginStackNavigator = StackNavigator(
     {
@@ -12,7 +13,10 @@ export default LoginStackNavigator = StackNavigator(
         Register:{
             screen:RegisterScreen,
             mode:'modal'
-        }
+        },
+        TinkoWebView:{
+            screen: TinkoWebView,
+        },
     },{
         initialRouteName: 'SignIn',
         transitionConfig : () => ({

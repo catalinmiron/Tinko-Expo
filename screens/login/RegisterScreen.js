@@ -4,6 +4,7 @@ import { Input, Button } from 'react-native-elements'
 
 import {Facebook, Font} from 'expo';
 import firebase from "firebase";
+import {firestoreDB} from "../../modules/CommonUtility";
 //import Icon from 'react-native-vector-icons/FontAwesome';
 
 const SCREEN_WIDTH = Dimensions.get('window').width;
@@ -62,15 +63,51 @@ export default class RegisterScreen extends Component {
             Alert.alert('Error', 'Password are not same');
             return;
         }
-        let credential = firebase.auth.EmailAuthProvider.credential(email, password);
-        firebase.auth().currentUser.linkWithCredential(credential)
-            .then((user) => {
-                console.log("Account linking success", user);
-                this.props.screenProps.handleUserLoggedIn();
-            }).catch((error) => {
-            Alert.alert("Email Linking Failed", error);
-        });
-
+        if(this.state.signUpWithEmail){
+            firebase.auth().createUserWithEmailAndPassword(email, password)
+                .then((user)=>{
+                    console.log('Email Register: ', user);
+                    let uid = user.uid;
+                    let emailSplit = email.split('@');
+                    let username = emailSplit[0];
+                    let photoURL = 'https://firebasestorage.googleapis.com/v0/b/tinko-64673.appspot.com/o/Users%2FAvatar%2Favatar-placeholder.png?alt=media&token=68f12225-4266-4888-8aaa-98315112c2ed';
+                    let userData = {
+                        email:email,
+                        photoURL:photoURL,
+                        uid:uid,
+                        username:username,
+                        gender:'',
+                        location:'',
+                        fbAutoAdd:false,
+                    }
+                    firestoreDB().collection('Users').doc(uid).set(userData)
+                        .then(()=>{
+                            console.log('User Data susccefully added');
+                            this.props.screenProps.handleUserLoggedIn();
+                        }).catch((error)=>{
+                            Alert.alert('Error',error.message);
+                            this.setState({ showLoading: false });
+                    })
+                    //this.props.screenProps.handleUserLoggedIn();
+                })
+                .catch(function(error) {
+                // Handle Errors here.
+                let errorCode = error.code;
+                let errorMessage = error.message;
+                Alert.alert('Error', errorMessage);
+                this.setState({ showLoading: false });
+            });
+        }else{
+            let credential = firebase.auth.EmailAuthProvider.credential(email, password);
+            firebase.auth().currentUser.linkWithCredential(credential)
+                .then((user) => {
+                    console.log("Account linking success", user);
+                    this.props.screenProps.handleUserLoggedIn();
+                }).catch((error) => {
+                Alert.alert("Email Linking Failed", error);
+                this.setState({ showLoading: false });
+            });
+        }
     }
 
 
@@ -158,6 +195,24 @@ export default class RegisterScreen extends Component {
                                     containerStyle={{marginVertical: 10}}
                                     titleStyle={{fontWeight: 'bold', color: 'white'}}
                                 />
+                                <View style={styles.footerView}>
+                                    <Text
+                                        style={{color: 'white'}}
+                                        numberOfLines={10}
+                                    >
+                                        By pressing 'REGISTER' button means you are agree to our
+                                        <Text
+                                            style={{color:'#cceeff'}}
+                                            onPress={()=>this.props.navigation.navigate('TinkoWebView',{title:'Privacy Policy', uri:'https://termsfeed.com/privacy-policy/11f395148fd94535328c9cda80d1ca86'})}
+                                        > Privacy Policy </Text>
+                                         and
+                                        <Text
+                                            style={{color:'#cceeff'}}
+                                            onPress={()=>this.props.navigation.navigate('TinkoWebView',{title:'Services Terms', uri:'https://termsfeed.com/terms-conditions/5f13460a2ff8f4a683d5ee096fa3a5f1'})}
+                                        > Service Terms</Text>
+                                        .
+                                    </Text>
+                                </View>
                             </View>
                         </View>
                     </View>
@@ -211,7 +266,7 @@ const styles = StyleSheet.create({
     },
     footerView: {
         marginTop: 20,
-        flex: 0.5,
+        //flex: 0.5,
         justifyContent: 'center',
         alignItems: 'center',
     }

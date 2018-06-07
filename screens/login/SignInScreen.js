@@ -230,7 +230,7 @@ export default class SignInScreen extends Component {
                                     activeOpacity={0.5}
                                     titleStyle={{color: 'white', fontSize: 20}}
                                     containerStyle={{marginTop: -10}}
-                                    onPress={() => this.props.navigation.navigate('Register',{email:''})}
+                                    onPress={() => this.props.navigation.navigate('Register',{email:'',signUpWithEmail:true})}
                                 />
                             </View>
                         </View> :
