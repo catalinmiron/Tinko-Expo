@@ -18,10 +18,11 @@
       "backgroundColor": "#ffffff"
     },
     "ios": {
-      "supportsTablet": false
+      "supportsTablet": false,
+      "bundleIdentifier": "com.kevinscience.tinko"
     },
     "android": {
-      "package": "com.kevinscience.tinko_expo",
+      "package": "com.kevinscience.tinko",
       "icon": "./assets/images/icon.png",
       "config": {
         "googleMaps": {
@@ -33,7 +34,7 @@
     "updates": {
       "enabled": true,
       "checkAutomatically": "ON_LOAD",
-      "fallbackToCacheTimeout": 0
+      "fallbackToCacheTimeout": 3000
     }
   }
 }
