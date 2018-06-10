@@ -16,7 +16,7 @@
     "geofire": "^4.1.2",
     "lodash": "^4.17.5",
     "moment": "^2.22.1",
-    "native-base": "^2.4.1",
+    "native-base": "^2.5.1",
     "prop-types": "^15.6.1",
     "react": "16.3.1",
     "react-native": "https://github.com/expo/react-native/archive/sdk-27.0.2.tar.gz",
