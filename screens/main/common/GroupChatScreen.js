@@ -16,6 +16,7 @@ import {Header} from "react-native-elements";
 import {MaterialIcons} from '@expo/vector-icons'
 import KeyboardSpacer from "react-native-keyboard-spacer";
 import moment from 'moment';
+import {sendGroupChat,sendPrivateChat} from '../../../modules/SocketModule';
 
 let uid = "",
     MeetId = "",
@@ -28,7 +29,7 @@ export default class PrivateChatScreen extends Component {
 
     componentWillUnmount(){
         currentOnSelectUser("");
-        this.socket.removeListener("connect" + uid);
+        this.connectListener.remove();
         //unReadNumNeedsUpdates(MeetId,1);
     }
 
@@ -47,9 +48,8 @@ export default class PrivateChatScreen extends Component {
         let dataStore = this.props.navigation.state.params;
         uid = dataStore.myId;
         MeetId = dataStore.personId;
-        this.socket = SocketIOClient('https://gotinko.com');
-        // this.socket = SocketIOClient('http://47.89.187.42:4000/');
-        this.socket.on("connect" + uid,(msg)=>{
+        this.connectListener =  DeviceEventEmitter.addListener('SocketConnect',(msg)=>{
+            msg = msg.msg;
             let data = JSON.parse(msg);
             if (data.type === 2){
                 if (MeetId === data.activityId){
@@ -74,6 +74,10 @@ export default class PrivateChatScreen extends Component {
             await getUserDataFromDatabase(e.fromId,
                 (userData) => {
                     let message = {};
+                    if (e.timeStamp){
+                        e.timeStamp = moment().utc(e.timeStamp).local();
+                        console.log(e.timeStamp);
+                    }
                     if (e.status === 0){
                         if (userData.uid!==uid){
                             message = {
@@ -210,7 +214,6 @@ export default class PrivateChatScreen extends Component {
     getGroupChatContents(){
 
         this.setState({isLoadingEarlier:true});
-        // console.log("dbInfoList",dbInfoList);
         if (dbInfoList.length>limit){
             let processIng = [];
             for (let i = 0;i<limit;i++){
@@ -258,7 +261,11 @@ export default class PrivateChatScreen extends Component {
     onSend(messages = []) {
         let text = messages[0].text;
         updateLastMessage(MeetId,text);
-        this.socket.emit("groupChat",uid,MeetId,text);
+        sendGroupChat({
+            uid:uid,
+            MeetId:MeetId,
+            text:text
+        });
         this.setState(previousState => ({
             messages: GiftedChat.append(previousState.messages, messages[0]),
         }))
@@ -283,7 +290,12 @@ export default class PrivateChatScreen extends Component {
                         "isSystem," +
                         "sendCode) VALUES (?,?,?,?,?,?,?,?)",[pid,text,0,1,1,"","",0,code],(_, { insertId }) => {
                             //被修改了的数量
-                            this.socket.emit("privateChat",uid,pid,text,insertId);
+                            sendPrivateChat({
+                                uid:uid,
+                                pid:pid,
+                                text:text,
+                                insertId:insertId
+                            });
                             this.setState(previousState => ({
                                 messages: GiftedChat.append(previousState.messages, messages[0]),
                             }))

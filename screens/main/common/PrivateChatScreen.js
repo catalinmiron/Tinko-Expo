@@ -12,10 +12,16 @@ import { GiftedChat } from 'react-native-gifted-chat';
 import SocketIOClient from 'socket.io-client';
 import {ifIphoneX} from "react-native-iphone-x-helper";
 import {Header} from "react-native-elements";
-import {unReadNumNeedsUpdates,updateLastMessage,currentOnSelectUser} from "../../../modules/ChatStack";
+import {
+    unReadNumNeedsUpdates,
+    updateLastMessage,
+    currentOnSelectUser,
+    appendChatData
+} from "../../../modules/ChatStack";
 import KeyboardSpacer from 'react-native-keyboard-spacer';
-import {getAvatarPlaceholder} from "../../../modules/CommonUtility";
+import {getAvatarPlaceholder, getCurrentTime, writeInAsyncStorage} from "../../../modules/CommonUtility";
 import moment from "moment";
+import {sendPrivateChat} from "../../../modules/SocketModule";
 
 let uid = "",
     pid = "",
@@ -49,9 +55,8 @@ export default class PrivateChatScreen extends Component {
     componentDidMount(){
         //unReadNumNeedsUpdates(pid,0);
         this.getFromDB(uid,pid);
-        this.socket = SocketIOClient('https://gotinko.com');
-        // this.socket = SocketIOClient('http://47.89.187.42:4000/');
-        this.socket.on("connect" + uid,(msg)=>{
+        this.connectListener =  DeviceEventEmitter.addListener('SocketConnect',(msg)=>{
+            msg = msg.msg;
             let data = JSON.parse(msg),
                 type = data.type;
             if (type === 1){
@@ -59,9 +64,9 @@ export default class PrivateChatScreen extends Component {
                     this.appendFriendMessage(false,data.message,Date.parse(new Date()))
                 }
             }
-
         });
-        this.socket.on("mySendBox"+uid,msg=>{
+        this.sendboxListener =  DeviceEventEmitter.addListener('mySendBox',(msg)=>{
+            msg = msg.msg;
             let data = JSON.parse(msg);
             if (data.type === 1){
                 //updateSql = "update db"+uid+" set hasRead = 0 where hasRead = 1 and fromId = '" + targetId + "'"
@@ -80,10 +85,9 @@ export default class PrivateChatScreen extends Component {
     }
 
     componentWillUnmount(){
+        this.sendboxListener.remove();
+        this.connectListener.remove();
         currentOnSelectUser("");
-
-        this.socket.removeListener("connect" + uid);
-
     }
 
     getFromDB(uid,pid){
@@ -255,7 +259,13 @@ export default class PrivateChatScreen extends Component {
                         "sendCode) VALUES (?,?,?,?,?,?,?,?,?,?)",[moment().format(),pid,0,text,1,1,"","",0,code],(_, { insertId }) => {
                                 //被修改了的数量
                         console.log("已经存进去了，id是",insertId);
-                            this.socket.emit("privateChat",uid,pid,text,insertId);
+
+                            sendPrivateChat({
+                                uid:uid,
+                                pid:pid,
+                                text:text,
+                                insertId:insertId
+                            });
                             this.setState(previousState => ({
                                 messages: GiftedChat.append(previousState.messages, messages[0]),
                             }))

@@ -1,7 +1,66 @@
 import SocketIOClient from "socket.io-client";
+import {
+    DeviceEventEmitter
+} from 'react-native';
 
 // module.exports = SocketIOClient('https://shuaiyixu.xyz');
-module.exports = SocketIOClient('https://gotinko.com/');
+let TinkoSocket = SocketIOClient('https://gotinko.com/'),
+    byStanderListener;
+
+export const initSocketModule = (uid) =>{
+    TinkoSocket.on("connect" + uid,msg=>{
+        console.log("收到：" + msg);
+        DeviceEventEmitter.emit('SocketConnect',{
+            msg:msg
+        });
+    });
+    TinkoSocket.on("mySendBox" + uid,msg=>{
+        DeviceEventEmitter.emit('mySendBox',{
+            msg:msg
+        });
+    });
+};
+
+export const initByStanderChat = (MeetId) =>{
+    if (!TinkoSocket.hasListeners("activity" + MeetId)){
+        console.log("没有这个监听")
+        TinkoSocket.on("activity" + MeetId,msg=>{
+            console.log("get activity " + MeetId);
+            DeviceEventEmitter.emit("activity" + MeetId,{
+                msg:msg
+            });
+        });
+    }else{
+        console.log("这个活动的监听存在")
+    }
+};
+
+export const removeByStanderChat = (MeetId) =>{
+    console.log("关闭活动监听");
+    TinkoSocket.off("activity" + MeetId);
+    console.log(TinkoSocket.hasListeners("activity" + MeetId));
+};
+
+export const sendGroupChat = (params) =>{
+    let uid = params.uid,MeetId = params.MeetId,text = params.text;
+    TinkoSocket.emit("groupChat",uid,MeetId,text);
+};
+
+export const byStander = (params) =>{
+    let uid = params.uid,MeetId = params.MeetId,text = params.text;
+    TinkoSocket.emit("byStander",uid,MeetId,text);
+};
+
+export const sendPrivateChat = (params) =>{
+    let uid = params.uid,pid = params.pid,text = params.text,insertId = params.insertId;
+    TinkoSocket.emit("privateChat",uid,pid,text,insertId);
+};
+
+
+export const userLogin = (uid) =>{
+    TinkoSocket.emit("userLogin",uid);
+};
+
 
 // 服务器配置需要这样
 //

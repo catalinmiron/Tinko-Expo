@@ -11,6 +11,8 @@ import IconBadge from '../../modules/react-native-icon-badge'
 import {Ionicons} from '@expo/vector-icons'
 import {Image as CacheImage} from "react-native-expo-image-cache";
 
+import {userLogin} from '../../modules/SocketModule'
+
 require("firebase/firestore");
 import SocketIOClient from 'socket.io-client';
 import {
@@ -97,7 +99,8 @@ export default class FriendChatListView extends Component {
         this.renderChatList= this.renderChatList.bind(this);
         uid = user.uid;
         setUid(uid);
-        this.socket = SocketIOClient('https://gotinko.com/');
+        userLogin(uid);
+       // this.socket = SocketIOClient('https://gotinko.com/');
         //this.getAvatar();
         //this.getDBData();
         this.initChatTableAndGetDBData(uid);
@@ -106,7 +109,6 @@ export default class FriendChatListView extends Component {
             friendInfo:[],
             totalUnReadMessageNum:0
         };
-        this.initSocket();
         this.listener =DeviceEventEmitter.addListener('updateUnReadNum',(param)=>{
             getLength(param.id);
             currentOnSelectId = "";
@@ -130,61 +132,28 @@ export default class FriendChatListView extends Component {
             });
             this.totalUnreadMessageNumChanged(param.num);
         });
-
-        //updateBadge
-
-        // setInterval(() => {
-        //     this.totalUnreadMessageNumChanged(totalUnReadMessageNum);
-        // },500);
-    }
-
-    componentDidMount(){
-        this.totalUnreadMessageNumChanged(totalUnReadMessageNum);
-        AppState.addEventListener('change', this._handleAppStateChange);
-        this.initChatStack();
-    }
-
-    componentWillUnmount(){
-        AppState.removeEventListener('change', this._handleAppStateChange);
-        writeInAsyncStorage("chatStack",getData());
-        this.listener.remove();
-        this.selectListener.remove();
-        this.avatarListener.remove();
-        this.updateBadgeListener.remove();
-    }
-
-    _handleAppStateChange = (nextAppState) => {
-        this.socket.emit("userLogin",uid);
-    };
-
-    initChatStack(){
-        getFromAsyncStorage("chatStack").then((chatInfo) => {
-            console.log('initChatStack', chatInfo);
-            if(chatInfo){
-                setDataStore(chatInfo);
-                let chat = getData();
-                updateTime();
-                for (element in chat){
-                    let ele = chat[element];
-                    if (ele.imageURL === "http://larissayuan.com/home/img/prisma.png"&&(ele.type === 1||ele.type ===3)){
-                        this.upDateAvatar(ele.id);
-                    }else if (ele.imageURL === "http://larissayuan.com/home/img/prisma.png"&&(ele.type === 2||ele.type ===4)){
-                        this.getMeetsName(ele.id);
-                    }
-
-                }
-                this.setState({
-                    messages:getData()
-                });
-            } else {
-                setDataStore([]);
+        this.sendboxListener =  DeviceEventEmitter.addListener('mySendBox',(msg)=>{
+            msg = msg.msg;
+            let data = JSON.parse(msg);
+            let type = data.type;
+            if (parseInt(type) === 0){
+                //系统
+                appendChatData(moment().format(format),getCurrentTime(),type,data.activityId,data.message);
+            }else if (parseInt(type)===1){
+                //私聊
+                appendChatData(moment().format(format),getCurrentTime(),type,data.toId,data.msg);
+            }else if (parseInt(type) === 999){
+                appendChatData(moment().format(format),getCurrentTime(),1,data.requester,data.msg);
+            }else{
+                appendChatData(moment().format(format),getCurrentTime(),type,data.activityId,data.message);
             }
+            writeInAsyncStorage("chatStack",getData());
+            this.setState({
+                messages:getData()
+            });
         });
-    }
-
-    initSocket(){
-        this.socket.emit("userLogin",uid);
-        this.socket.on("connect" + uid,msg=>{
+        this.connectListener =  DeviceEventEmitter.addListener('SocketConnect',(msg)=>{
+            msg = msg.msg;
             let data = JSON.parse(msg),
                 type = data.type;
             //历史记录
@@ -269,29 +238,58 @@ export default class FriendChatListView extends Component {
                     messages:getData()
                 });
             }
-          //  this.totalUnreadMessageNumChanged(totalUnReadMessageNum);
-        });
-        this.socket.on("mySendBox"+uid,msg=>{
-            let data = JSON.parse(msg);
-            let type = data.type;
-            if (parseInt(type) === 0){
-                //系统
-                appendChatData(moment().format(format),getCurrentTime(),type,data.activityId,data.message);
-            }else if (parseInt(type)===1){
-                //私聊
-                appendChatData(moment().format(format),getCurrentTime(),type,data.toId,data.msg);
-            }else if (parseInt(type) === 999){
-                appendChatData(moment().format(format),getCurrentTime(),1,data.requester,data.msg);
-            }else{
-                appendChatData(moment().format(format),getCurrentTime(),type,data.activityId,data.message);
-            }
-            writeInAsyncStorage("chatStack",getData());
-            this.setState({
-                messages:getData()
-            });
         })
+
+        //updateBadge
+
+        // setInterval(() => {
+        //     this.totalUnreadMessageNumChanged(totalUnReadMessageNum);
+        // },500);
     }
 
+    componentDidMount(){
+        this.totalUnreadMessageNumChanged(totalUnReadMessageNum);
+        AppState.addEventListener('change', this._handleAppStateChange);
+        this.initChatStack();
+    }
+
+    componentWillUnmount(){
+        AppState.removeEventListener('change', this._handleAppStateChange);
+        writeInAsyncStorage("chatStack",getData());
+        this.listener.remove();
+        this.selectListener.remove();
+        this.avatarListener.remove();
+        this.updateBadgeListener.remove();
+    }
+
+    _handleAppStateChange = (nextAppState) => {
+        userLogin(uid);
+    };
+
+    initChatStack(){
+        getFromAsyncStorage("chatStack").then((chatInfo) => {
+            console.log('initChatStack', chatInfo);
+            if(chatInfo){
+                setDataStore(chatInfo);
+                let chat = getData();
+                updateTime();
+                for (element in chat){
+                    let ele = chat[element];
+                    if (ele.imageURL === "http://larissayuan.com/home/img/prisma.png"&&(ele.type === 1||ele.type ===3)){
+                        this.upDateAvatar(ele.id);
+                    }else if (ele.imageURL === "http://larissayuan.com/home/img/prisma.png"&&(ele.type === 2||ele.type ===4)){
+                        this.getMeetsName(ele.id);
+                    }
+
+                }
+                this.setState({
+                    messages:getData()
+                });
+            } else {
+                setDataStore([]);
+            }
+        });
+    }
 
     totalUnreadMessageNumChanged(num){
         if (this.props.navigation){
@@ -518,7 +516,6 @@ export default class FriendChatListView extends Component {
 
     render() {
 
-        console.log('this.state.messages', this.state.messages);
         return (
             <View style={{flex:1}}>
                 <Header

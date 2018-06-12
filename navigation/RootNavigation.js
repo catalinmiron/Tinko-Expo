@@ -2,10 +2,9 @@ import { Notifications, SQLite, Permissions } from 'expo';
 const db = SQLite.openDatabase('db.db');
 
 import React from 'react';
-import { StyleSheet, SafeAreaView,View,Text } from 'react-native';
+import {StyleSheet, SafeAreaView, View, Text, DeviceEventEmitter} from 'react-native';
 import { StackNavigator } from 'react-navigation';
 import moment from 'moment';
-
 import MainTabNavigator from './MainTabNavigator';
 import LoginNavigator from './LoginNavigaor';
 import registerForPushNotificationsAsync from '../api/registerForPushNotificationsAsync';
@@ -16,6 +15,8 @@ import UserDetailOverlay from '../screens/main/common/UserDetailOverlay';
 import AvatarDisplayOverlay from '../screens/main/common/AvatarDisplayOverlay';
 import {initNewFriendsRequestTable, insertNewFriendsRequest} from "../modules/SqliteClient";
 import {firestoreDB, getUserData, getUserDataFromDatabase} from "../modules/CommonUtility";
+import {initSocketModule} from '../modules/SocketModule';
+import {getLength} from "../modules/ChatStack";
 
 let getPrivateHistory = false,
     getMeetsHistory = false;
@@ -82,22 +83,18 @@ export default class RootNavigator extends React.Component {
 
       //this.setNewFriendsRequestListener(uid);
 
+      initSocketModule(uid);
 
-      // this.socket = SocketIOClient('https://gotinko.com');
-      this.socket = SocketIOClient('https://gotinko.com/');
-      this.socket.on("mySendBox"+uid,msg=>{
+      this.listener =DeviceEventEmitter.addListener('mySendBox',(msg)=>{
+          msg = msg.msg;
           let data = JSON.parse(msg);
           if (data.type!==999&&data.type!==1){
-              console.log("data is here:",data);
               this.insertChatSql(uid,data,0);
-          }else{
-              console.log("新的群聊消息:",data);
           }
       });
-      // this.socket.on("systemListener"+uid,msg=>{
-      //     this.getFriendRequestInfo(JSON.parse(msg))
-      // });
+
   }
+
 
   render() {
         if(this.props.loggedIn){
@@ -310,18 +307,6 @@ export default class RootNavigator extends React.Component {
         );
     }
 
-    //type 0 = "发送好友请求"
-    //     2 = "facebook好友确认"
-    //     1 = "普通的好友确认" 比如a给b发送了请求 b确认了 就发送这个
-    //     -1 = "确认了这个请求" 比如a给b发送了请求 b拒绝了 就发送这个
-    sendFriendRequest(requester,responser,type,msg){
-        this.socket.emit("NewFriendRequest",JSON.stringify({
-            requester:requester,
-            responser:responser,
-            type:type,
-            msg:msg
-        }));
-    }
 
     setNewFriendsRequestListener(userUid){
         let newFriendsRequestRef = firestoreDB().collection('Users').doc(userUid).collection('NewFriendsRequest');

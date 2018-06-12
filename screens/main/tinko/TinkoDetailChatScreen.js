@@ -1,5 +1,5 @@
 import React from "react";
-import { View, Platform, SafeAreaView, Keyboard } from 'react-native';
+import {View, Platform, SafeAreaView, Keyboard, DeviceEventEmitter} from 'react-native';
 import { GiftedChat,Bubble } from 'react-native-gifted-chat'
 import SlackMessage from '../../../components/SlackMessage'
 import emojiUtils from 'emoji-utils';
@@ -10,6 +10,8 @@ import { ifIphoneX } from 'react-native-iphone-x-helper';
 import SocketIOClient from 'socket.io-client';
 import KeyboardSpacer from "react-native-keyboard-spacer";
 import {MaterialIcons} from '@expo/vector-icons';
+import {byStander,initByStanderChat,removeByStanderChat} from "../../../modules/SocketModule";
+import {getLength} from "../../../modules/ChatStack";
 
 let MeetId = "",
     uid = "",
@@ -99,9 +101,11 @@ export default class TinkoDetailChatScreen extends React.Component {
 
     componentDidMount(){
         this.getGroupChatContents();
-        this.socket = SocketIOClient('https://gotinko.com/');
-        this.socket.on("activity" + MeetId,(msg)=>{
+        initByStanderChat(MeetId);
+        this.listener =DeviceEventEmitter.addListener('activity'+MeetId,(param)=>{
+            console.log("hello hello hello");
             try {
+                let msg = param.msg;
                 let data = JSON.parse(msg);
                 this.processMessageData([data],0);
             } catch(e) {
@@ -137,7 +141,8 @@ export default class TinkoDetailChatScreen extends React.Component {
     }
 
     componentWillUnmount(){
-        this.socket.removeListener("activity" + MeetId);
+        removeByStanderChat("activity" + MeetId);
+        this.listener.remove();
     }
 
 
@@ -178,7 +183,7 @@ export default class TinkoDetailChatScreen extends React.Component {
     getGroupChatContents() {
         this.setState({isLoadingEarlier:true});
         const {lastMeetId, limit} = this.state;
-        let bodyData={
+        let bodyData= {
             meetId:this.state.meetId,
             lastId: lastMeetId,
             limit:limit
@@ -198,11 +203,6 @@ export default class TinkoDetailChatScreen extends React.Component {
                     console.log('after fetch', data);
                     let messages=[];
                     this.processMessageData(data,1);
-                    //console.log(data);
-                    // if(!data){
-                    //     return;
-                    // }
-
                     if(data.length<limit){
                         this.setState({loadEarlier:false, });
                     } else {
@@ -281,10 +281,15 @@ export default class TinkoDetailChatScreen extends React.Component {
 
     onSend(messages = []) {
         let text = messages[0].text;
-        this.socket.emit("byStander",uid,MeetId,text);
-        // this.setState(previousState => ({
-        //     messages: GiftedChat.append(previousState.messages, messages),
-        // }))
+        byStander({
+            uid:uid,
+            MeetId:MeetId,
+            text:text
+        });
+       // this.socket.emit("byStander",uid,MeetId,text);
+       //  this.setState(previousState => ({
+       //      messages: GiftedChat.append(previousState.messages, messages),
+       //  }))
     }
 
     render() {

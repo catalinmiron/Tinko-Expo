@@ -186,7 +186,6 @@ export default class TinkoDetailScreen extends React.Component {
                     console.log('sqlite meetData', data);
                     if(data.length > 0){
                         let meetDataString = data[0].meetData;
-
                         let meet = JSON.parse(meetDataString);
                         console.log('meet',meet);
 
@@ -228,6 +227,7 @@ export default class TinkoDetailScreen extends React.Component {
     }
 
     setMeetDataListener(){
+        console.log('I called processMeet');
         const { meetId, userUid } = this.state;
         let firestoreDb = firestoreDB();
         var meetRef = firestoreDb.collection("Meets").doc(meetId);
@@ -235,7 +235,6 @@ export default class TinkoDetailScreen extends React.Component {
             if (meetDoc.exists) {
                 //console.log("Document data:", meetDoc.data());
                 let meet = meetDoc.data();
-                console.log('I called processMeet');
                 this.processMeet(meet, true);
                 //console.log(this.state);
                 //this.marker.showCallout()
