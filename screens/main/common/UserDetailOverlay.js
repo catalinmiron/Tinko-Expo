@@ -36,6 +36,7 @@ export default class UserDetailScreen extends Component{
         super(props);
         let user = firebase.auth().currentUser;
         this.showThisUser=this.showThisUser.bind(this);
+        this.getThisUserDataAndSetStateRequestMessage=this.getThisUserDataAndSetStateRequestMessage.bind(this);
         props.onRef(this);
         this.state={
             userUid:user.uid,
@@ -48,11 +49,6 @@ export default class UserDetailScreen extends Component{
             loading:true,
             thisUserData:{},
         };
-        getFromAsyncStorage('ThisUser').then((userData) => {
-            if(userData) {
-                this.setState({thisUserData:userData})
-            }
-        });
     }
 
     componentDidMount(){
@@ -62,28 +58,19 @@ export default class UserDetailScreen extends Component{
 
 
     showThisUser(uid, navigation, updateMethod){
+
         if(uid===this.state.userUid){
-            this.getThisUserFromAsyncStorage();
+            getFromAsyncStorage('ThisUser').then((userData) => {
+                if(userData) {
+                    this.setState({thisUserData:userData, userData:userData, isFriends:true, loading:false});
+                }
+            });
         } else {
             this.getUserDataFromSql(uid);
         }
         this.setState({isVisible:true, navigation:navigation, updateMethod:updateMethod});
     }
 
-    async getThisUserFromAsyncStorage(){
-        try {
-            const value = await AsyncStorage.getItem('ThisUser'+this.state.userUid);
-            if (value !== null){
-                // We have data!!
-                //console.log(value);
-                let userData = JSON.parse(value);
-                this.setState({userData, isFriends:true, loading:false});
-            }
-        } catch (error) {
-            // Error retrieving data
-            console.log(error);
-        }
-    }
 
     getUserDataFromSql(uid){
 
@@ -104,12 +91,14 @@ export default class UserDetailScreen extends Component{
                             gender:data[0].gender,
                         };
                         let isFriends = data[0].isFriend === 1;
+
                         this.setState({
                             userData:userData,
-                            requestMessage:`I am ${this.state.thisUserData.username}`,
+                            //requestMessage:`I am ${this.state.thisUserData.username}`,
                             isFriends:isFriends,
                             loading:false,
                         });
+                        this.getThisUserDataAndSetStateRequestMessage(isFriends);
                         this.getUserDataFromFirebase(uid, isFriends);
                     }
                 });
@@ -117,6 +106,7 @@ export default class UserDetailScreen extends Component{
             (error) => {
                 console.log(error);
                 this.getUserDataFromFirebase(uid);
+                this.getThisUserDataAndSetStateRequestMessage(false);
             },
             () => console.log('getUserDataFromSql')
         )
@@ -135,10 +125,11 @@ export default class UserDetailScreen extends Component{
                 } else {
                     this.setState({
                         userData:user,
-                        requestMessage:`I am ${user.username}`,
+                        //requestMessage:`I am ${user.username}`,
                         isFriends:isFriends,
                         loading:false,
                     });
+                    //this.getThisUserDataAndSetStateRequestMessage(isFriends);
                     let callUpdateMethod = userData !== {};
                     this.updateFriendSql(this.state.userUid, user, isFriends, callUpdateMethod);
                 }
@@ -149,6 +140,16 @@ export default class UserDetailScreen extends Component{
         }).catch((error) => {
             console.log("Error getting document:", error);
         });
+    }
+
+    getThisUserDataAndSetStateRequestMessage(isFriends){
+        if(!isFriends){
+            getFromAsyncStorage('ThisUser').then((userData) => {
+                if(userData) {
+                    this.setState({thisUserData:userData,requestMessage:`I am ${userData.username}`});
+                }
+            });
+        }
     }
 
     updateFriendSql(uid, userData, isFriends, callUpdateMethod){

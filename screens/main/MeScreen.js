@@ -305,17 +305,19 @@ export default class Me extends React.Component {
             }
             newFriendsRequestRef.where("timestamp", ">", timestamp)
                 .onSnapshot((querySnapshot) => {
-                    querySnapshot.forEach(async (doc) => {
-                        let newFriendsRequest = doc.data();
-                        //console.log('setNewFriendsRequestListener', doc.id, doc.data());
-                        await getUserDataFromDatabase(newFriendsRequest.requester,
-                            (userData) => {
-                                //console.log('setNewFriendsRequestListener',userData);
-                                insertNewFriendsRequest(this.state.userUid, newFriendsRequest, userData);
-                                writeInAsyncStorage('LastNewFriendsRequestTimestamp',newFriendsRequest.timestamp)
-                                this.showBadge();
-                            },
-                            (error) => {});
+                    querySnapshot.docChanges.forEach(async (change) => {
+                        if(change.type === 'added'){
+                            let newFriendsRequest = change.doc.data();
+                            //console.log('setNewFriendsRequestListener', doc.id, doc.data());
+                            await getUserDataFromDatabase(newFriendsRequest.requester,
+                                (userData) => {
+                                    //console.log('setNewFriendsRequestListener',userData);
+                                    insertNewFriendsRequest(this.state.userUid, newFriendsRequest, userData);
+                                    writeInAsyncStorage('LastNewFriendsRequestTimestamp',newFriendsRequest.timestamp)
+                                    this.showBadge();
+                                },
+                                (error) => {});
+                        }
                     });
 
                 });

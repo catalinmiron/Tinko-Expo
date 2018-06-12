@@ -1,6 +1,21 @@
 import _ from 'lodash';
 import React from 'react';
-import {View, Alert, TouchableWithoutFeedback, Image, ScrollView, Text, StyleSheet, Dimensions, SafeAreaView, TouchableOpacity, InteractionManager, BackHandler, ActivityIndicator} from 'react-native';
+import {
+    View,
+    Alert,
+    TouchableWithoutFeedback,
+    Image,
+    ScrollView,
+    Text,
+    StyleSheet,
+    Dimensions,
+    SafeAreaView,
+    TouchableOpacity,
+    InteractionManager,
+    BackHandler,
+    ActivityIndicator,
+    Share
+} from 'react-native';
 import firebase from 'firebase';
 import 'firebase/firestore';
 import Swiper from 'react-native-swiper';
@@ -591,6 +606,17 @@ export default class TinkoDetailScreen extends React.Component {
         );
     };
 
+    onShareButtonPressed(){
+        Share.share({
+            title:'Check This Tinko',
+            message:'Come join me. https://gotinko.com/',
+            url:`https://gotinko.com/web/activity?id=${this.state.meetId}`
+        },{
+            subject:'Check This Tinko',
+            dialogTitle:'Check This Tinko'
+        })
+    }
+
     render() {
         const { creatorLoadingDone, placePhotosLoadingDone, userUid, creatorUid, identity,
             creatorData, title, placePhotos, startTime, allowPeopleNearby, participatingUsersList,
@@ -905,7 +931,7 @@ export default class TinkoDetailScreen extends React.Component {
                     {(allowParticipantsInvite || identity===1) &&
                     <Entypo.Button
                         name="share-alternative" size={20} color="black" backgroundColor="transparent"
-                        onPress = {() => console.log('share')}/>
+                        onPress = {() => this.onShareButtonPressed()}/>
                     }
 
                     {identity===3 &&

@@ -9,6 +9,7 @@ import Socket from "../../../modules/SocketModule";
 import SocketIOClient from "socket.io-client";
 import {firestoreDB, getPostRequest} from "../../../modules/CommonUtility";
 import {ifIphoneX} from "react-native-iphone-x-helper";
+//import {Image as CacheImage} from 'react-native-expo-image-cache';
 
 export default class NewFriendsScreen extends Component {
     static navigationOptions = ({
@@ -29,8 +30,9 @@ export default class NewFriendsScreen extends Component {
             searched:false,
             buttonShowLoading:false,
             processingRequesterUid:''
-        }
+        };
         this.renderRightElement = this.renderRightElement.bind(this);
+        this.renderSearchList=this.renderSearchList.bind(this);
     }
 
     componentDidMount(){
@@ -145,7 +147,7 @@ export default class NewFriendsScreen extends Component {
                         <ListItem
                             key={userData.uid}
                             title={userData.username}
-                            leftAvatar={{ rounded: true, source: { uri: userData.photoURL} }}
+                            leftAvatar={{ rounded: true, size:'medium', source: { uri: userData.photoURL} }}
                             onPress={() => this.props.screenProps.showThisUser(userData.uid, this.props.navigation)}
                         />
                     ))}

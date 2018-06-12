@@ -9,7 +9,6 @@ import ReactNative, {
     TouchableOpacity,
     View,
     Keyboard,
-    TextInput,
     Dimensions,
     Switch,
     SafeAreaView,
@@ -33,7 +32,6 @@ import { NavigationActions } from 'react-navigation';
 import { SQLite, Constants, Location, Permissions, ImagePicker, ImageManipulator } from 'expo';
 import firebase from 'firebase';
 import { EvilIcons, Ionicons, Feather } from '@expo/vector-icons';
-//import EvilIcons from '@expo/vector-icons/EvilIcons';
 import {createMeet} from "../../modules/SocketClient";
 import {KeyboardAwareScrollView} from 'react-native-keyboard-aware-scroll-view';
 import { ActionSheetProvider, connectActionSheet } from '@expo/react-native-action-sheet';
@@ -44,6 +42,7 @@ import {
     firestoreDB,
     getUserDataFromDatabase
 } from "../../modules/CommonUtility";
+import TextInput from '../../components/TextInput';
 
 const SCREEN_WIDTH = Dimensions.get('window').width;
 const db = SQLite.openDatabase('db.db');
@@ -100,14 +99,15 @@ export default class CreateScreen extends React.Component {
             meet:props.navigation.state.params.meet,
             meetId:'',
             editingMode:editingMode,
-            title:'',
+            title:editingMode?props.navigation.state.params.meet.title:'',
+            //title:'',
             userUid: userUid,
             startTime: dateTime,
             placeName:'Pick a place',
             placeCoordinate:{},
             placeAddress:'',
             placeId:'',
-            description:'',
+            description:editingMode?props.navigation.state.params.meet.description:'',
             inputHeight: 22,
             allFriends: true,
             allowPeopleNearby: true,
@@ -180,15 +180,17 @@ export default class CreateScreen extends React.Component {
                 userUploadedImages = [];
             }
 
+            console.log('createMeet title:', meet.title);
+
             this.setState({
                 meetId:meet.meetId,
-                title:meet.title,
+                //title:meet.title,
                 startTime:dateTime,
                 placeName:meet.place.name,
                 placeCoordinate:meet.place.coordinate,
                 placeAddress:meet.place.address,
                 placeId:meet.place.placeId,
-                description:meet.description,
+                //description:meet.description,
                 allFriends:meet.allFriends,
                 allowPeopleNearby:meet.allowPeopleNearby,
                 oldAllowPeopleNearby:meet.allowPeopleNearby,
@@ -600,13 +602,21 @@ export default class CreateScreen extends React.Component {
             this.setState({ loadingVisible: true });
 
             if (!pickerResult.cancelled) {
-                //console.log('pickerResult: ', pickerResult);
-                const manipResult = await ImageManipulator.manipulate(pickerResult.uri,[{resize:{width:1000}}], {compress:0.5});
+                console.log('pickerResult: ', pickerResult);
+                let uri;
+                if (pickerResult.width < 1000){
+                    uri = pickerResult.uri;
+                    console.log('pickerResult width < 1000')
+                } else {
+                    console.log('pickerResult manipResult');
+                    const manipResult = await ImageManipulator.manipulate(pickerResult.uri,[{resize:{width:1000}}], {compress:0.5});
+                    uri = manipResult.uri;
+                }
                 //console.log('manipResult: ',manipResult)
                 //let uploadUrl = await uploadImageAsync(pickerResult.uri, userUid);
                 this.setState((state) => {
                     let userUploadedImages = state.userUploadedImages;
-                    userUploadedImages.push(manipResult.uri);
+                    userUploadedImages.push(uri);
                     return {userUploadedImages};
                 })
             }
@@ -666,6 +676,7 @@ export default class CreateScreen extends React.Component {
         const {title, startTime, placeName, placeAddress, description, inputHeight, allFriends, allowParticipantsInvite, allowPeopleNearby,
             selectedFriendsList, maxNo, descriptionHeight, tagsString, tagInputString, tagInputWidth, duration, durationUnit,titleHeight,
             tagsList, editingMode, meetId, userUploadedImages, loadingVisible} = this.state;
+        console.log('createScreen render title:', title);
         let editedUserUploadedImages = userUploadedImages.concat(['UPLOAD']);
         let temp = placeAddress.split(',');
         let area = temp[temp.length-1];
@@ -682,18 +693,23 @@ export default class CreateScreen extends React.Component {
                 <View style={{flex:1,justifyContent: 'center', alignItems: 'center'}}>
 
                     <View style={{width:'90%'}}>
-                        <Input
-                            onChangeText={(title) => this.setState({title})}
-                            value={title}
-                            inputStyle={{
-                                color: 'black',
+                        <TextInput
+                            style={{color: 'black',
                                 fontFamily:'bold',
                                 fontSize:30,
                                 height:titleHeight,
-                                marginTop:10,
-                            }}
-                            inputContainerStyle={{borderBottomColor:'transparent', borderBottomWidth:0}}
-                            containerStyle={{ width:'100%'}}
+                                marginTop:10,borderBottomColor:'transparent', borderBottomWidth:0,width:'100%'}}
+                            onChangeText={(title) => this.setState({title})}
+                            value={title}
+                            // inputStyle={{
+                            //     color: 'black',
+                            //     fontFamily:'bold',
+                            //     fontSize:30,
+                            //     height:titleHeight,
+                            //     marginTop:10,
+                            // }}
+                            // inputContainerStyle={{borderBottomColor:'transparent', borderBottomWidth:0}}
+                            //containerStyle={{ width:'100%'}}
                             multiline={true}
                             maxLength={50}
                             keyboardAppearance="light"
@@ -750,6 +766,7 @@ export default class CreateScreen extends React.Component {
 
                     <View style={{width:'90%'}}>
                         <Input
+                            //style={{width: tagInputWidth+45,color: '#212F3C', fontFamily:'regular', fontSize:17}}
                             onChangeText={(tagInputString) => this.setState({tagInputString})}
                             value={tagInputString}
                             placeholder="#..."
@@ -929,7 +946,12 @@ export default class CreateScreen extends React.Component {
 
 
 
-                        <Input
+                        <TextInput
+                            style={{color: 'black',
+                                fontFamily:'regular',
+                                fontSize:20,
+                                height:descriptionHeight,
+                                marginTop:30,}}
                             multiline = {true}
                             onChangeText={(description) => this.setState({description})}
                             value={description}
@@ -939,13 +961,13 @@ export default class CreateScreen extends React.Component {
                             autoCapitalize={'sentences'}
                             autoCorrect={true}
                             returnKeyType="done"
-                            inputStyle={{
-                                color: 'black',
-                                fontFamily:'regular',
-                                fontSize:20,
-                                height:descriptionHeight,
-                                marginTop:30,
-                            }}
+                            // inputStyle={{
+                            //     color: 'black',
+                            //     fontFamily:'regular',
+                            //     fontSize:20,
+                            //     height:descriptionHeight,
+                            //     marginTop:30,
+                            // }}
                             blurOnSubmit={true}
                             onContentSizeChange={(event) => {
                                 this.setState({ descriptionHeight: event.nativeEvent.contentSize.height })

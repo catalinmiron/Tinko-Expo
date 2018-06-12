@@ -8,7 +8,7 @@
     "platforms": ["ios", "android"],
     "version": "1.0.0",
     "orientation": "portrait",
-    "icon": "./assets/images/icon.png",
+    "icon": "./assets/images/tinko_icon.png",
     "facebookScheme": "fb765640913609406",
     "facebookAppId": "765640913609406",
     "facebookDisplayName": "Tinko",
@@ -18,10 +18,11 @@
       "backgroundColor": "#ffffff"
     },
     "ios": {
-      "supportsTablet": false
+      "supportsTablet": false,
+      "bundleIdentifier": "com.kevinscience.Tinko"
     },
     "android": {
-      "package": "com.kevinscience.tinko_expo",
+      "package": "com.kevinscience.Tinko",
       "icon": "./assets/images/icon.png",
       "config": {
         "googleMaps": {

@@ -22,6 +22,7 @@ import KeyboardSpacer from 'react-native-keyboard-spacer';
 import {getAvatarPlaceholder, getCurrentTime, writeInAsyncStorage} from "../../../modules/CommonUtility";
 import moment from "moment";
 import {sendPrivateChat} from "../../../modules/SocketModule";
+import Composer from '../../../components/Composer';
 
 let uid = "",
     pid = "",
@@ -294,6 +295,12 @@ export default class PrivateChatScreen extends Component {
         </TouchableOpacity>)
     }
 
+    renderComposer(props) {
+        return <Composer
+            {...props}
+        />;
+    }
+
     render() {
         return (
             <View style={{flex:1, backgroundColor:'white'}}>
@@ -316,6 +323,7 @@ export default class PrivateChatScreen extends Component {
                     bottomOffset={ifIphoneX(34)}
                     renderAvatarOnTop={true}
                     ref={(c) => this.giftedChatRef = c}
+                    renderComposer={props => this.renderComposer(props)}
                     textInputProps={{
                         // onSubmitEditing: () => {
                         //     let text = this.giftedChatRef.textInput._getText();

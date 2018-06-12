@@ -12,6 +12,7 @@ import KeyboardSpacer from "react-native-keyboard-spacer";
 import {MaterialIcons} from '@expo/vector-icons';
 import {byStander,initByStanderChat,removeByStanderChat} from "../../../modules/SocketModule";
 import {getLength} from "../../../modules/ChatStack";
+import Composer from '../../../components/Composer';
 
 let MeetId = "",
     uid = "",
@@ -292,6 +293,12 @@ export default class TinkoDetailChatScreen extends React.Component {
        //  }))
     }
 
+    renderComposer(props) {
+        return <Composer
+            {...props}
+        />;
+    }
+
     render() {
         const {thisUser, messages, loadEarlier, isLoadingEarlier, SafeAreaInsets} = this.state;
         return (
@@ -303,7 +310,7 @@ export default class TinkoDetailChatScreen extends React.Component {
                                                    onPress={()=>this.props.navigation.navigate('TinkoDetail')}/>}
                 />
                 <GiftedChat
-
+                    renderComposer={props=>this.renderComposer(props)}
                     showAvatarForEveryMessage={true}
                     messages={messages}
                     renderMessage={this.renderMessage}
