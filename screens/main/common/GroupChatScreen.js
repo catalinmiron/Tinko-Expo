@@ -76,8 +76,7 @@ export default class PrivateChatScreen extends Component {
                 (userData) => {
                     let message = {};
                     if (e.timeStamp){
-                        e.timeStamp = moment().utc(e.timeStamp).local();
-                        console.log(e.timeStamp);
+                        e.timeStamp = new Date(e.timeStamp);
                     }
                     if (e.status === 0){
                         if (userData.uid!==uid){
