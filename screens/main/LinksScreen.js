@@ -11,7 +11,7 @@ import IconBadge from '../../modules/react-native-icon-badge'
 import {Ionicons} from '@expo/vector-icons'
 import {Image as CacheImage} from "react-native-expo-image-cache";
 
-import {userLogin} from '../../modules/SocketModule'
+import {initSocketModule, userLogin} from '../../modules/SocketModule'
 
 require("firebase/firestore");
 import SocketIOClient from 'socket.io-client';
@@ -95,6 +95,9 @@ export default class FriendChatListView extends Component {
 
     constructor(){
         super();
+
+        // console.log("init socket module");
+        // initSocketModule(uid);
         let user = firebase.auth().currentUser;
         this.renderChatList= this.renderChatList.bind(this);
         uid = user.uid;
@@ -109,6 +112,7 @@ export default class FriendChatListView extends Component {
             friendInfo:[],
             totalUnReadMessageNum:0
         };
+
         this.listener =DeviceEventEmitter.addListener('updateUnReadNum',(param)=>{
             getLength(param.id);
             currentOnSelectId = "";
@@ -134,18 +138,31 @@ export default class FriendChatListView extends Component {
         });
         this.sendboxListener =  DeviceEventEmitter.addListener('mySendBox',(msg)=>{
             msg = msg.msg;
+            console.log("?????",msg);
             let data = JSON.parse(msg);
             let type = data.type;
             if (parseInt(type) === 0){
                 //系统
-                appendChatData(moment().format(format),getCurrentTime(),type,data.activityId,data.message);
+                appendChatData(moment().format(),getCurrentTime(),type,data.activityId,data.message);
             }else if (parseInt(type)===1){
                 //私聊
-                appendChatData(moment().format(format),getCurrentTime(),type,data.toId,data.msg);
+                appendChatData(moment().format(),getCurrentTime(),type,data.toId,data.msg);
             }else if (parseInt(type) === 999){
-                appendChatData(moment().format(format),getCurrentTime(),1,data.requester,data.msg);
+                appendChatData(moment().format(),getCurrentTime(),1,data.requester,data.msg);
             }else{
-                appendChatData(moment().format(format),getCurrentTime(),type,data.activityId,data.message);
+                appendChatData(moment().format(),getCurrentTime(),type,data.activityId,data.message);
+            }
+            writeInAsyncStorage("chatStack",getData());
+            this.setState({
+                messages:getData()
+            });
+        });
+        this.localMsgListener =  DeviceEventEmitter.addListener('localMsgSendBox',(msg)=>{
+            msg = msg.data;
+            let data = JSON.parse(msg);
+            let type = data.type;
+            if (parseInt(type) === 1){
+                appendChatData(moment().format(),getCurrentTime(),type,data.toId,"发送中:"+data.msg);
             }
             writeInAsyncStorage("chatStack",getData());
             this.setState({
@@ -171,7 +188,7 @@ export default class FriendChatListView extends Component {
                             };
                         if (dataArr!==""){
                             this.insertChatSql(uid,sqlObj);
-                            appendChatData(moment(dataArr.time).format(format),getListTime(moment(dataArr.time).format(format)),type,dataArr.fromId,dataArr.msg,true);
+                            appendChatData(moment(dataArr.time),getListTime(moment(dataArr.time).format(format)),type,dataArr.fromId,dataArr.msg,true);
                             if (!personalInfo[dataArr.fromId]){
                                 this.upDateAvatar(dataArr.fromId);
                             }
@@ -200,7 +217,7 @@ export default class FriendChatListView extends Component {
                                     meetUserData:dataArr.data
                                 };
                             this.insertChatSql(uid,sqlObj);
-                            appendChatData(moment(dataArr.time).format(format),getListTime(moment(dataArr.time).format(format)),type,dataArr.meetId,dataArr.msg,true);
+                            appendChatData(moment(dataArr.time),getListTime(moment(dataArr.time).format(format)),type,dataArr.meetId,dataArr.msg,true);
                             unReadNumNeedsUpdates(dataArr.meetId,1);
                         }
 
@@ -218,18 +235,19 @@ export default class FriendChatListView extends Component {
             //正常的聊天
             if (type !== 3 && type !== 4){
                 console.log("recieved data:",data);
+                console.log("当前时间：",moment().format());
                 this.insertChatSql(uid,data);
                 if (parseInt(type) === 0){
                     //系统
-                    appendChatData(moment().format(format),getCurrentTime(),type,data.activityId,data.message,true);
+                    appendChatData(moment().format(),getCurrentTime(),type,data.activityId,data.message,true);
                 }else if (parseInt(type)===1){
                     //私聊
-                    appendChatData(moment().format(format),getCurrentTime(),type,data.from,data.message,true);
+                    appendChatData(moment().format(),getCurrentTime(),type,data.from,data.message,true);
                 }else{
                     if (data.from!==uid){
-                        appendChatData(moment().format(format),getCurrentTime(),type,data.activityId,data.message,true);
+                        appendChatData(moment().format(),getCurrentTime(),type,data.activityId,data.message,true);
                     }else{
-                        appendChatData(moment().format(format),getCurrentTime(),type,data.activityId,data.message);
+                        appendChatData(moment().format(),getCurrentTime(),type,data.activityId,data.message);
                     }
                 }
 
@@ -250,16 +268,18 @@ export default class FriendChatListView extends Component {
     componentDidMount(){
         this.totalUnreadMessageNumChanged(totalUnReadMessageNum);
         AppState.addEventListener('change', this._handleAppStateChange);
+        console.log("开启chatStack");
         this.initChatStack();
     }
 
     componentWillUnmount(){
         AppState.removeEventListener('change', this._handleAppStateChange);
         writeInAsyncStorage("chatStack",getData());
-        this.listener.remove();
-        this.selectListener.remove();
-        this.avatarListener.remove();
-        this.updateBadgeListener.remove();
+        // this.listener.remove();
+        // this.selectListener.remove();
+        // this.avatarListener.remove();
+        // this.localMsgListener.remove();
+        // this.updateBadgeListener.remove();
     }
 
     _handleAppStateChange = (nextAppState) => {
@@ -269,6 +289,7 @@ export default class FriendChatListView extends Component {
     initChatStack(){
         getFromAsyncStorage("chatStack").then((chatInfo) => {
             console.log('initChatStack', chatInfo);
+            console.log("???????",getData());
             if(chatInfo){
                 setDataStore(chatInfo);
                 let chat = getData();
@@ -325,15 +346,21 @@ export default class FriendChatListView extends Component {
             totalUnReadMessageNum ++;
             this.totalUnreadMessageNumChanged(totalUnReadMessageNum);
         }
+        console.log(moment().format());
+        console.log(time);
+        console.log(moment(time).format());
         let sqlStr = "",
             sqlParams = [];
         if (time === ""){
             sqlStr = "INSERT INTO db"+uid+" (fromId,msg,status,type,meetingId,meetUserData,hasRead,timeStamp) VALUES (?,?,?,?,?,?,?,?)";
             sqlParams =[from,message,status,type,meetingId,userData,readStatus,moment().format()];
         }else{
+            console.log("进入的是这里");
             sqlStr = "INSERT INTO db"+uid+" (fromId,msg,status,type,meetingId,meetUserData,timeStamp,hasRead) VALUES (?,?,?,?,?,?,?,?)";
-            sqlParams =[from,message,status,type,meetingId,userData,moment(time, format).format(),readStatus];
+            sqlParams =[from,message,status,type,meetingId,userData,time,readStatus];
         }
+        console.log(sqlStr);
+        console.log(sqlParams);
         db.transaction(
             tx => {
                 tx.executeSql(sqlStr,sqlParams);

@@ -121,6 +121,7 @@ export default class PrivateChatScreen extends Component {
     //1代表还有
     processData(infoList,type){
         for (let i = 0;i<infoList.length;i++){
+            console.log(infoList[i].timeStamp);
             if (infoList[i].isSystem === 1){
                 this.appendSystemMessage(true,infoList[i].msg,infoList[i].timeStamp)
             }else{
@@ -168,7 +169,7 @@ export default class PrivateChatScreen extends Component {
         let messages = [{
             _id: Math.round(Math.random() * 10000),
             text: msg,
-            createdAt: time,
+            createdAt: new Date(time),
             user: {
                 _id: 1,
                 name: 'Developer',

@@ -4,10 +4,11 @@ import {
 } from 'react-native';
 
 // module.exports = SocketIOClient('https://shuaiyixu.xyz');
-let TinkoSocket = SocketIOClient('https://gotinko.com/'),
+let TinkoSocket,
     byStanderListener;
 
 export const initSocketModule = (uid) =>{
+    TinkoSocket = SocketIOClient('https://gotinko.com/');
     TinkoSocket.on("connect" + uid,msg=>{
         console.log("收到：" + msg);
         DeviceEventEmitter.emit('SocketConnect',{
@@ -15,6 +16,7 @@ export const initSocketModule = (uid) =>{
         });
     });
     TinkoSocket.on("mySendBox" + uid,msg=>{
+        console.log("get msg from mySendBox",msg);
         DeviceEventEmitter.emit('mySendBox',{
             msg:msg
         });
@@ -23,7 +25,7 @@ export const initSocketModule = (uid) =>{
 
 export const initByStanderChat = (MeetId) =>{
     if (!TinkoSocket.hasListeners("activity" + MeetId)){
-        console.log("没有这个监听")
+        console.log("没有这个监听");
         TinkoSocket.on("activity" + MeetId,msg=>{
             console.log("get activity " + MeetId);
             DeviceEventEmitter.emit("activity" + MeetId,{
@@ -53,6 +55,13 @@ export const byStander = (params) =>{
 
 export const sendPrivateChat = (params) =>{
     let uid = params.uid,pid = params.pid,text = params.text,insertId = params.insertId;
+    DeviceEventEmitter.emit('localMsgSendBox',{
+        data:JSON.stringify({
+            msg:text,
+            toId:pid,
+            type:1
+        })
+    });
     TinkoSocket.emit("privateChat",uid,pid,text,insertId);
 };
 
