@@ -1,7 +1,7 @@
-import Socket from "../modules/SocketModule";
+import {Meets,Friends} from "../modules/SocketModule";
 
 export const sendFriendRequest = (requester,responser,type,msg) => {
-    Socket.emit("NewFriendRequest",JSON.stringify({
+    Friends(JSON.stringify({
         requester:requester,
         responser:responser,
         type:type,
@@ -10,7 +10,7 @@ export const sendFriendRequest = (requester,responser,type,msg) => {
 };
 
 export const acceptFriendRequest = (requester, responser) => {
-    Socket.emit("NewFriendRequest",JSON.stringify({
+    Friends(JSON.stringify({
         requester:requester,
         responser:responser,
         type:1,
@@ -23,34 +23,47 @@ export const acceptFriendRequest = (requester, responser) => {
 //     //type = 2 为加入
 //     //type = -1 为退出
 //      //type = -2 创建者移除用户
-//     socket.on("Meets",function (uid,MeetId,type) {
-//
-//     });
-
-// export const createMeet = (uid, meetId) => {
-//     Socket.emit("createMeets",uid,meetId);
-// };
 
 export const createMeet = (uid,meetId) => {
-    Socket.emit("Meets",uid,meetId,1);
+    Meets({
+        uid:uid,
+        meetId:meetId,
+        type:1
+    });
 };
 
 export const joinMeet = (uid,meetId) => {
-    Socket.emit("Meets",uid,meetId,2);
+    Meets({
+        uid:uid,
+        meetId:meetId,
+        type:2
+    });
 };
 
 //删除自己
 export const quitMeet = (uid,meetId) => {
-    Socket.emit("Meets",uid,meetId,-1);
+    Meets({
+        uid:uid,
+        meetId:meetId,
+        type:-1
+    });
 };
 
 //删除某人
 export const RemoveFromMeet = (uid,meetId) => {
-    Socket.emit("Meets",uid,meetId,-2);
+    Meets({
+        uid:uid,
+        meetId:meetId,
+        type:-2
+    });
 };
 
 
 //删除活动
 export const dismissMeet = (uid,meetId) => {
-    Socket.emit("Meets",uid,meetId,3);
+    Meets({
+        uid:uid,
+        meetId:meetId,
+        type:3
+    });
 };

@@ -108,11 +108,18 @@ export const sendPrivateChat = (params) =>{
     TinkoSocket.emit("privateChat",uid,pid,text,insertId);
 };
 
-
 export const userLogin = (uid) =>{
     TinkoSocket.emit("userLogin",uid);
 };
 
+export const Meets = (data)  => {
+    console.log("Meets is called with data:",data);
+    TinkoSocket.emit("Meets",data.uid,data.meetId,data.type)
+};
+
+export const Friends = (data) => {
+    TinkoSocket.emit("NewFriendRequest",data);
+};
 
 // 服务器配置需要这样
 //
