@@ -218,7 +218,6 @@ export default class FriendChatListView extends Component {
                                 };
                             this.insertChatSql(uid,sqlObj);
                             appendChatData(moment(dataArr.time),getListTime(moment(dataArr.time).format(format)),type,dataArr.meetId,dataArr.msg,true);
-                            unReadNumNeedsUpdates(dataArr.meetId,1);
                         }
 
                         writeInAsyncStorage("chatStack",getData());
@@ -360,8 +359,7 @@ export default class FriendChatListView extends Component {
             sqlStr = "INSERT INTO db"+uid+" (fromId,msg,status,type,meetingId,meetUserData,timeStamp,hasRead) VALUES (?,?,?,?,?,?,?,?)";
             sqlParams =[from,message,status,type,meetingId,userData,time,readStatus];
         }
-        console.log(sqlStr);
-        console.log(sqlParams);
+        console.log(totalUnReadMessageNum);
         db.transaction(
             tx => {
                 tx.executeSql(sqlStr,sqlParams);

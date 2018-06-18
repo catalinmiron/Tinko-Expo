@@ -250,7 +250,14 @@ export default class CreateScreen extends React.Component {
             .then((responseJson) => {
                 //console.log(responseJson.results[0]);
                 let myPlace = responseJson.results[0];
-                this.setState({placeName: myPlace.name, placeAddress: myPlace.vicinity, placeCoordinate: myPlace.geometry.location, placeId: myPlace.place_id })
+                //console.log("myPlace:",myPlace);
+                let name;
+                if(myPlace.hasOwnProperty("name")){
+                    name=myPlace.name;
+                }else{
+                    name='';
+                }
+                this.setState({placeName: name, placeAddress: myPlace.vicinity, placeCoordinate: myPlace.geometry.location, placeId: myPlace.place_id })
             }).catch((error) => {
             console.error(error);
         });

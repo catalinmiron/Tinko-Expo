@@ -58,9 +58,8 @@ export const appendChatData = (dateTime,time,type,id,msg,hasRead) =>{
                 d.length = 0;
             }
             d.time = time;
-            let data = d;
             chatStackDataStore.splice(indexOf,1);
-            chatStackDataStore.unshift(data);
+            chatStackDataStore.unshift(d);
         }else{
             //这里是新建
             let rtnData = {};
