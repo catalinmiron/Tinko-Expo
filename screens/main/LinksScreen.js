@@ -11,7 +11,7 @@ import IconBadge from '../../modules/react-native-icon-badge'
 import {Ionicons} from '@expo/vector-icons'
 import {Image as CacheImage} from "react-native-expo-image-cache";
 
-import {Hang, initSocketModule, userLogin} from '../../modules/SocketModule'
+import {Hang,userLogin} from '../../modules/SocketModule'
 
 require("firebase/firestore");
 import SocketIOClient from 'socket.io-client';

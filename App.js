@@ -6,6 +6,7 @@ import RootNavigation from './navigation/RootNavigation';
 import firebase from "firebase";
 import { ActionSheetProvider, connectActionSheet } from '@expo/react-native-action-sheet';
 import { Root } from "native-base";
+import {initSocketModule} from "./modules/SocketModule";
 
 export default class App extends React.Component {
   state = {
@@ -104,6 +105,7 @@ export default class App extends React.Component {
   };
 
   handleUserLoggedIn(){
+      initSocketModule(firebase.auth().currentUser.uid);
       this.setState({loggedIn:true});
   }
 }
