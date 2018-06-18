@@ -11,6 +11,38 @@ export const initSocketModule = (uid) =>{
     TinkoSocket = SocketIOClient('https://gotinko.com/');
     TinkoSocket.on("connect" + uid,msg=>{
         console.log("收到：" + msg);
+        let data = JSON.parse(msg);
+        if (data.type === 3){
+            //未读消息
+            console.log("这里是为读消息",data.message);
+            for (let i = 0;i<data.message.length;i++){
+                let thisData = data.message[i];
+                console.log(thisData);
+                DeviceEventEmitter.emit('PrivateUnRead',{
+                    data:JSON.stringify({
+                        fromId:thisData.fromId,
+                        msg:thisData.msg,
+                        time:thisData.time
+                    })
+                });
+            }
+        }else if (data.type === 4){
+            //群聊未读
+            //{"type":4,"from":"pbc6cqcW80XHRbBJptIcqEVZpjY2",
+            // "message":[{"id":1005,"fromId":"bIpCsH2lZBRL4KM1jPvwC3aczkR2","meetId":"lGcbpmUMrEaBPNFalenF","msg":"哥哥哥哥","status":0,"time":"2018-06-17T23:59:28.000Z"}],"time":"2018-06-18T07:59:30+08:00"}
+            for (let i = 0;i<data.message.length;i++){
+                let thisData = data.message[i];
+                DeviceEventEmitter.emit('MeetUnRead',{
+                    data:JSON.stringify({
+                        fromId:thisData.fromId,
+                        meetId:thisData.meetId,
+                        msg:thisData.msg,
+                        timeStamp:thisData.time,
+                        status:0
+                    })
+                });
+            }
+        }
         DeviceEventEmitter.emit('SocketConnect',{
             msg:msg
         });
@@ -35,6 +67,10 @@ export const initByStanderChat = (MeetId) =>{
     }else{
         console.log("这个活动的监听存在")
     }
+};
+
+export const Hang = () => {
+    TinkoSocket.emit("hang");
 };
 
 export const removeByStanderChat = (MeetId) =>{

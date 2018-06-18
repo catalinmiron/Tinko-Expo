@@ -31,7 +31,7 @@ export default class PrivateChatScreen extends Component {
     componentWillUnmount(){
         currentOnSelectUser("");
         this.connectListener.remove();
-        //unReadNumNeedsUpdates(MeetId,1);
+        this.unReadMsg.remove();
     }
 
     state = {
@@ -62,6 +62,12 @@ export default class PrivateChatScreen extends Component {
                     }
                     this.processMessageData([data]);
                 }
+            }
+        });
+        this.unReadMsg =DeviceEventEmitter.addListener('MeetUnRead',(param)=>{
+            let data = JSON.parse(param.data);
+            if (data.meetId === MeetId){
+                this.processMessageData([data]);
             }
         });
         this.getFromDB(uid,MeetId);

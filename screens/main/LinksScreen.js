@@ -11,7 +11,7 @@ import IconBadge from '../../modules/react-native-icon-badge'
 import {Ionicons} from '@expo/vector-icons'
 import {Image as CacheImage} from "react-native-expo-image-cache";
 
-import {initSocketModule, userLogin} from '../../modules/SocketModule'
+import {Hang, initSocketModule, userLogin} from '../../modules/SocketModule'
 
 require("firebase/firestore");
 import SocketIOClient from 'socket.io-client';
@@ -283,7 +283,11 @@ export default class FriendChatListView extends Component {
     }
 
     _handleAppStateChange = (nextAppState) => {
-        userLogin(uid);
+        if (nextAppState === "background"){
+            Hang();
+        }else if (nextAppState === "active"){
+            userLogin(uid);
+        }
     };
 
     initChatStack(){
@@ -346,9 +350,6 @@ export default class FriendChatListView extends Component {
             totalUnReadMessageNum ++;
             this.totalUnreadMessageNumChanged(totalUnReadMessageNum);
         }
-        console.log(moment().format());
-        console.log(time);
-        console.log(moment(time).format());
         let sqlStr = "",
             sqlParams = [];
         if (time === ""){
@@ -393,7 +394,6 @@ export default class FriendChatListView extends Component {
             }
         );
     }
-
 
     async upDateAvatar(id){
         console.log("we are waiting for User:" ,id);

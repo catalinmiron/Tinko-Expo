@@ -16,7 +16,7 @@ import {
     unReadNumNeedsUpdates,
     updateLastMessage,
     currentOnSelectUser,
-    appendChatData
+    appendChatData, getLength
 } from "../../../modules/ChatStack";
 import KeyboardSpacer from 'react-native-keyboard-spacer';
 import {getAvatarPlaceholder, getCurrentTime, writeInAsyncStorage} from "../../../modules/CommonUtility";
@@ -83,11 +83,18 @@ export default class PrivateChatScreen extends Component {
                 );
             }
         });
+        this.unReadMsg =DeviceEventEmitter.addListener('PrivateUnRead',(param)=>{
+            let data = JSON.parse(param.data);
+            if (data.fromId === pid){
+                this.appendFriendMessage(false,data.msg,new Date(data.time))
+            }
+        });
     }
 
     componentWillUnmount(){
         this.sendboxListener.remove();
         this.connectListener.remove();
+        this.unReadMsg.remove();
         currentOnSelectUser("");
     }
 
@@ -97,7 +104,6 @@ export default class PrivateChatScreen extends Component {
             tx => {
                 tx.executeSql("SELECT * from db" + uid + " WHERE fromId = '" + pid + "' and meetingId = '' ORDER by id DESC", [], (_, {rows}) => {
                     let dataArr = rows['_array'];
-                    console.log("dataTotal:",dataArr);
                     if (dataArr.length>limit){
                         let processIng = [];
                         for (let i = 0;i<limit;i++){
@@ -121,7 +127,6 @@ export default class PrivateChatScreen extends Component {
     //1代表还有
     processData(infoList,type){
         for (let i = 0;i<infoList.length;i++){
-            console.log(infoList[i].timeStamp);
             if (infoList[i].isSystem === 1){
                 this.appendSystemMessage(true,infoList[i].msg,infoList[i].timeStamp)
             }else{
@@ -186,7 +191,6 @@ export default class PrivateChatScreen extends Component {
     }
 
     appendSystemMessage(isCache,msg,time){
-        console.log("time:~~~~~~",time);
         let chatData = [{
             _id: Math.round(Math.random() * 10000),
             text: msg,
