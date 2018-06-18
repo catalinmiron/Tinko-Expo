@@ -61,8 +61,6 @@ export default class RootNavigator extends React.Component {
         // this.listener = Expo.Notifications.addListener(this.handleNotification);
         // this._notificationSubscription = this._registerForPushNotifications();
         if(this.props.loggedIn){
-            console.log("~~~~~~~~~~~~loggedIn");
-            initSocketModule(uid);
             this.loggedInSetup();
         }
     }
@@ -82,6 +80,9 @@ export default class RootNavigator extends React.Component {
       //this.dropFriendsTable(uid);
       //this.initFriendsTable(uid);
       this.initChatTable(uid);
+
+      console.log("socketModule is init for:",uid);
+      initSocketModule(uid);
 
       this.listener =DeviceEventEmitter.addListener('mySendBox',(msg)=>{
           msg = msg.msg;
