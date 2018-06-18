@@ -74,6 +74,12 @@ export const Hang = () => {
     TinkoSocket.emit("hang");
 };
 
+export const DisconnectFromServer = () => {
+    TinkoSocket.emit("quit");
+    DeviceEventEmitter.emit('signOut',{});
+};
+
+
 export const removeByStanderChat = (MeetId) =>{
     console.log("关闭活动监听");
     TinkoSocket.off("activity" + MeetId);

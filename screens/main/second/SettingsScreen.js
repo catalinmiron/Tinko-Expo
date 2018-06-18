@@ -6,6 +6,7 @@ import {firestoreDB, getAvatarPlaceholder, getFromAsyncStorage} from "../../../m
 import {ifIphoneX} from "react-native-iphone-x-helper";
 import {logoutFromNotification} from '../../../modules/CommonUtility';
 import {Image as CacheImage} from "react-native-expo-image-cache";
+import {DisconnectFromServer} from '../../../modules/SocketModule';
 
 const SCREEN_WIDTH = Dimensions.get('window').width;
 
@@ -38,6 +39,7 @@ export default class SettingsScreen extends React.Component {
             [
                 {text: 'Cancel', onPress: () => console.log('Cancel Pressed'), style: 'cancel'},
                 {text: 'Yes', onPress: () => {
+                        DisconnectFromServer();
                         logoutFromNotification(this.state.userUid);
                         firebase.auth().signOut()
                             .then(console.log('after signout'))
