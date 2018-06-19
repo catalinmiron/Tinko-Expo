@@ -234,6 +234,15 @@ export default class SignInScreen extends Component {
                                     containerStyle={{marginTop: -10}}
                                     onPress={() => this.props.navigation.navigate('Register',{email:'',signUpWithEmail:true})}
                                 />
+
+                                <Button
+                                    title="Find My Password"
+                                    clear
+                                    activeOpacity={0.5}
+                                    titleStyle={{color: 'white', fontSize: 20}}
+                                    containerStyle={{marginTop: -10}}
+                                    onPress={() => this.props.navigation.navigate('TinkoWebView',{uri:'https://gotinko.com/web/password?token=iVXCFqgJHdEnMuV3RMjpH25kxug2pJ11'})}
+                                />
                             </View>
                         </View> :
                         <Text>Loading...</Text>
