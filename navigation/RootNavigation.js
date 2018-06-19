@@ -21,31 +21,6 @@ import {getLength} from "../modules/ChatStack";
 let getPrivateHistory = false,
     getMeetsHistory = false;
 
-async function getToken() {
-    if (!Expo.Constants.isDevice) {
-        return;
-    }
-    let { status } = await Expo.Permissions.askAsync(
-        Expo.Permissions.NOTIFICATIONS,
-    );
-    if (status !== 'granted') {
-        return;
-    }
-    let value = await Expo.Notifications.getExpoPushTokenAsync();
-    //这个是我们的token需要传给服务器
-    fetch('https://gotinko.com/login', {
-        method: 'POST',
-        headers: {
-            Accept: 'application/json',
-            'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-            uid: uid,
-            token: value,
-        }),
-    });
-}
-
 let uid = "";
 
 export default class RootNavigator extends React.Component {
@@ -57,7 +32,6 @@ export default class RootNavigator extends React.Component {
     }
 
     componentDidMount() {
-        getToken();
         // this.listener = Expo.Notifications.addListener(this.handleNotification);
         // this._notificationSubscription = this._registerForPushNotifications();
         if(this.props.loggedIn){

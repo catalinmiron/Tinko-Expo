@@ -3,7 +3,7 @@ import React, {
 } from 'react'
 import {StyleSheet, View, WebView, ScrollView, Text, DeviceEventEmitter, Image, Alert,AppState} from 'react-native'
 import { ListItem, Header, Avatar } from 'react-native-elements'
-import Expo, { SQLite } from 'expo';
+import Expo, { Notifications, SQLite, Permissions } from 'expo';
 const db = SQLite.openDatabase('db.db');
 import * as firebase from "firebase";
 import moment from "moment";
@@ -53,6 +53,31 @@ let friendList = [],
     getMeetsHistory = false,
     format = 'YYYY-MM-DD HH:mm:ss';
 
+async function getToken(userId) {
+    if (!Expo.Constants.isDevice) {
+        return;
+    }
+    let { status } = await Expo.Permissions.askAsync(
+        Expo.Permissions.NOTIFICATIONS,
+    );
+    if (status !== 'granted') {
+        return;
+    }
+    let value = await Expo.Notifications.getExpoPushTokenAsync();
+    //这个是我们的token需要传给服务器
+    fetch('https://gotinko.com/login', {
+        method: 'POST',
+        headers: {
+            Accept: 'application/json',
+            'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+            uid: userId,
+            token: value,
+        }),
+    });
+}
+
 export default class FriendChatListView extends Component {
 
     static navigationOptions = ({ navigation }) => {
@@ -101,6 +126,7 @@ export default class FriendChatListView extends Component {
         let user = firebase.auth().currentUser;
         this.renderChatList= this.renderChatList.bind(this);
         uid = user.uid;
+        getToken(uid);
         setUid(uid);
         userLogin(uid);
        // this.socket = SocketIOClient('https://gotinko.com/');
