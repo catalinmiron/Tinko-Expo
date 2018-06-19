@@ -58,6 +58,7 @@ export const appendChatData = (dateTime,time,type,id,msg,hasRead) =>{
                 d.length = 0;
             }
             d.time = time;
+            d.dateTime = dateTime;
             chatStackDataStore.splice(indexOf,1);
             chatStackDataStore.unshift(d);
         }else{

@@ -320,30 +320,12 @@ export const getYMDhmsTime = (timeStamp) =>{
 };
 
 export const getListTime = (time) => {
-    let today = moment(),
-        thisTime = moment(time, "YYYY-MM-DD hh:mm:ss");
-    //console.log(thisTime);
-    let timeArr = time.split(" "),
-        YMD = timeArr[0].split("-"),
-        hms = timeArr[1].split(":"),
-        mY = YMD[0],
-        mM = YMD[1],
-        mD = YMD[2],
-        mh = hms[0],
-        mm = parseInt(hms[1]),
-        ms = hms[2];
-    if (thisTime.isSame(moment(),"day")){
-        if (mm<10){
-            mm = "0"+parseInt(mm);
-        }
-        if (mh<10){
-            mm = parseInt(mm);
-        }
-        return (mh+":"+mm);
-    }else if (thisTime.isSame(moment(),"week")){
-        return (thisTime.format("dddd"));
+    if (moment(time).isSame(moment(), 'day')){
+        return moment(time).format("HH:mm");
+    }else if (moment(time).isSame(moment(), 'week')){
+        return moment(time).format("ddd");
     }else{
-        return (thisTime.format("MM/DD/YYYY"));
+        return moment(time).format("MM/DD/YYYY");
     }
 };
 
