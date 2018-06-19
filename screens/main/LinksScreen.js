@@ -3,13 +3,14 @@ import React, {
 } from 'react'
 import {StyleSheet, View, WebView, ScrollView, Text, DeviceEventEmitter, Image, Alert,AppState} from 'react-native'
 import { ListItem, Header, Avatar } from 'react-native-elements'
-import Expo, { Notifications, SQLite, Permissions } from 'expo';
+import Expo, { Notifications, SQLite, Permissions} from 'expo';
 const db = SQLite.openDatabase('db.db');
 import * as firebase from "firebase";
 import moment from "moment";
 import IconBadge from '../../modules/react-native-icon-badge'
 import {Ionicons} from '@expo/vector-icons'
 import {Image as CacheImage} from "react-native-expo-image-cache";
+//Expo.Constants.deviceId
 
 import {Hang,userLogin} from '../../modules/SocketModule'
 

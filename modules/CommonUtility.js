@@ -341,6 +341,25 @@ export const getListWhoParticipatedInMeetsByMeetId = (meetId) => {
     }
 };
 
+export const updateDeviceId = (userId,deviceId) => {
+    console.log("准备发送devideId:",deviceId," userId:",userId);
+    try{
+        fetch('https://gotinko.com/getDeviceId', {
+            method: 'POST',
+            headers: {
+                Accept: 'application/json',
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({
+                deviceId:deviceId,
+                userId:userId
+            }),
+        }).then((response) => console.log(response));
+    }catch (e) {
+        console.log(e);
+    }
+};
+
 export const getDurationString = (duration) => {
     if(duration>2*24*60*60*1000){
         return `${Math.round(duration/(24*60*60*1000))} days`;

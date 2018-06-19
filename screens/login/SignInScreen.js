@@ -2,16 +2,18 @@ import React, { Component } from 'react';
 import {StyleSheet, Text, View, ImageBackground, Dimensions, TouchableWithoutFeedback, Alert} from 'react-native';
 import { Input, Button } from 'react-native-elements'
 
-import {Facebook, Font} from 'expo';
+import {Facebook, Font,Constants} from 'expo';
 import firebase from "firebase";
 import { NavigationActions } from 'react-navigation';
 //import Icon from 'react-native-vector-icons/FontAwesome';
-import {firestoreDB, getPostRequest, writeInAsyncStorage} from "../../modules/CommonUtility";
+import {firestoreDB, getPostRequest, writeInAsyncStorage ,updateDeviceId} from "../../modules/CommonUtility";
+import registerForPushNotificationsAsync from '../../api/registerForPushNotificationsAsync';
 
 const SCREEN_WIDTH = Dimensions.get('window').width;
 const SCREEN_HEIGHT = Dimensions.get('window').height;
 
 const BG_IMAGE = require('../../assets/images/bg_screen1.jpg');
+
 
 export default class SignInScreen extends Component {
     //static navigationOptions = {headerStyle:{ position: 'absolute', backgroundColor: 'transparent', zIndex: 100, top: 0, left: 0, right: 0, borderBottomWidth: 0,borderBottomColor: 'transparent',shadowColor: 'transparent', elevation:0, shadowOpacity: 0 }};
@@ -41,13 +43,13 @@ export default class SignInScreen extends Component {
         this.setState({ fontLoaded: true });
     }
 
-
     submitLoginCredentials() {
         this.setState({ showLoading: true });
         const { email, password } = this.state;
         firebase.auth().signInWithEmailAndPassword(email,password)
             .then((user)=>{
-                console.log('SignIn: ', user);
+                console.log('SignIn:==================== ', user);
+                updateDeviceId(firebase.auth().currentUser.uid,Constants.deviceId);
                 this.props.screenProps.handleUserLoggedIn();
             })
             .catch((error) => {
@@ -106,8 +108,8 @@ export default class SignInScreen extends Component {
                 this.initializeNewUser(token, user.uid, expires);
             } else {
                 console.log('goingToMain');
+                console.log("=========================",user.id);
                 let secretsRef = firestoreDB().collection('Users').doc(user.uid).collection('Settings').doc('secrets');
-
                 secretsRef.update({fbToken:token, fbTokenExpires:expires})
                     .catch((error)=>{
                         console.log(error);

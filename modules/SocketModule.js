@@ -1,7 +1,9 @@
 import SocketIOClient from "socket.io-client";
-import {
+import {        Alert,
     DeviceEventEmitter
 } from 'react-native';
+import {Constants} from "expo";
+import firebase from "firebase";
 
 // module.exports = SocketIOClient('https://shuaiyixu.xyz');
 let TinkoSocket,
@@ -54,6 +56,15 @@ export const initSocketModule = (uid) =>{
             msg:msg
         });
     });
+    TinkoSocket.on("System" + uid,msg=>{
+        let data = JSON.parse(msg).token;
+        if (data !== Constants.deviceId){
+            TinkoSocket.emit('getPushed',{});
+            DeviceEventEmitter.emit('signOut',{});
+            Alert.alert("Alert","Your account is logged in on other device");
+            firebase.auth().signOut();
+        }
+    });
 };
 
 export const initByStanderChat = (MeetId) =>{
@@ -78,7 +89,6 @@ export const DisconnectFromServer = () => {
     TinkoSocket.emit("quit");
     DeviceEventEmitter.emit('signOut',{});
 };
-
 
 export const removeByStanderChat = (MeetId) =>{
     console.log("关闭活动监听");
@@ -109,7 +119,7 @@ export const sendPrivateChat = (params) =>{
 };
 
 export const userLogin = (uid) =>{
-    TinkoSocket.emit("userLogin",uid);
+    TinkoSocket.emit("userLogin",uid,Constants.deviceId);
 };
 
 export const Meets = (data)  => {
