@@ -61,6 +61,8 @@ export default class FriendListView extends Component {
                     });
                     if(rtnArr.length===0){
                         this.props.isFriendsListNone(true);
+                    }else{
+                        this.props.isFriendsListNone(false);
                     }
                 });
             },

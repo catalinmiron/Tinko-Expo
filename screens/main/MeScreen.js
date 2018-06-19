@@ -85,7 +85,7 @@ export default class Me extends React.Component {
         this.props.screenProps.meRef(this);
          //this.setNewFriendsRequestListener();
 
-        this.getThisUserData();
+        this.initGetThisUserData();
     }
 
 
@@ -98,7 +98,7 @@ export default class Me extends React.Component {
         writeInAsyncStorage('NewFriendsBadgeHidden', false);
     }
 
-    getThisUserData(){
+    initGetThisUserData(){
         const {userUid} = this.state;
         let firestoreDb = firestoreDB();
         let userRef = firestoreDb.collection("Users").doc(userUid);
@@ -108,6 +108,27 @@ export default class Me extends React.Component {
                 let userData = userDoc.data();
                 this.setState({userData},()=>this.fbAutoAdd());
                 writeInAsyncStorage('ThisUser', userData);
+            } else {
+                console.log("No such document!");
+                Alert.alert('Error', 'No Such Document');
+            }
+        }).catch((error) => {
+            console.log("Error getting document:", error);
+            Alert.alert('Error', error);
+        });
+    }
+
+    getThisUserData(){
+        const {userUid} = this.state;
+        let firestoreDb = firestoreDB();
+        let userRef = firestoreDb.collection("Users").doc(userUid);
+        userRef.get().then((userDoc) => {
+            if (userDoc.exists) {
+                //console.log("Document data:", userDoc.data());
+                let userData = userDoc.data();
+                this.setState({userData});
+                writeInAsyncStorage('ThisUser', userData);
+                //return userData;
             } else {
                 console.log("No such document!");
                 Alert.alert('Error', 'No Such Document');
@@ -330,22 +351,33 @@ export default class Me extends React.Component {
     }
 
     async linkFacebook(){
-        const { userData } = this.state;
+        const { userData, userUid } = this.state;
         const { type, token, expires } = await Facebook.logInWithReadPermissionsAsync('765640913609406', {
             permissions: ['public_profile', 'email', 'user_friends', 'user_location'],
         });
         if (type === 'success') {
             console.log('facebook login success', token,expires);
             const credential = firebase.auth.FacebookAuthProvider.credential(token);
-            firebase.auth().currentUser.linkWithCredential(credential).then((user) => {
+            firebase.auth().currentUser.linkWithCredential(credential).then(async (user) => {
                 console.log("Account linking success", user);
-                // TODO: add initiate more userData
-                // let data = {};
-                // if (userData.photoURL === 'https://firebasestorage.googleapis.com/v0/b/tinko-64673.appspot.com/o/Users%2FAvatar%2Favatar-placeholder.png?alt=media&token=68f12225-4266-4888-8aaa-98315112c2ed'){
-                //     //data.photoURL =
-                // }
+                const response = await fetch(
+                    `https://graph.facebook.com/me?access_token=${token}&fields=id,name,email,friends,location,gender,picture`
+                );
+                //const responseJSON = JSON.stringify(await response.json());
+                var dict = await response.json();
+                console.log(dict);
+                dict.uid = userUid;
+                dict.fbToken = token;
+                dict.fbTokenExpires = expires;
+                dict.linkFacebookMode = true;
+                dict.userData = userData;
+                console.log(dict);
+                getPostRequest('initializeNewUser', dict,
+                    ()=>{this.getThisUserData()},
+                    (error)=>Alert.alert('Error', error));
             }, function(error) {
                 console.log("Account linking error", error);
+                Alert.alert("Account linking error", error.message);
             });
         }
     }

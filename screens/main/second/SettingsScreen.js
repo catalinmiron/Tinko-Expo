@@ -2,11 +2,19 @@ import React from 'react';
 import {Alert, View, StyleSheet, Text, Switch, ScrollView, Dimensions} from "react-native";
 import firebase from "firebase";
 import {Avatar, Header, ListItem, Button} from 'react-native-elements';
-import {firestoreDB, getAvatarPlaceholder, getFromAsyncStorage} from "../../../modules/CommonUtility";
+import {
+    firestoreDB,
+    getAvatarPlaceholder,
+    getFromAsyncStorage,
+    getPostRequest,
+    writeInAsyncStorage,
+    logoutFromNotification
+} from "../../../modules/CommonUtility";
 import {ifIphoneX} from "react-native-iphone-x-helper";
-import {logoutFromNotification} from '../../../modules/CommonUtility';
 import {Image as CacheImage} from "react-native-expo-image-cache";
 import {DisconnectFromServer} from '../../../modules/SocketModule';
+import {Entypo} from '@expo/vector-icons';
+import {Facebook} from "expo";
 
 const SCREEN_WIDTH = Dimensions.get('window').width;
 
@@ -81,7 +89,7 @@ export default class SettingsScreen extends React.Component {
             let userData = state.userData;
             userData.fbAutoAdd = fbAutoAdd;
             return {userData};
-        })
+        });
         let userRef = firestoreDB().collection('Users').doc(this.state.userUid);
         userRef.update({fbAutoAdd:fbAutoAdd}).then(()=>{
             this.props.navigation.state.params.getThisUserData();
@@ -91,8 +99,56 @@ export default class SettingsScreen extends React.Component {
     }
     //onPress={() => this.onLogoutButtonPressed()}
 
+    async linkFacebook(){
+        const { userData, userUid } = this.state;
+        const { type, token, expires } = await Facebook.logInWithReadPermissionsAsync('765640913609406', {
+            permissions: ['public_profile', 'email', 'user_friends', 'user_location'],
+        });
+        if (type === 'success') {
+            console.log('facebook login success', token,expires);
+            const credential = firebase.auth.FacebookAuthProvider.credential(token);
+            firebase.auth().currentUser.linkWithCredential(credential).then(async (user) => {
+                console.log("Account linking success", user);
+                const response = await fetch(
+                    `https://graph.facebook.com/me?access_token=${token}&fields=id,name,email,friends,location,gender,picture`
+                );
+                //const responseJSON = JSON.stringify(await response.json());
+                var dict = await response.json();
+                console.log(dict);
+                dict.uid = userUid;
+                dict.fbToken = token;
+                dict.fbTokenExpires = expires;
+                dict.linkFacebookMode = true;
+                dict.userData = userData;
+                console.log(dict);
+                getPostRequest('initializeNewUser', dict,
+                    ()=>{
+                    this.props.navigation.state.params.getThisUserData();
+                    let userRef = firestoreDB().collection("Users").doc(userUid);
+                    userRef.get().then((userDoc) => {
+                        if (userDoc.exists) {
+                            //console.log("Document data:", userDoc.data());
+                            let userData = userDoc.data();
+                            this.setState({userData});
+                            //return userData;
+                        } else {
+                            console.log("No such document!");
+                            Alert.alert('Error', 'No Such Document');
+                        }
+                    });
+                    },
+                    (error)=>Alert.alert('Error', error));
+            }, function(error) {
+                console.log("Account linking error", error);
+                Alert.alert("Account linking error", error.message);
+            });
+        }
+    }
+
+
     render() {
         const {userData} = this.state;
+        //console.log(userData);
         return (
             <View style={{flex:1}}>
                 <Header
@@ -153,6 +209,7 @@ export default class SettingsScreen extends React.Component {
                             <Text>{userData.email}</Text>
                         }
                     />
+                    {userData.facebookId && userData.facebookId!=='' &&
                     <ListItem
                         title='Add Facebook Friends'
                         titleStyle={{fontFamily:'regular', fontSize:17,}}
@@ -163,6 +220,25 @@ export default class SettingsScreen extends React.Component {
                             />
                         }
                     />
+                    }
+
+                    {(!userData.facebookId || userData.facebookId==='') &&
+                    <ListItem
+                        chevron
+                        chevronColor={'black'}
+                        rightElement={
+                            <Entypo
+                                name={'facebook-with-circle'}
+                                size={35}
+                                color={'#3B5998'}
+                            />
+                        }
+                        title={'Link Facebook'}
+                        titleStyle={styles.titleStyle}
+                        onPress={() => this.linkFacebook()}
+                    />
+                    }
+
                     <ListItem
                         title='Privacy Policy'
                         titleStyle={styles.titleStyle}
