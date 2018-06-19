@@ -191,6 +191,8 @@ export const getMeetInfo = async (meetId, onComplete, onError) => {
                         let coverImageUri = null;
                         if(userUploadedImages && userUploadedImages.length>0){
                             coverImageUri = userUploadedImages[0];
+                        }else if(meet.placeCoverPhotoReference && meet.placeCoverPhotoReference!==''){
+                            coverImageUri = `https://maps.googleapis.com/maps/api/place/photo?maxwidth=${100}&photoreference=${meet.placeCoverPhotoReference}&key=AIzaSyCw_VwOF6hmY5yri8OpqOr9sCzTTT7JKiU`;
                         }
                         //console.log('come from firebase', title, tagName);
                         onComplete(title, tagName, coverImageUri);

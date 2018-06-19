@@ -63,7 +63,17 @@ export default class ExpressPostOverlay extends Component{
             .then((responseJson) => {
                 //console.log(responseJson.results[0]);
                 let myPlace = responseJson.results[0];
-                this.setState({placeName: myPlace.name, placeAddress: myPlace.vicinity, placeCoordinate: myPlace.geometry.location, placeId: myPlace.place_id })
+                let placeCoverPhotoReference = '';
+                if(myPlace.photos[0].photo_reference){
+                    placeCoverPhotoReference=myPlace.photos[0].photo_reference;
+                }
+                console.log('placeCoverPhotoReference', placeCoverPhotoReference);
+                this.setState({placeName: myPlace.name,
+                    placeAddress: myPlace.vicinity,
+                    placeCoordinate: myPlace.geometry.location,
+                    placeId: myPlace.place_id,
+                    placeCoverPhotoReference:placeCoverPhotoReference,
+                })
             }).catch((error) => {
             console.error(error);
         });
@@ -110,7 +120,7 @@ export default class ExpressPostOverlay extends Component{
     }
 
     postMeet(tagName){
-        const{placeName, placeAddress, placeCoordinate, placeId, selectedFriendsList, userUid} = this.state;
+        const{placeName, placeAddress, placeCoordinate, placeId, selectedFriendsList, userUid, placeCoverPhotoReference} = this.state;
         console.log(this.state);
 
         let tagsCategory={};
@@ -159,6 +169,7 @@ export default class ExpressPostOverlay extends Component{
             maxNo: 1,
             description: '',
             place: placeObj,
+            placeCoverPhotoReference:placeCoverPhotoReference,
             participatingUsersList: participatingUsersListObj,
             participatingUsersArray:[userUid],
             selectedFriendsList: selectedFriendsListObj,

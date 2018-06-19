@@ -174,10 +174,17 @@ export default class TinkoScreen extends Component {
             let userUid = meet.creator;
 
             let userUploadedImages = meet.userUploadedImages;
-            let coverImageUri = null;
+            let photoUri = null;
             if(userUploadedImages && userUploadedImages.length>0){
                 //coverImageUri = userUploadedImages[0];
-                coverImageUri = await CacheManager.get(userUploadedImages[0]).getPath();
+                photoUri = userUploadedImages[0];
+            } else if(meet.placeCoverPhotoReference && meet.placeCoverPhotoReference!==''){
+                photoUri = `https://maps.googleapis.com/maps/api/place/photo?maxwidth=${Math.ceil(SCREEN_WIDTH)}&photoreference=${meet.placeCoverPhotoReference}&key=AIzaSyCw_VwOF6hmY5yri8OpqOr9sCzTTT7JKiU`;
+
+            }
+            let coverImageUri = null;
+            if(photoUri){
+                coverImageUri = await CacheManager.get(photoUri).getPath();
             }
             meet.coverImageUri = coverImageUri;
 

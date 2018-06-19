@@ -107,6 +107,7 @@ export default class CreateScreen extends React.Component {
             placeCoordinate:{},
             placeAddress:'',
             placeId:'',
+            placeCoverPhotoReference:'',
             description:editingMode?props.navigation.state.params.meet.description:'',
             inputHeight: 22,
             allFriends: true,
@@ -190,6 +191,7 @@ export default class CreateScreen extends React.Component {
                 placeCoordinate:meet.place.coordinate,
                 placeAddress:meet.place.address,
                 placeId:meet.place.placeId,
+                placeCoverPhotoReference:meet.placeCoverPhotoReference,
                 //description:meet.description,
                 allFriends:meet.allFriends,
                 allowPeopleNearby:meet.allowPeopleNearby,
@@ -250,14 +252,26 @@ export default class CreateScreen extends React.Component {
             .then((responseJson) => {
                 //console.log(responseJson.results[0]);
                 let myPlace = responseJson.results[0];
-                //console.log("myPlace:",myPlace);
+                console.log("myPlace:",myPlace);
                 let name;
                 if(myPlace.hasOwnProperty("name")){
                     name=myPlace.name;
                 }else{
                     name='';
                 }
-                this.setState({placeName: name, placeAddress: myPlace.vicinity, placeCoordinate: myPlace.geometry.location, placeId: myPlace.place_id })
+                let placeCoverPhotoReference = '';
+                if(myPlace.photos[0].photo_reference){
+                    placeCoverPhotoReference=myPlace.photos[0].photo_reference;
+                }
+                console.log('placeCoverPhotoReference', placeCoverPhotoReference);
+
+                this.setState({
+                    placeName: name,
+                    placeAddress: myPlace.vicinity,
+                    placeCoordinate: myPlace.geometry.location,
+                    placeId: myPlace.place_id,
+                    placeCoverPhotoReference:placeCoverPhotoReference,
+                })
             }).catch((error) => {
             console.error(error);
         });
@@ -348,7 +362,7 @@ export default class CreateScreen extends React.Component {
 
         const { title, userUid, startTime, placeName, placeAddress, placeCoordinate, placeId,
             description, allFriends, allowPeopleNearby, oldAllowPeopleNearby, allowParticipantsInvite, postTime,
-            selectedFriendsList, duration, maxNo, tagsList, userPicked, editingMode, meetId } = this.state;
+            selectedFriendsList, duration, maxNo, tagsList, userPicked, editingMode, meetId, placeCoverPhotoReference } = this.state;
 
         let userUploadedImages = await this.processLocalUri();
 
@@ -408,6 +422,7 @@ export default class CreateScreen extends React.Component {
             maxNo: maxNo,
             description: description,
             place: placeObj,
+            placeCoverPhotoReference:placeCoverPhotoReference,
             userUploadedImages:userUploadedImages,
             //participatingUsersList: participatingUsersListObj,
             //selectedFriendsList: selectedFriendsListObj,
