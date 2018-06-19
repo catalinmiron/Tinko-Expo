@@ -63,7 +63,11 @@ export default class GooglePlacesInput extends React.Component{
                             let placeAddress = details.vicinity;
                             let placeCoordinate = details.geometry.location;
                             let placeId = details.place_id;
-                            this.props.navigation.state.params.setPlaceDetail({placeName, placeAddress, placeCoordinate, placeId})
+                            let placeCoverPhotoReference = '';
+                            if(details.photos[0].photo_reference){
+                                placeCoverPhotoReference=details.photos[0].photo_reference;
+                            }
+                            this.props.navigation.state.params.setPlaceDetail({placeName, placeAddress, placeCoordinate, placeId, placeCoverPhotoReference})
                         }
                         this.props.navigation.goBack();
                     }}

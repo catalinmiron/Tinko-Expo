@@ -145,6 +145,8 @@ export const getMeetTitleFromSql = async (meetId) => {
                             let coverImageUri = null;
                             if(userUploadedImages && userUploadedImages.length>0){
                                 coverImageUri = userUploadedImages[0];
+                            }else if(meetData.placeCoverPhotoReference && meetData.placeCoverPhotoReference!==''){
+                                coverImageUri = `https://maps.googleapis.com/maps/api/place/photo?maxwidth=${100}&photoreference=${meetData.placeCoverPhotoReference}&key=AIzaSyCw_VwOF6hmY5yri8OpqOr9sCzTTT7JKiU`;
                             }
                             //console.log('getMeetTitleFromSql, ', meetData.title, tagName);
                             resolve({
