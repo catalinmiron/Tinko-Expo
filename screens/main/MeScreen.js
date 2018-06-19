@@ -13,7 +13,7 @@ import FriendsList from '../../components/FriendListView';
 import firebase from 'firebase';
 import {getPostRequest, getUserData, getUserDataFromDatabase} from "../../modules/CommonUtility";
 import SubButton from '../../components/SettingSubButton';
-import {SQLite} from "expo";
+import {SQLite, Facebook} from "expo";
 import Colors from "../../constants/Colors";
 import IconBadge from '../../modules/react-native-icon-badge';
 import {Ionicons} from '@expo/vector-icons';
@@ -22,6 +22,7 @@ import {} from '../../modules/ChatStack';
 import { ifIphoneX } from 'react-native-iphone-x-helper';
 import {initNewFriendsRequestTable, insertNewFriendsRequest} from "../../modules/SqliteClient";
 import {Image as CacheImage} from 'react-native-expo-image-cache'
+import { Entypo, SimpleLineIcons } from '@expo/vector-icons';
 
 const db = SQLite.openDatabase('db.db');
 const SCREEN_WIDTH = Dimensions.get('window').width;
@@ -322,13 +323,36 @@ export default class Me extends React.Component {
 
                 });
         });
+    }
 
+    isFriendsListNone(answer){
+        this.setState({isFriendsListNone:answer});
+    }
 
-
+    async linkFacebook(){
+        const { userData } = this.state;
+        const { type, token, expires } = await Facebook.logInWithReadPermissionsAsync('765640913609406', {
+            permissions: ['public_profile', 'email', 'user_friends', 'user_location'],
+        });
+        if (type === 'success') {
+            console.log('facebook login success', token,expires);
+            const credential = firebase.auth.FacebookAuthProvider.credential(token);
+            firebase.auth().currentUser.linkWithCredential(credential).then((user) => {
+                console.log("Account linking success", user);
+                // TODO: add initiate more userData
+                // let data = {};
+                // if (userData.photoURL === 'https://firebasestorage.googleapis.com/v0/b/tinko-64673.appspot.com/o/Users%2FAvatar%2Favatar-placeholder.png?alt=media&token=68f12225-4266-4888-8aaa-98315112c2ed'){
+                //     //data.photoURL =
+                // }
+            }, function(error) {
+                console.log("Account linking error", error);
+            });
+        }
     }
 
     render() {
         const { userData ,badgeHidden} = this.state;
+        console.log(userData);
         return (
             <ScrollView style={{flex:1, backgroundColor: "white", height: "100%" ,width: "100%"}}>
                 <Ionicons
@@ -412,10 +436,44 @@ export default class Me extends React.Component {
                 </View>
 
 
+                {this.state.isFriendsListNone && (userData.facebookId === null || userData.facebookId==='') &&
+                <View style={{width:"90%",marginTop:35,marginLeft:"5%"}}>
+                    <ListItem
+                        leftElement={
+                            <Entypo
+                                name={'facebook-with-circle'}
+                                size={40}
+                                color={'#3B5998'}
+                            />
+                        }
+                        title={'Link Facebook for more friends'}
+                        onPress={() => this.linkFacebook()}
+                    />
+                </View>
+                }
+
+                {this.state.isFriendsListNone &&
+                <View style={{width:"90%",marginLeft:"5%"}}>
+                    <ListItem
+                        leftElement={
+                            <SimpleLineIcons
+                                name={'screen-smartphone'}
+                                size={40}
+                                color={'#145A32'}
+                            />
+                        }
+                        title={'Link Phone Number for more friends'}
+                        //onPress={() => this.goToDetailPage(data.uid)}
+                    />
+                </View>
+                }
+
+
                 <FriendsList
                     showThisUser={this.props.screenProps.showThisUser}
                     onRef={ref => this.friendsList = ref}
                     navigation={this.props.navigation}
+                    isFriendsListNone={this.isFriendsListNone.bind(this)}
                 />
             </ScrollView>
         );

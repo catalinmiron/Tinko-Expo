@@ -148,6 +148,8 @@ export default class DiscoverScreen extends Component {
                     let coverImageUri = null;
                     if(userUploadedImages && userUploadedImages.length>0){
                         coverImageUri = userUploadedImages[0];
+                    }else if(meet.placeCoverPhotoReference && meet.placeCoverPhotoReference!==''){
+                        coverImageUri = `https://maps.googleapis.com/maps/api/place/photo?maxwidth=${Math.ceil(SCREEN_WIDTH)}&photoreference=${meet.placeCoverPhotoReference}&key=AIzaSyCw_VwOF6hmY5yri8OpqOr9sCzTTT7JKiU`;
                     }
                     let meetDic = {
                         LatLng: {

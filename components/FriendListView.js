@@ -8,6 +8,8 @@ import {
 import Expo, { SQLite } from 'expo';
 import * as firebase from 'firebase';
 import { ListItem } from 'react-native-elements';
+import { Entypo, SimpleLineIcons } from '@expo/vector-icons';
+import Colors from "../constants/Colors";
 
 
 require("firebase/firestore");
@@ -57,6 +59,9 @@ export default class FriendListView extends Component {
                     this.setState({
                         sqlRows: rtnArr
                     });
+                    if(rtnArr.length===0){
+                        this.props.isFriendsListNone(true);
+                    }
                 });
             },
             null,
@@ -78,24 +83,19 @@ export default class FriendListView extends Component {
     }
 
     render() {
-        const{selectedUid, overlayIsVisible} = this.state;
-        let friendList = [];
-        for (let i = 0;i<this.state.sqlRows.length ; i++){
-            //console.log(this.state.sqlRows[i]);
-            friendList.push(
-                <ListItem
-                    hideChevron
-                    leftAvatar={{ rounded: true, size:40, source: { uri: this.state.sqlRows[i].photoURL } }}
-                    key={this.state.sqlRows[i].uid}
-                    title={this.state.sqlRows[i].username}
-                    onPress={() => this.goToDetailPage(this.state.sqlRows[i].uid)}
-                />
-            )
-        }
+        const{sqlRows} = this.state;
+
         return (
             <View>
                 <View style={{width:"90%",marginTop:35,marginLeft:"5%"}}>
-                    {friendList}
+                    {sqlRows.map((data) => (
+                        <ListItem
+                            leftAvatar={{ rounded: true, size:40, source: { uri: data.photoURL } }}
+                            key={data.uid}
+                            title={data.username}
+                            onPress={() => this.goToDetailPage(data.uid)}
+                        />
+                    ))}
                 </View>
             </View>
         )
