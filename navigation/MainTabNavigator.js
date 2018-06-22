@@ -26,7 +26,7 @@ import AvatarUploadScreen from "../screens/main/settings/AvatarUploadScreen";
 import UpdateUsernameScreen from "../screens/main/settings/UpdateUsernameScreen";
 import TinkoDetailScreen from '../screens/main/tinko/TinkoDetailScreen';
 import MyTinkosScreen from "../screens/main/second/MyTinkosScreen";
-
+import LinkPhoneNumber from "../screens/main/settings/LinkPhoneNumber";
 
 const MainTabNavigator = TabNavigator(
   {
@@ -90,7 +90,10 @@ const MainTabNavigatorWithDetailScreens = StackNavigator(
         },
         MyTinkos:{
             screen:MyTinkosScreen,
-        }
+        },
+        LinkPhoneNumber:{
+            screen: LinkPhoneNumber,
+        },
     },
     { headerMode: 'none' }
 );

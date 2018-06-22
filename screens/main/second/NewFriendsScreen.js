@@ -81,10 +81,20 @@ export default class NewFriendsScreen extends Component {
     acceptRequestButtonPressed(request){
         console.log(request.requesterUid, this.state.userUid);
         this.setState({buttonShowLoading:true,processingRequesterUid:request.requesterUid});
+        let userData = this.props.navigation.state.params.userData;
+        let facebookId = userData.facebookId;
+        if(!facebookId){
+            facebookId='';
+        }
+        let phoneNumber = userData.phoneNumber;
+        if(!phoneNumber){
+            phoneNumber={};
+        }
         let bodyData = {
             requester:request.requesterUid,
             responser:this.state.userUid,
-            requesterFacebookId: this.props.navigation.state.params.facebookId
+            requesterFacebookId: facebookId,
+            requesterPhoneNumber:phoneNumber
         };
         getPostRequest('initializeTwoWayFriendship', bodyData,
             (response) => {

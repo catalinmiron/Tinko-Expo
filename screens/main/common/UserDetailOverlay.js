@@ -131,7 +131,10 @@ export default class UserDetailScreen extends Component{
                     });
                     //this.getThisUserDataAndSetStateRequestMessage(isFriends);
                     let callUpdateMethod = userData !== {};
-                    this.updateFriendSql(this.state.userUid, user, isFriends, callUpdateMethod);
+                    if(callUpdateMethod){
+                        this.state.updateMethod(user);
+                    }
+                    this.updateFriendSql(this.state.userUid, user, isFriends);
                 }
 
             } else {
@@ -152,7 +155,7 @@ export default class UserDetailScreen extends Component{
         }
     }
 
-    updateFriendSql(uid, userData, isFriends, callUpdateMethod){
+    updateFriendSql(uid, userData, isFriends){
         let isFriend = isFriends ? 1 : 0;
         db.transaction(
             tx => {
@@ -164,10 +167,10 @@ export default class UserDetailScreen extends Component{
             (error) => console.log("这里报错" + error),
             () => {
                 console.log('updateFriendSql complete');
-                if(callUpdateMethod){
-                    //console.log(this.state.updateMethod);
-                    this.state.updateMethod();
-                }
+                // if(callUpdateMethod){
+                //     //console.log(this.state.updateMethod);
+                //     this.state.updateMethod();
+                // }
             }
         );
     }

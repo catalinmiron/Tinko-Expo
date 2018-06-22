@@ -260,7 +260,7 @@ export default class CreateScreen extends React.Component {
                     name='';
                 }
                 let placeCoverPhotoReference = '';
-                if(myPlace.photos[0].photo_reference){
+                if(myPlace.photos && myPlace.photos[0].photo_reference){
                     placeCoverPhotoReference=myPlace.photos[0].photo_reference;
                 }
                 console.log('placeCoverPhotoReference', placeCoverPhotoReference);
