@@ -250,7 +250,7 @@ export default class SignInScreen extends Component {
                                     containerStyle={{marginTop: -10}}
                                     onPress={() => this.props.navigation.navigate('Register',{email:'',signUpWithEmail:true})}
                                 />
-                                
+
                             </View>
                         </View> :
                         <Text>Loading...</Text>
