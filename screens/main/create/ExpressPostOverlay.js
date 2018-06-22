@@ -64,7 +64,7 @@ export default class ExpressPostOverlay extends Component{
                 //console.log(responseJson.results[0]);
                 let myPlace = responseJson.results[0];
                 let placeCoverPhotoReference = '';
-                if(myPlace.photos[0].photo_reference){
+                if(myplace.photos && myPlace.photos[0].photo_reference){
                     placeCoverPhotoReference=myPlace.photos[0].photo_reference;
                 }
                 console.log('placeCoverPhotoReference', placeCoverPhotoReference);
