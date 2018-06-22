@@ -4,6 +4,7 @@ import {
     DeviceEventEmitter
 } from 'react-native';
 import {getListTime} from './CommonUtility'
+import moment from "moment/moment";
 
 let uid,
     currentOnSelect,
@@ -208,4 +209,62 @@ export const unReadNumNeedsUpdates = (id,type) =>{
         type:type
     });
     updateTotalUnReadNum();
+};
+
+export const insertChatSql = (uid,data,isSend) =>{
+    console.log("哈哈哈哈 这里开始存储信息");
+    let type = data["type"],
+        message = data["message"],
+        from = data["from"],
+        meetingId = "",
+        userData = "",
+        status = (isSend === undefined)?0:1;
+    if (data["meetId"]!==undefined){
+        meetingId = data["meetId"];
+    }else if (data["activityId"]!==undefined){
+        meetingId = data["activityId"];
+    }
+    if (data["meetUserData"]!==undefined){
+        userData = data["meetUserData"];
+    }
+    if (data["userData"]!==undefined){
+        userData = JSON.stringify(data["userData"]);
+    }
+    let sql = "INSERT INTO db"+uid+" (fromId,msg,status,type,meetingId,meetUserData,timeStamp) VALUES (?,?,?,?,?,?,?)",
+        sqlParams = [from,message,status,type,meetingId,userData,moment().format()];
+    if (meetingId!==""&&from===uid){
+        sql = "INSERT INTO db"+uid+" (fromId,msg,status,type,meetingId,meetUserData,hasRead,timeStamp) VALUES (?,?,?,?,?,?,?,?)";
+        sqlParams = [from,message,status,type,meetingId,userData,0,moment().format()];
+    }
+    db.transaction(
+        tx => {
+            tx.executeSql(sql,sqlParams);
+        },
+        null,
+        null
+    );
+};
+
+export const initChatTable = (uid) =>{
+    console.log("===========????????=================INIT CHAT TABLE==============")
+    db.transaction(
+        tx => {
+            tx.executeSql('create table if not exists db'+ uid +' (' +
+                'id integer primary key not null , ' +
+                'fromId text, msg text , ' +
+                'status int, ' +
+                'type int,' +
+                'meetingId text, '+
+                'sendCode int DEFAULT 0,'+
+                'meetUserData text,'+
+                'hasRead int DEFAULT 1,' +
+                'isSystem int DEFAULT 0,'+
+                'timeStamp DATE DEFAULT (datetime(\'now\',\'localtime\'))' +
+                ');');
+        },
+        (error) => console.log("db insert:" + error),
+        () => {
+            console.log('db insert complete');
+        }
+    );
 };

@@ -284,7 +284,6 @@ export default class FriendChatListView extends Component {
             }
         })
         this.signOutListener =  DeviceEventEmitter.addListener('signOut',()=>{
-            console.log("开始清楚监听");
             this.listener.remove();
             this.sendboxListener.remove();
             this.connectListener.remove();
