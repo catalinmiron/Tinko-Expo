@@ -13,8 +13,9 @@ import {
 import {ifIphoneX} from "react-native-iphone-x-helper";
 import {Image as CacheImage} from "react-native-expo-image-cache";
 import {DisconnectFromServer} from '../../../modules/SocketModule';
-import {Entypo} from '@expo/vector-icons';
+import {Entypo, SimpleLineIcons} from '@expo/vector-icons';
 import {Facebook} from "expo";
+import Bubble from "../../../components/SlackBubble";
 
 const SCREEN_WIDTH = Dimensions.get('window').width;
 
@@ -99,6 +100,17 @@ export default class SettingsScreen extends React.Component {
     }
     //onPress={() => this.onLogoutButtonPressed()}
 
+    getAndSetNewUserData(){
+        this.props.navigation.state.params.getThisUserDataAndReturn().fork(
+            (error) => {
+                console.log(error);
+            },
+            (userData) => {
+                this.setState({userData},()=>console.log('getAndSetNewUserData',userData));
+            }
+        );;
+    }
+
     async linkFacebook(){
         const { userData, userUid } = this.state;
         const { type, token, expires } = await Facebook.logInWithReadPermissionsAsync('765640913609406', {
@@ -123,19 +135,7 @@ export default class SettingsScreen extends React.Component {
                 console.log(dict);
                 getPostRequest('initializeNewUser', dict,
                     ()=>{
-                    this.props.navigation.state.params.getThisUserData();
-                    let userRef = firestoreDB().collection("Users").doc(userUid);
-                    userRef.get().then((userDoc) => {
-                        if (userDoc.exists) {
-                            //console.log("Document data:", userDoc.data());
-                            let userData = userDoc.data();
-                            this.setState({userData});
-                            //return userData;
-                        } else {
-                            console.log("No such document!");
-                            Alert.alert('Error', 'No Such Document');
-                        }
-                    });
+                    this.getAndSetNewUserData();
                     },
                     (error)=>Alert.alert('Error', error));
             }, function(error) {
@@ -157,6 +157,10 @@ export default class SettingsScreen extends React.Component {
                     outerContainerStyles={ifIphoneX({height:88})}
                 />
                 <ScrollView>
+                    {/*<Button*/}
+                        {/*title={'test'}*/}
+                        {/*onPress={()=>this.getAndSetNewUserData()}*/}
+                    {/*/>*/}
                     <ListItem
                         title='Avatar'
                         titleStyle={styles.titleStyle}
@@ -209,6 +213,34 @@ export default class SettingsScreen extends React.Component {
                             <Text>{userData.email}</Text>
                         }
                     />
+
+                    {(userData.phoneNumber && userData.phoneNumber!=={}) ?
+                    <ListItem
+                        title='Phone Number'
+                        titleStyle={styles.titleStyle}
+                        rightElement={
+                            <Text>{userData.phoneNumber.number}</Text>
+                        }
+                    />
+                        :
+
+                        <ListItem
+                            chevron
+                            chevronColor={'black'}
+                            rightElement={
+                                <SimpleLineIcons
+                                    name={'screen-smartphone'}
+                                    size={40}
+                                    color={'#145A32'}
+                                />
+                            }
+                            title={'Link Phone Number'}
+                            titleStyle={styles.titleStyle}
+                            onPress={() => this.props.navigation.navigate('LinkPhoneNumber',{successReturnFunction:this.getAndSetNewUserData.bind(this)})}
+                        />
+
+                    }
+
                     {userData.facebookId && userData.facebookId!=='' &&
                     <ListItem
                         title='Add Facebook Friends'
@@ -221,6 +253,7 @@ export default class SettingsScreen extends React.Component {
                         }
                     />
                     }
+
 
                     {(!userData.facebookId || userData.facebookId==='') &&
                     <ListItem

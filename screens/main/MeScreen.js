@@ -1,3 +1,4 @@
+import _ from 'lodash';
 import React from 'react';
 import {
     View, Alert, TouchableWithoutFeedback, Image, ScrollView, SafeAreaView, StyleSheet, Text,
@@ -23,6 +24,7 @@ import { ifIphoneX } from 'react-native-iphone-x-helper';
 import {initNewFriendsRequestTable, insertNewFriendsRequest} from "../../modules/SqliteClient";
 import {Image as CacheImage} from 'react-native-expo-image-cache'
 import { Entypo, SimpleLineIcons } from '@expo/vector-icons';
+import Task from "data.task";
 
 const db = SQLite.openDatabase('db.db');
 const SCREEN_WIDTH = Dimensions.get('window').width;
@@ -38,6 +40,8 @@ export default class Me extends React.Component {
             userUid:user.uid,
             userData:{},
             badgeHidden:true,
+            newFriendsRequestNotSet:true,
+            friendsList:[]
         };
         getFromAsyncStorage('ThisUser').then((userData) => {
             if(userData) {
@@ -86,6 +90,7 @@ export default class Me extends React.Component {
          //this.setNewFriendsRequestListener();
 
         this.initGetThisUserData();
+        this.setNewFriendsRequestListener();
     }
 
 
@@ -138,6 +143,32 @@ export default class Me extends React.Component {
             Alert.alert('Error', error);
         });
     }
+
+    getThisUserDataAndReturn(){
+        return new Task((reject, resolve) => {
+            const {userUid} = this.state;
+            let firestoreDb = firestoreDB();
+            let userRef = firestoreDb.collection("Users").doc(userUid);
+            userRef.get().then((userDoc) => {
+                if (userDoc.exists) {
+                    //console.log("Document data:", userDoc.data());
+                    let userData = userDoc.data();
+                    this.setState({userData});
+                    writeInAsyncStorage('ThisUser', userData);
+                    //return userData;
+                    resolve(userData);
+                } else {
+                    console.log("No such document!");
+                    Alert.alert('Error', 'No Such Document');
+                    reject('No Such Document');
+                }
+            }).catch((error) => {
+                console.log("Error getting document:", error);
+                Alert.alert('Error', error);
+                reject(error);
+            });
+        });
+    };
 
 
     async fbAutoAdd(){
@@ -233,7 +264,13 @@ export default class Me extends React.Component {
                 }
             }),Promise.resolve());
             //this.initFriendsTableAndInsertData(uid,usersData);
-            this.insertFriendsSql(uid, usersData)
+            this.setState((state)=>{
+                let friendsList = state.friendsList;
+                friendsList = usersData.concat(friendsList);
+
+                return{friendsList};
+            }, ()=>this.insertFriendsSql(uid, usersData));
+
         });
     }
 
@@ -261,7 +298,7 @@ export default class Me extends React.Component {
     }
 
     insertFriendsSql(uid, usersData){
-        //console.log('insertFriendsSql', usersData);
+        console.log('insertFriendsSql', usersData);
         db.transaction(
             tx => {
                 usersData.map((userData) => {
@@ -278,8 +315,13 @@ export default class Me extends React.Component {
                 console.log('insertCompleteFriendSql complete');
                 //this.props.screenProps.friendsListIsReady();
                 //this.getSql();
-                this.friendsList.getSql();
-                this.setNewFriendsRequestListener();
+                //this.friendsList.getSql();
+                //this.setNewFriendsRequestListener();
+                // if(this.state.newFriendsRequestNotSet){
+                //     this.setNewFriendsRequestListener();
+                //     this.setState({newFriendsRequestNotSet:false})
+                // }
+
             }
         );
     }
@@ -313,7 +355,7 @@ export default class Me extends React.Component {
     newFriendsButtonPressed(){
         this.setState({badgeHidden:true});
         this.props.navigation.setParams({badgeHidden:true});
-        this.props.navigation.navigate('NewFriends', {facebookId: this.state.userData.facebookId});
+        this.props.navigation.navigate('NewFriends', {userData: this.state.userData});
         writeInAsyncStorage('NewFriendsBadgeHidden', true);
     }
 
@@ -346,9 +388,7 @@ export default class Me extends React.Component {
         });
     }
 
-    isFriendsListNone(answer){
-        this.setState({isFriendsListNone:answer});
-    }
+
 
     async linkFacebook(){
         const { userData, userUid } = this.state;
@@ -383,12 +423,14 @@ export default class Me extends React.Component {
     }
 
     render() {
-        const { userData ,badgeHidden} = this.state;
+        const { userData ,badgeHidden, friendsList} = this.state;
         console.log(userData);
         return (
             <ScrollView style={{flex:1, backgroundColor: "white", height: "100%" ,width: "100%"}}>
                 <Ionicons
-                    onPress={() => this.props.navigation.navigate('Setting',{getThisUserData:this.getThisUserData.bind(this)})}
+                    onPress={() => this.props.navigation.navigate('Setting',
+                        {getThisUserData:this.getThisUserData.bind(this),
+                            getThisUserDataAndReturn:this.getThisUserDataAndReturn.bind(this)})}
                     style={{position:'absolute',zIndex:100,top:ifIphoneX(54, 40), right:SCREEN_WIDTH*0.05}}
                     name={'ios-settings'}
                     size={30}
@@ -467,9 +509,9 @@ export default class Me extends React.Component {
                     </View>
                 </View>
 
-
-                {this.state.isFriendsListNone && (userData.facebookId === null || userData.facebookId==='') &&
+                {friendsList.length===0 &&
                 <View style={{width:"90%",marginTop:35,marginLeft:"5%"}}>
+                    {(userData.facebookId === null || userData.facebookId==='') &&
                     <ListItem
                         leftElement={
                             <Entypo
@@ -481,11 +523,8 @@ export default class Me extends React.Component {
                         title={'Link Facebook for more friends'}
                         onPress={() => this.linkFacebook()}
                     />
-                </View>
-                }
-
-                {this.state.isFriendsListNone &&
-                <View style={{width:"90%",marginLeft:"5%"}}>
+                    }
+                    {(!userData.phoneNumber || userData.phoneNumber==={}) &&
                     <ListItem
                         leftElement={
                             <SimpleLineIcons
@@ -495,20 +534,42 @@ export default class Me extends React.Component {
                             />
                         }
                         title={'Link Phone Number for more friends'}
-                        //onPress={() => this.goToDetailPage(data.uid)}
+                        onPress={() => this.props.navigation.navigate('LinkPhoneNumber',{successReturnFunction:this.getThisUserData.bind(this)})}
                     />
+                    }
                 </View>
                 }
 
 
-                <FriendsList
-                    showThisUser={this.props.screenProps.showThisUser}
-                    onRef={ref => this.friendsList = ref}
-                    navigation={this.props.navigation}
-                    isFriendsListNone={this.isFriendsListNone.bind(this)}
-                />
+                <View style={{width:"90%",marginTop:35,marginLeft:"5%"}}>
+                    {friendsList.map((data) => (
+                        <ListItem
+                            leftAvatar={{ rounded: true, size:40, source: { uri: data.photoURL } }}
+                            key={data.uid}
+                            title={data.username}
+                            onPress={() => this.props.screenProps.showThisUser(data.uid,this.props.navigation,this.updateSelectedUser.bind(this))}
+                        />
+                    ))}
+                </View>
+
+
+                {/*<FriendsList*/}
+                    {/*showThisUser={this.props.screenProps.showThisUser}*/}
+                    {/*onRef={ref => this.friendsList = ref}*/}
+                    {/*navigation={this.props.navigation}*/}
+                    {/*isFriendsListNone={this.isFriendsListNone.bind(this)}*/}
+                {/*/>*/}
             </ScrollView>
         );
+    }
+
+    updateSelectedUser(userData){
+        this.setState((state)=>{
+            let friendsList = state.friendsList;
+            let index = _.findIndex(friendsList,{uid:userData.uid});
+            friendsList[index]=userData;
+            return {friendsList};
+        })
     }
 }
 

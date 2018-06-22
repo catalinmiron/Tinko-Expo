@@ -9,6 +9,12 @@ import {updateDeviceId} from "./modules/CommonUtility";
 import { Root } from "native-base";
 import {initSocketModule} from "./modules/SocketModule";
 import {initChatTable, insertChatSql} from "./modules/ChatStack";
+import Sentry from 'sentry-expo';
+
+// Remove this once Sentry is correctly setup.
+//Sentry.enableInExpoDevelopment = true;
+
+Sentry.config('https://166a6ee91b35412593b46d5b1b2d841d@sentry.io/1231209').install();
 
 export default class App extends React.Component {
   state = {
@@ -17,6 +23,7 @@ export default class App extends React.Component {
       firstTimeLoading:true
 
   };
+
 
   render() {
     if (!this.state.isLoadingComplete && !this.props.skipLoadingScreen) {
@@ -104,6 +111,9 @@ export default class App extends React.Component {
             this.setState({firstTimeLoading:false, isLoadingComplete: true, loggedIn:false});
         }
       });
+      // ErrorUtils.setGlobalHandler((error, isFatal) => {
+      //     // do something with the error
+      // });
   };
 
   handleUserLoggedIn(){

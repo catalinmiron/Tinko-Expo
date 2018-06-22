@@ -11,6 +11,7 @@
     "@expo/samples": "2.1.1",
     "data.task": "^3.1.1",
     "emoji-utils": "^1.0.1",
+    "eslint": "^4.19.1",
     "expo": "^27.0.0",
     "firebase": "^4.13.1",
     "geofire": "^4.1.2",
