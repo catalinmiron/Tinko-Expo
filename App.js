@@ -10,7 +10,7 @@ import {initSocketModule} from "./modules/SocketModule";
 import Sentry from 'sentry-expo';
 
 // Remove this once Sentry is correctly setup.
-//Sentry.enableInExpoDevelopment = true;
+Sentry.enableInExpoDevelopment = true;
 
 Sentry.config('https://166a6ee91b35412593b46d5b1b2d841d@sentry.io/1231209').install();
 
