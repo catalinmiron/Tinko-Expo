@@ -11,6 +11,7 @@
     "@expo/samples": "2.1.1",
     "data.task": "^3.1.1",
     "emoji-utils": "^1.0.1",
+    "eslint": "^4.19.1",
     "expo": "^27.0.0",
     "firebase": "^4.13.1",
     "geofire": "^4.1.2",
@@ -31,6 +32,7 @@
     "react-native-keyboard-spacer": "^0.4.1",
     "react-native-swiper": "^1.5.13",
     "react-navigation": "^1.5.12",
+    "sentry-expo": "^1.9.0",
     "socket.io-client": "^2.0.4"
   },
   "devDependencies": {
