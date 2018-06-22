@@ -16,7 +16,7 @@ import AvatarDisplayOverlay from '../screens/main/common/AvatarDisplayOverlay';
 import {initNewFriendsRequestTable, insertNewFriendsRequest} from "../modules/SqliteClient";
 import {firestoreDB, getUserData, getUserDataFromDatabase} from "../modules/CommonUtility";
 import {initSocketModule} from '../modules/SocketModule';
-import {getLength} from "../modules/ChatStack";
+import {getLength,insertChatSql} from "../modules/ChatStack";
 
 let getPrivateHistory = false,
     getMeetsHistory = false;
@@ -48,22 +48,20 @@ export default class RootNavigator extends React.Component {
       let user = firebase.auth().currentUser;
       uid = user.uid;
       this.setState({userUid:uid});
-      // 测试时才用drop
-      //this.dropMeetTable(uid);
-      //this.dropChatTable(uid);
-      //this.dropFriendsTable(uid);
-      //this.initFriendsTable(uid);
       this.initChatTable(uid);
-
-      console.log("socketModule is init for:",uid);
       initSocketModule(uid);
 
       this.listener =DeviceEventEmitter.addListener('mySendBox',(msg)=>{
           msg = msg.msg;
           let data = JSON.parse(msg);
           if (data.type!==999&&data.type!==1){
-              this.insertChatSql(uid,data,0);
+              insertChatSql(uid,data,0);
+             // this.insertChatSql(uid,data,0);
           }
+      });
+      this.signOutListener =  DeviceEventEmitter.addListener('signOut',()=>{
+          this.listener.remove();
+          this.signOutListener.remove();
       });
 
   }
@@ -243,42 +241,42 @@ export default class RootNavigator extends React.Component {
     //type 1 ="privateChat"
     //type 2 ="groupChat"
     //status 1 = "response"
-    insertChatSql(uid,data,isSend){
-        let type = data["type"],
-            message = data["message"],
-            from = data["from"],
-            meetingId = "",
-            userData = "",
-            status = (isSend === undefined)?0:1;
-        // if (status === 1){
-        //     console.log("这里是发送啦");
-        // }
-        if (data["meetId"]!==undefined){
-            meetingId = data["meetId"];
-        }else if (data["activityId"]!==undefined){
-            meetingId = data["activityId"];
-        }
-        if (data["meetUserData"]!==undefined){
-            userData = data["meetUserData"];
-        }
-        if (data["userData"]!==undefined){
-            userData = JSON.stringify(data["userData"]);
-        }
-        let sql = "INSERT INTO db"+uid+" (fromId,msg,status,type,meetingId,meetUserData,timeStamp) VALUES (?,?,?,?,?,?,?)",
-            sqlParams = [from,message,status,type,meetingId,userData,moment().format()];
-        if (meetingId!==""&&from===uid){
-            sql = "INSERT INTO db"+uid+" (fromId,msg,status,type,meetingId,meetUserData,hasRead,timeStamp) VALUES (?,?,?,?,?,?,?,?)";
-            sqlParams = [from,message,status,type,meetingId,userData,0,moment().format()];
-        }
-        console.log(sql , sqlParams);
-        db.transaction(
-            tx => {
-                tx.executeSql(sql,sqlParams);
-            },
-            null,
-            null
-        );
-    }
+    // insertChatSql(uid,data,isSend){
+    //     let type = data["type"],
+    //         message = data["message"],
+    //         from = data["from"],
+    //         meetingId = "",
+    //         userData = "",
+    //         status = (isSend === undefined)?0:1;
+    //     // if (status === 1){
+    //     //     console.log("这里是发送啦");
+    //     // }
+    //     if (data["meetId"]!==undefined){
+    //         meetingId = data["meetId"];
+    //     }else if (data["activityId"]!==undefined){
+    //         meetingId = data["activityId"];
+    //     }
+    //     if (data["meetUserData"]!==undefined){
+    //         userData = data["meetUserData"];
+    //     }
+    //     if (data["userData"]!==undefined){
+    //         userData = JSON.stringify(data["userData"]);
+    //     }
+    //     let sql = "INSERT INTO db"+uid+" (fromId,msg,status,type,meetingId,meetUserData,timeStamp) VALUES (?,?,?,?,?,?,?)",
+    //         sqlParams = [from,message,status,type,meetingId,userData,moment().format()];
+    //     if (meetingId!==""&&from===uid){
+    //         sql = "INSERT INTO db"+uid+" (fromId,msg,status,type,meetingId,meetUserData,hasRead,timeStamp) VALUES (?,?,?,?,?,?,?,?)";
+    //         sqlParams = [from,message,status,type,meetingId,userData,0,moment().format()];
+    //     }
+    //     console.log(sql , sqlParams);
+    //     db.transaction(
+    //         tx => {
+    //             tx.executeSql(sql,sqlParams);
+    //         },
+    //         null,
+    //         null
+    //     );
+    // }
 
 
     setNewFriendsRequestListener(userUid){

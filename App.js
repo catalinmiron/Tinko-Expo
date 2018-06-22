@@ -1,12 +1,14 @@
 import React from 'react';
-import { Platform, StatusBar, StyleSheet, View } from 'react-native';
-import {AppLoading, Asset, Font, SQLite} from 'expo';
+import {DeviceEventEmitter, Platform, StatusBar, StyleSheet, View} from 'react-native';
+import {AppLoading, Asset, Font, SQLite,Constants} from 'expo';
 import { Ionicons } from '@expo/vector-icons';
 import RootNavigation from './navigation/RootNavigation';
 import firebase from "firebase";
 import { ActionSheetProvider, connectActionSheet } from '@expo/react-native-action-sheet';
+import {updateDeviceId} from "./modules/CommonUtility";
 import { Root } from "native-base";
 import {initSocketModule} from "./modules/SocketModule";
+import {initChatTable, insertChatSql} from "./modules/ChatStack";
 
 export default class App extends React.Component {
   state = {
@@ -106,6 +108,20 @@ export default class App extends React.Component {
 
   handleUserLoggedIn(){
       initSocketModule(firebase.auth().currentUser.uid);
+      initChatTable(firebase.auth().currentUser.uid);
+      updateDeviceId(firebase.auth().currentUser.uid,Constants.deviceId);
+      this.listener =DeviceEventEmitter.addListener('mySendBox',(msg)=>{
+          msg = msg.msg;
+          let data = JSON.parse(msg);
+          if (data.type!==999&&data.type!==1){
+              insertChatSql(firebase.auth().currentUser.uid,data,0);
+              // this.insertChatSql(uid,data,0);
+          }
+      });
+      this.signOutListener =  DeviceEventEmitter.addListener('signOut',()=>{
+          this.listener.remove();
+          this.signOutListener.remove();
+      });
       this.setState({loggedIn:true});
   }
 }

@@ -1,5 +1,14 @@
 import React, { Component } from 'react';
-import {StyleSheet, Text, View, ImageBackground, Dimensions, TouchableWithoutFeedback, Alert} from 'react-native';
+import {
+    StyleSheet,
+    Text,
+    View,
+    ImageBackground,
+    Dimensions,
+    TouchableWithoutFeedback,
+    Alert,
+    DeviceEventEmitter
+} from 'react-native';
 import { Input, Button } from 'react-native-elements'
 
 import {Facebook, Font,Constants} from 'expo';
@@ -8,6 +17,7 @@ import { NavigationActions } from 'react-navigation';
 //import Icon from 'react-native-vector-icons/FontAwesome';
 import {firestoreDB, getPostRequest, writeInAsyncStorage ,updateDeviceId} from "../../modules/CommonUtility";
 import registerForPushNotificationsAsync from '../../api/registerForPushNotificationsAsync';
+import {initChatTable, insertChatSql} from "../../modules/ChatStack";
 
 const SCREEN_WIDTH = Dimensions.get('window').width;
 const SCREEN_HEIGHT = Dimensions.get('window').height;
@@ -21,7 +31,6 @@ export default class SignInScreen extends Component {
 
     constructor(props) {
         super(props);
-        console.log(props)
         this.state = {
             fontLoaded: false,
             email: '',
@@ -49,12 +58,18 @@ export default class SignInScreen extends Component {
         firebase.auth().signInWithEmailAndPassword(email,password)
             .then((user)=>{
                 console.log('SignIn:==================== ', user);
-                updateDeviceId(firebase.auth().currentUser.uid,Constants.deviceId);
+                let uid = firebase.auth().currentUser.uid;
+                // updateDeviceId(uid,Constants.deviceId);
+                // this.listener =DeviceEventEmitter.addListener('mySendBox',(msg)=>{
+                //     msg = msg.msg;
+                //     let data = JSON.parse(msg);
+                //     if (data.type!==999&&data.type!==1){
+                //         insertChatSql(uid,data,0);
+                //     }
+                // });
                 this.props.screenProps.handleUserLoggedIn();
             })
             .catch((error) => {
-                console.log(error.code);
-                console.log(error.message);
                 Alert.alert("Error", error.message);
                 this.setState({ showLoading: false});
             });
