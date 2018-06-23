@@ -89,7 +89,7 @@ export default class Me extends React.Component {
         this.props.screenProps.meRef(this);
          //this.setNewFriendsRequestListener();
 
-        this.initGetThisUserData();
+        this.getThisUserData();
         this.setNewFriendsRequestListener();
     }
 
@@ -103,25 +103,7 @@ export default class Me extends React.Component {
         writeInAsyncStorage('NewFriendsBadgeHidden', false);
     }
 
-    initGetThisUserData(){
-        const {userUid} = this.state;
-        let firestoreDb = firestoreDB();
-        let userRef = firestoreDb.collection("Users").doc(userUid);
-        userRef.get().then((userDoc) => {
-            if (userDoc.exists) {
-                //console.log("Document data:", userDoc.data());
-                let userData = userDoc.data();
-                this.setState({userData},()=>this.fbAutoAdd());
-                writeInAsyncStorage('ThisUser', userData);
-            } else {
-                console.log("No such document!");
-                Alert.alert('Error', 'No Such Document');
-            }
-        }).catch((error) => {
-            console.log("Error getting document:", error);
-            Alert.alert('Error', error);
-        });
-    }
+
 
     getThisUserData(){
         const {userUid} = this.state;
