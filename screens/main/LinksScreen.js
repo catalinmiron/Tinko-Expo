@@ -581,7 +581,8 @@ export default class FriendChatListView extends Component {
         return (
             <View style={{flex:1}}>
                 <Header
-                    centerComponent={{ text: 'Message', style: { fontSize:18, fontFamily:'regular', color: '#fff' } }}
+                    backgroundColor={'#C4ECFF'}
+                    centerComponent={{ text: 'Message', style: { fontSize:18, fontFamily:'regular', color: '#000' } }}
                     outerContainerStyles={ifIphoneX({height:88})}
                 />
                 <ScrollView>

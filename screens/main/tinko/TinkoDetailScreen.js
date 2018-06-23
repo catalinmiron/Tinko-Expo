@@ -39,6 +39,7 @@ import SocketIOClient from "socket.io-client";
 import {quitMeet,joinMeet,dismissMeet} from "../../../modules/SocketClient";
 import { NavigationActions } from 'react-navigation';
 import {CacheManager, Image as CacheImage} from "react-native-expo-image-cache";
+import ReportOverlay from '../second/ReportOverlay';
 
 const db = SQLite.openDatabase('db.db');
 
@@ -601,6 +602,8 @@ export default class TinkoDetailScreen extends React.Component {
                             {text: 'Cancel', onPress: () => console.log('Cancel Pressed'), style: 'cancel'},
                             {text: 'Yes', onPress: () => this.onDismissMeetButtonPressed(), style:"destructive"},
                         ]);
+                } else if(options[buttonIndex] === 'Report'){
+                    this.reportOverlay.showReportOverlay();
                 }
             }
         );
@@ -892,6 +895,9 @@ export default class TinkoDetailScreen extends React.Component {
 
 
                 </Overlay>
+                <ReportOverlay
+                    onRef={ref => this.reportOverlay = ref}
+                />
 
             </View>
 
