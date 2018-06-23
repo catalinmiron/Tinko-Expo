@@ -49,7 +49,7 @@ export default class RootNavigator extends React.Component {
       uid = user.uid;
       this.setState({userUid:uid});
       this.initChatTable(uid);
-      initSocketModule(uid);
+      initSocketModule(uid);    
 
       this.listener =DeviceEventEmitter.addListener('mySendBox',(msg)=>{
           msg = msg.msg;

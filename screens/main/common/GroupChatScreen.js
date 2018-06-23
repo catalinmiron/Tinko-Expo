@@ -4,7 +4,12 @@ import React, {
 import {
     View, DeviceEventEmitter, Platform, TouchableOpacity, StyleSheet, Alert
 } from 'react-native';
-import {getUserDataFromDatabase, getMeetInfo, getAvatarPlaceholder} from "../../../modules/CommonUtility";
+import {
+    getUserDataFromDatabase,
+    getMeetInfo,
+    getAvatarPlaceholder,
+    getFromAsyncStorage
+} from "../../../modules/CommonUtility";
 import {Image as CacheImage} from "react-native-expo-image-cache";
 import {SQLite } from 'expo';
 const db = SQLite.openDatabase('db.db');
@@ -22,6 +27,7 @@ import Composer from '../../../components/Composer';
 let uid = "",
     MeetId = "",
     dbInfoList = [],
+    myName = "Group Chat",
     limit = 15;
 
 export default class PrivateChatScreen extends Component {
@@ -49,6 +55,11 @@ export default class PrivateChatScreen extends Component {
         let dataStore = this.props.navigation.state.params;
         uid = dataStore.myId;
         MeetId = dataStore.personId;
+        getFromAsyncStorage('ThisUser').then((userData) => {
+            if(userData) {
+                myName = (userData.username);
+            }
+        });
         this.connectListener =  DeviceEventEmitter.addListener('SocketConnect',(msg)=>{
             msg = msg.msg;
             let data = JSON.parse(msg);
@@ -276,7 +287,9 @@ export default class PrivateChatScreen extends Component {
         updateLastMessage(MeetId,text);
         sendGroupChat({
             uid:uid,
+            MeetTitle:this.state.meetTitle,
             MeetId:MeetId,
+            myName:myName,
             text:text
         });
         this.setState(previousState => ({

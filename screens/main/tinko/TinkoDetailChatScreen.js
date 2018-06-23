@@ -1,9 +1,15 @@
 import React from "react";
 import {View, Platform, SafeAreaView, Keyboard, DeviceEventEmitter} from 'react-native';
-import { GiftedChat,Bubble } from 'react-native-gifted-chat'
+import { GiftedChat, Actions, Bubble, SystemMessage } from 'react-native-gifted-chat';
 import SlackMessage from '../../../components/SlackMessage'
 import emojiUtils from 'emoji-utils';
-import {getFromAsyncStorage, getUserData, writeInAsyncStorage,getUserDataFromDatabase} from "../../../modules/CommonUtility";
+import {
+    getFromAsyncStorage,
+    getUserData,
+    writeInAsyncStorage,
+    getUserDataFromDatabase,
+    getMeetInfo, getMeetAvatarUri
+} from "../../../modules/CommonUtility";
 import firebase from "firebase/index";
 import {Header} from "react-native-elements";
 import { ifIphoneX } from 'react-native-iphone-x-helper';
@@ -11,13 +17,15 @@ import SocketIOClient from 'socket.io-client';
 import KeyboardSpacer from "react-native-keyboard-spacer";
 import {MaterialIcons} from '@expo/vector-icons';
 import {byStander,initByStanderChat,removeByStanderChat} from "../../../modules/SocketModule";
-import {getLength} from "../../../modules/ChatStack";
+import {getLength, updateMeets} from "../../../modules/ChatStack";
 import Composer from '../../../components/Composer';
 
 let MeetId = "",
     uid = "",
+    MeetName = "",
     userList = [],
     waitingList = [],
+    myName = "Group Chat",
     userInfo = {},
     stack;
 
@@ -40,6 +48,10 @@ export default class TinkoDetailChatScreen extends React.Component {
             }else{
                 this.messageMap[userId].push(this.dataStore.length)
             }
+            // if (msg.indexOf("/*Tinko-[") === 0){
+            //     msg = "notification"
+            // // }
+            // msg = msg.indexOf("/*Tinko-[")
             if (userInfo[userId]!==undefined){
                 this.dataStore.push({
                     _id: Math.floor(Math.random()*10000),
@@ -57,7 +69,7 @@ export default class TinkoDetailChatScreen extends React.Component {
                     text: msg,
                     user: {
                         _id: userId,
-                        name: "Tinko用户",
+                        name: "Tinko",
                         avatar: "http://larissayuan.com/home/img/prisma.png",
                     },
                     sent: (type === 0)
@@ -87,6 +99,12 @@ export default class TinkoDetailChatScreen extends React.Component {
         let userUid = user.uid;
         uid = user.uid;
         MeetId = this.props.navigation.state.params.meetId;
+        this.getMeetsName(MeetId);
+        getFromAsyncStorage('ThisUser').then((userData) => {
+            if(userData) {
+                myName = (userData.username);
+            }
+        });
         this.state = {
             meetId: this.props.navigation.state.params.meetId,
             messages: [],
@@ -98,13 +116,25 @@ export default class TinkoDetailChatScreen extends React.Component {
             limit:15,
             SafeAreaInsets:34,
         };
+
     }
+
+    async getMeetsName(id){
+        console.log("we are waiting for Activity:" ,id);
+        await getMeetInfo(id,
+            (title, tagName, coverImageUri)=>{
+                MeetName = title
+            },
+            (error) => {
+                console.log(error);
+            });
+    }
+
 
     componentDidMount(){
         this.getGroupChatContents();
         initByStanderChat(MeetId);
         this.listener =DeviceEventEmitter.addListener('activity'+MeetId,(param)=>{
-            console.log("hello hello hello");
             try {
                 let msg = param.msg;
                 let data = JSON.parse(msg);
@@ -146,9 +176,6 @@ export default class TinkoDetailChatScreen extends React.Component {
         this.listener.remove();
     }
 
-
-
-
     getInfo(pid){
         if (waitingList.indexOf(pid) === -1){
             waitingList.push(pid);
@@ -173,13 +200,6 @@ export default class TinkoDetailChatScreen extends React.Component {
             );
         }
     }
-
-    // componentDidMount(){
-    //     this.getGroupChatContents();
-    //     // this.keyboardDidShowListener = Keyboard.addListener('keyboardWillShow', this._keyboardDidShow());
-    //     // this.keyboardDidHideListener = Keyboard.addListener('keyboardWillHide', this._keyboardDidHide());
-    // }
-
 
     getGroupChatContents() {
         this.setState({isLoadingEarlier:true});
@@ -233,17 +253,30 @@ export default class TinkoDetailChatScreen extends React.Component {
             await getUserDataFromDatabase(e.fromId,
                 (userData) => {
                     //console.log(userData);
-                    let message = {
-                        _id: Math.floor(Math.random()*10000),
-                        text: e.msg,
-                        user: {
-                            _id: userData.uid,
-                            name: userData.username,
-                            avatar: userData.photoURL,
-                        },
-                        sent: (e.status === 0)
-                    };
-                    messages.push(message);
+                    if (e.msg.indexOf("/*Tinko-[notifiction://")!==-1&&e.msg.indexOf("]-Tinko*/")!==-1){
+                        e.msg = e.msg.replace("/*Tinko-[notifiction://","").replace("]-Tinko*/","");
+                        let message = {
+                            _id: Math.floor(Math.random()*10000),
+                            // text: e.msg,
+                            text: e.msg,
+                            createdAt: e.timeStamp,
+                            system:true
+                        };
+                        messages.push(message);
+                    }else{
+                        let message = {
+                            _id: Math.floor(Math.random()*10000),
+                            // text: e.msg,
+                            text: e.msg,
+                            user: {
+                                _id: userData.uid,
+                                name: userData.username,
+                                avatar: userData.photoURL,
+                            },
+                            sent: (e.status === 0)
+                        };
+                        messages.push(message);
+                    }
                 },
                 (error) => {
                     Alert.alert('Error', error);
@@ -285,12 +318,10 @@ export default class TinkoDetailChatScreen extends React.Component {
         byStander({
             uid:uid,
             MeetId:MeetId,
-            text:text
+            text:text,
+            myName:myName,
+            MeetName:MeetName
         });
-       // this.socket.emit("byStander",uid,MeetId,text);
-       //  this.setState(previousState => ({
-       //      messages: GiftedChat.append(previousState.messages, messages),
-       //  }))
     }
 
     renderComposer(props) {

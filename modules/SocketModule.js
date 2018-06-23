@@ -97,17 +97,17 @@ export const removeByStanderChat = (MeetId) =>{
 };
 
 export const sendGroupChat = (params) =>{
-    let uid = params.uid,MeetId = params.MeetId,text = params.text;
-    TinkoSocket.emit("groupChat",uid,MeetId,text);
+    let uid = params.uid,MeetId = params.MeetId,text = params.text,meetTitle = params.MeetTitle,myName = params.myName;
+    TinkoSocket.emit("groupChat",uid,MeetId,text,meetTitle,myName);
 };
 
 export const byStander = (params) =>{
-    let uid = params.uid,MeetId = params.MeetId,text = params.text;
-    TinkoSocket.emit("byStander",uid,MeetId,text);
+    let uid = params.uid,MeetId = params.MeetId,text = params.text,myName = params.myName,MeetName = params.MeetName;
+    TinkoSocket.emit("byStander",uid,MeetId,text,myName,MeetName);
 };
 
 export const sendPrivateChat = (params) =>{
-    let uid = params.uid,pid = params.pid,text = params.text,insertId = params.insertId;
+    let uid = params.uid,pid = params.pid,text = params.text,insertId = params.insertId,myName = params.myName;
     DeviceEventEmitter.emit('localMsgSendBox',{
         data:JSON.stringify({
             msg:text,
@@ -115,7 +115,7 @@ export const sendPrivateChat = (params) =>{
             type:1
         })
     });
-    TinkoSocket.emit("privateChat",uid,pid,text,insertId);
+    TinkoSocket.emit("privateChat",uid,pid,text,insertId,myName);
 };
 
 export const userLogin = (uid) =>{

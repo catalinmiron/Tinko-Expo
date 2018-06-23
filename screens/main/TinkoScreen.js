@@ -249,7 +249,7 @@ export default class TinkoScreen extends Component {
                 let lastVisible = querySnapshot.docs[querySnapshot.docs.length-1];
                 //console.log(addMeetsData);
                 this.setState((state) => {
-                    let meetsData = _.concat(state.meetsData, addMeetsData);
+                    let meetsData = _.concat(state.meetsData, addMeetsData)
                     return {meetsData, lastVisible};
                 });
                 querySnapshot.forEach(doc => {

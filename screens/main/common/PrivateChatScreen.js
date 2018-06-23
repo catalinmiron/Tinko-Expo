@@ -19,13 +19,19 @@ import {
     appendChatData, getLength
 } from "../../../modules/ChatStack";
 import KeyboardSpacer from 'react-native-keyboard-spacer';
-import {getAvatarPlaceholder, getCurrentTime, writeInAsyncStorage} from "../../../modules/CommonUtility";
+import {
+    getAvatarPlaceholder,
+    getCurrentTime,
+    getFromAsyncStorage,
+    writeInAsyncStorage
+} from "../../../modules/CommonUtility";
 import moment from "moment";
 import {sendPrivateChat} from "../../../modules/SocketModule";
 import Composer from '../../../components/Composer';
 
 let uid = "",
     pid = "",
+    myName = "Private Chat",
     dbInfoList = [],
     limit = 15,
     userAvatar,userName,
@@ -51,6 +57,11 @@ export default class PrivateChatScreen extends Component {
         pid = dataStore.personId;
         userAvatar =  dataStore.avatar;
         userName = dataStore.name;
+        getFromAsyncStorage('ThisUser').then((userData) => {
+            if(userData) {
+                myName = (userData.username);
+            }
+        });
     }
 
     componentDidMount(){
@@ -169,7 +180,7 @@ export default class PrivateChatScreen extends Component {
 
     appendMessage(isCache,msg,time,isFailed){
         if (isFailed!==undefined){
-            msg = "失败了:"+msg;
+            msg = "Failed:"+msg;
         }
         let messages = [{
             _id: Math.round(Math.random() * 10000),
@@ -270,7 +281,8 @@ export default class PrivateChatScreen extends Component {
                                 uid:uid,
                                 pid:pid,
                                 text:text,
-                                insertId:insertId
+                                insertId:insertId,
+                                myName:myName
                             });
                             this.setState(previousState => ({
                                 messages: GiftedChat.append(previousState.messages, messages[0]),
