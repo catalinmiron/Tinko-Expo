@@ -13,6 +13,7 @@ import {Image as CacheImage} from "react-native-expo-image-cache";
 import { Avatar, Day, utils } from 'react-native-gifted-chat';
 import Bubble from './SlackBubble';
 import {getAvatarPlaceholder} from "../modules/CommonUtility";
+import SystemMessage from './SystemMessage';
 
 const { isSameUser, isSameDay } = utils;
 
@@ -71,22 +72,34 @@ export default class Message extends React.Component {
         );
     }
 
+    renderSystemMessage() {
+        const systemMessageProps = this.getInnerComponentProps();
+        if (this.props.renderSystemMessage) {
+            return this.props.renderSystemMessage(systemMessageProps);
+        }
+        return <SystemMessage {...systemMessageProps} />;
+    }
+
     render() {
         const marginBottom = isSameUser(this.props.currentMessage, this.props.nextMessage) ? 2 : 10;
 
         return (
             <View>
                 {this.renderDay()}
-                <View
-                    style={[
-                        styles.container,
-                        { marginBottom },
-                        this.props.containerStyle,
-                    ]}
-                >
-                    {this.renderAvatar()}
-                    {this.renderBubble()}
-                </View>
+                {this.props.currentMessage.system ? (
+                    this.renderSystemMessage()
+                ) : (
+                    <View
+                        style={[
+                            styles.container,
+                            { marginBottom },
+                            this.props.containerStyle,
+                        ]}
+                    >
+                        {this.renderAvatar()}
+                        {this.renderBubble()}
+                    </View>
+                )}
             </View>
         );
     }
