@@ -65,6 +65,7 @@ export const initSocketModule = (uid) =>{
             firebase.auth().signOut();
         }
     });
+    userLogin(uid);
 };
 
 export const initByStanderChat = (MeetId) =>{
@@ -119,6 +120,7 @@ export const sendPrivateChat = (params) =>{
 };
 
 export const userLogin = (uid) =>{
+    console.log('userLogin', uid);
     TinkoSocket.emit("userLogin",uid,Constants.deviceId);
 };
 

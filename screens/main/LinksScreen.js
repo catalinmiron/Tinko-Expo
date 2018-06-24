@@ -129,7 +129,7 @@ export default class FriendChatListView extends Component {
         uid = user.uid;
         getToken(uid);
         setUid(uid);
-        userLogin(uid);
+        //userLogin(uid);
        // this.socket = SocketIOClient('https://gotinko.com/');
         //this.getAvatar();
         //this.getDBData();

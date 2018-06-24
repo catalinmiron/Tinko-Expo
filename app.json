@@ -34,7 +34,7 @@
     "updates": {
       "enabled": true,
       "checkAutomatically": "ON_LOAD",
-      "fallbackToCacheTimeout": 10000
+      "fallbackToCacheTimeout": 5000
     },
     "hooks": {
       "postPublish": [
