@@ -1,5 +1,5 @@
 import React from 'react';
-import { TextInput as Input } from 'react-native';
+import { TextInput as Input, Platform,View } from 'react-native';
 
 export default class TextInput extends React.Component {
     static defaultProps = {
@@ -42,17 +42,29 @@ export default class TextInput extends React.Component {
     }
 
     render() {
-        if (this.state.refresh) {
-            return null;
-        }
 
-        return (
-            <Input
+        if(Platform.OS==='android'){
+
+            return(
+                <Input
                 {...this.props}
                 ref={(ref) => { this.input = ref; }}
-                value={this.state.value}
                 onFocus={this.onFocus}
-            />
-        );
+            />);
+
+        } else {
+            if (this.state.refresh) {
+                return null;
+            } 
+            return(
+                <Input
+                    {...this.props}
+                    ref={(ref) => { this.input = ref; }}
+                    value={this.state.value}
+                    onFocus={this.onFocus}
+                />);
+        }
+
+
     }
 }
