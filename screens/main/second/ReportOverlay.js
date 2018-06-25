@@ -60,7 +60,7 @@ export default class ExpressPostOverlay extends Component{
 
                 <View>
                     <Text
-                        style={{marginTop:30,size:35}}
+                        style={{marginTop:30,fontSize:35}}
                     >REPORT</Text>
                 </View>
             </Overlay>

@@ -625,11 +625,7 @@ export default class TinkoDetailScreen extends React.Component {
             creatorData, title, placePhotos, startTime, allowPeopleNearby, participatingUsersList,
             maxNo, description, duration, participatingUsersData, placeName, placeCoordinate, placeAddress, placeId, tagsList, showMap, meet, loadingVisible, userUploadedImages, userImagesLoadingDone } = this.state;
 
-        // if(identity === 0 && (!meet.status || meet.dismissed)){
-        //     return(
-        //         <View style={styles.container}/>
-        //     );
-        // }
+
 
         let headerSwiper = userUploadedImages.concat(placePhotos);
         console.log(headerSwiper);
@@ -645,26 +641,6 @@ export default class TinkoDetailScreen extends React.Component {
 
                     <View style={{height:SCREEN_WIDTH/2}}>
 
-                        {/*<ScrollView*/}
-                            {/*horizontal={true}*/}
-                            {/*showsHorizontalScrollIndicator={false}*/}
-                        {/*>*/}
-                            {/*{_.size(placePhotos) > 0 ?*/}
-                                {/*placePhotos.map((l, i) =>(*/}
-                                    {/*<Image*/}
-                                        {/*resizeMethod={'auto'}*/}
-                                        {/*style={{width:SCREEN_WIDTH, height:SCREEN_WIDTH/2}}*/}
-                                        {/*key = {i}*/}
-                                        {/*source={{uri:`https://maps.googleapis.com/maps/api/place/photo?maxwidth=${SCREEN_WIDTH}&photoreference=${l.photo_reference}&key=AIzaSyCw_VwOF6hmY5yri8OpqOr9sCzTTT7JKiU`}}/>*/}
-                                {/*))*/}
-                                {/*:*/}
-                                {/*<Image*/}
-                                    {/*resizeMethod={'auto'}*/}
-                                    {/*style={{width:SCREEN_WIDTH, height:SCREEN_WIDTH/2}}*/}
-                                    {/*key = {'placePhoto'}*/}
-                                    {/*source={getImageSource(tagsList[0])}/>*/}
-                            {/*}*/}
-                        {/*</ScrollView>*/}
 
                         {(userImagesLoadingDone && userUploadedImages.length!==0) || (userImagesLoadingDone && placePhotosLoadingDone) ?
                             <Swiper
@@ -694,45 +670,7 @@ export default class TinkoDetailScreen extends React.Component {
                                         source={getImageSource(tagsList[0])}/>
                                 }
 
-                                {/*{userUploadedImages.map((uri) => (*/}
-                                    {/*<Image*/}
-                                        {/*resizeMethod={'auto'}*/}
-                                        {/*style={{width:SCREEN_WIDTH, height:SCREEN_WIDTH/2}}*/}
-                                        {/*key = {uri}*/}
-                                        {/*source={{uri:uri}}/>*/}
-                                {/*))}*/}
 
-                                {/*{placePhotos.map((l, i) =>(*/}
-                                    {/*<Image*/}
-                                        {/*resizeMethod={'auto'}*/}
-                                        {/*style={{width:SCREEN_WIDTH, height:SCREEN_WIDTH/2}}*/}
-                                        {/*key = {i}*/}
-                                        {/*source={{uri:`https://maps.googleapis.com/maps/api/place/photo?maxwidth=${Math.ceil(SCREEN_WIDTH)}&photoreference=${l.photo_reference}&key=AIzaSyCw_VwOF6hmY5yri8OpqOr9sCzTTT7JKiU`}}/>*/}
-                                {/*))}*/}
-
-                                {/*{userUploadedImages.length===0 && placePhotos.length===0 &&*/}
-                                {/*<Image*/}
-                                    {/*resizeMethod={'auto'}*/}
-                                    {/*style={{width:SCREEN_WIDTH, height:SCREEN_WIDTH/2}}*/}
-                                    {/*key = {'placePhoto'}*/}
-                                    {/*source={getImageSource(tagsList[0])}/>*/}
-                                {/*}*/}
-
-                                {/*{_.size(placePhotos) > 0 ?*/}
-                                    {/*placePhotos.map((l, i) =>(*/}
-                                        {/*<Image*/}
-                                            {/*resizeMethod={'auto'}*/}
-                                            {/*style={{width:SCREEN_WIDTH, height:SCREEN_WIDTH/2}}*/}
-                                            {/*key = {i}*/}
-                                            {/*source={{uri:`https://maps.googleapis.com/maps/api/place/photo?maxwidth=${Math.ceil(SCREEN_WIDTH)}&photoreference=${l.photo_reference}&key=AIzaSyCw_VwOF6hmY5yri8OpqOr9sCzTTT7JKiU`}}/>*/}
-                                    {/*))*/}
-                                    {/*:*/}
-                                    {/*<Image*/}
-                                        {/*resizeMethod={'auto'}*/}
-                                        {/*style={{width:SCREEN_WIDTH, height:SCREEN_WIDTH/2}}*/}
-                                        {/*key = {'placePhoto'}*/}
-                                        {/*source={getImageSource(tagsList[0])}/>*/}
-                                {/*}*/}
                             </Swiper>
                             :
                             <Image
@@ -744,17 +682,6 @@ export default class TinkoDetailScreen extends React.Component {
 
                     </View>
 
-                    {/*<Button*/}
-                        {/*title={'goBack'}*/}
-                        {/*onPress={()=>{*/}
-                            {/*this.props.navigation.goBack(null);*/}
-                            {/*if(this.props.navigation.state.params.comeFromTinkoScreen){*/}
-                                {/*console.log('before getMeets called');*/}
-                                {/*this.props.navigation.state.params.getMeets();*/}
-                                {/*console.log('after getMeets called');*/}
-                            {/*}*/}
-                        {/*}}*/}
-                    {/*/>*/}
 
                     <View style={{flexDirection: 'row', alignItems:'center', position:'absolute', marginTop:SCREEN_WIDTH/2-60, right:0}}>
                         <Text
