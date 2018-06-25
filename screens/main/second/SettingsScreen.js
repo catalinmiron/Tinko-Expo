@@ -15,7 +15,8 @@ import {Image as CacheImage} from "react-native-expo-image-cache";
 import {DisconnectFromServer} from '../../../modules/SocketModule';
 import {Entypo, SimpleLineIcons} from '@expo/vector-icons';
 import {Facebook} from "expo";
-import Bubble from "../../../components/SlackBubble";
+
+let app = require('../../../app.json')
 
 const SCREEN_WIDTH = Dimensions.get('window').width;
 
@@ -289,27 +290,27 @@ export default class SettingsScreen extends React.Component {
                     />
 
                     <ListItem
+                        title='Submit your Advice'
+                        titleStyle={{fontFamily:'regular', fontSize:18}}
+                        containerStyle={{marginTop:20}}
+                        chevron
+                        chevronColor={'black'}
+                        //onPress={()=>this.props.navigation.navigate('TinkoWebView',{title:'Privacy Policy', uri:'https://termsfeed.com/privacy-policy/11f395148fd94535328c9cda80d1ca86'})}
+                    />
+                    <ListItem
+                        title='Current Version'
+                        titleStyle={{fontFamily:'regular', fontSize:18}}
+                        //containerStyle={{marginTop:20}}
+                        rightElement={
+                            <Text>{app.expo.version}</Text>
+                        }
+                        />
+                    <ListItem
                         title='Logout'
                         titleStyle={{fontFamily:'regular', fontSize:18}}
                         containerStyle={{marginTop:20}}
                         onPress={()=>this.onLogoutButtonPressed()}
                     />
-                    {/*<View style={{width:SCREEN_WIDTH, justifyContent:'center', alignItems:'center'}}>*/}
-                        {/*<Button*/}
-                            {/*onPress={() => this.onLogoutButtonPressed()}*/}
-                            {/*title="Logout"*/}
-                            {/*titleStyle={{ fontWeight: "700" }}*/}
-                            {/*buttonStyle={{*/}
-                                {/*backgroundColor: "rgba(92, 99,216, 1)",*/}
-                                {/*width: 300,*/}
-                                {/*height: 45,*/}
-                                {/*borderColor: "transparent",*/}
-                                {/*borderWidth: 0,*/}
-                                {/*borderRadius: 5*/}
-                            {/*}}*/}
-                            {/*containerStyle={{ marginTop: 20 }}*/}
-                        {/*/>*/}
-                    {/*</View>*/}
                 </ScrollView>
             </View>
         )

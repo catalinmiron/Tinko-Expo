@@ -7,7 +7,8 @@ import {
     Dimensions,
     TouchableWithoutFeedback,
     Alert,
-    DeviceEventEmitter
+    DeviceEventEmitter,
+    Platform
 } from 'react-native';
 import { Input, Button } from 'react-native-elements'
 
@@ -238,7 +239,7 @@ export default class SignInScreen extends Component {
                                     title="Sign In with Facebook"
                                     clear
                                     activeOpacity={0.5}
-                                    titleStyle={{color: 'white', fontSize: 20}}
+                                    titleStyle={{color: 'white', fontSize: 18}}
                                     containerStyle={{marginTop: 10}}
                                     onPress={() => this.logInFB()}
                                 />
@@ -246,7 +247,7 @@ export default class SignInScreen extends Component {
                                     title="Sign Up with Email"
                                     clear
                                     activeOpacity={0.5}
-                                    titleStyle={{color: 'white', fontSize: 20}}
+                                    titleStyle={{color: 'white', fontSize: 18}}
                                     containerStyle={{marginTop: -10}}
                                     onPress={() => this.props.navigation.navigate('Register',{email:'',signUpWithEmail:true})}
                                 />
@@ -305,7 +306,7 @@ const styles = StyleSheet.create({
     },
     footerView: {
         marginTop: 20,
-        flex: 0.5,
+        flex: Platform.OS==='android'?1:0.5,
         justifyContent: 'center',
         alignItems: 'center',
     }

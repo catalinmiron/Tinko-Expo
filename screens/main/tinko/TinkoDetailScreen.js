@@ -612,7 +612,7 @@ export default class TinkoDetailScreen extends React.Component {
     onShareButtonPressed(){
         Share.share({
             title:'Check This Tinko',
-            message:'Come join me. https://gotinko.com/',
+            message:`Come join me. https://gotinko.com/activity?id=${this.state.meetId}`,
             url:`https://gotinko.com/web/activity?id=${this.state.meetId}`
         },{
             subject:'Check This Tinko',
