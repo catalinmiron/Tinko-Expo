@@ -1,11 +1,12 @@
 import React, {
     Component
 } from 'react'
-import { TouchableWithoutFeedback } from 'react-native';
+import {Dimensions, TouchableWithoutFeedback} from 'react-native';
 import {Overlay} from 'react-native-elements'
 import {Image as CacheImage} from "react-native-expo-image-cache";
 
 
+const SCREEN_WIDTH = Dimensions.get('window').width;
 
 export default class AvatarDisplayOverlay extends Component{
 
@@ -32,7 +33,7 @@ export default class AvatarDisplayOverlay extends Component{
         const {isVisible,photoURL} = this.state;
         return (
             <Overlay
-                height={295}
+                height={SCREEN_WIDTH-80}
                 borderRadius={25}
                 isVisible={isVisible}
                 overlayStyle={{padding:0}}
@@ -42,7 +43,7 @@ export default class AvatarDisplayOverlay extends Component{
                     onPress={()=>this.setState({isVisible:false,photoURL:null})}
                 >
                     <CacheImage
-                        style={{height:295, width:295, borderRadius:25}}
+                        style={{height:SCREEN_WIDTH-80, width:SCREEN_WIDTH-80, borderRadius:25}}
                         uri={photoURL}
                     />
                 </TouchableWithoutFeedback>

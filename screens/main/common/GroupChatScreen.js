@@ -187,7 +187,7 @@ export default class PrivateChatScreen extends Component {
                     rightComponent={<MaterialIcons name='details' size={26} color={'white'} backgroundColor={'transparent'}
                                                    onPress={()=>this.props.navigation.navigate('TheTinkoDetailScreen',{meetId:MeetId, comeFromMessaging:true})}
                     />}
-                    outerContainerStyles={ifIphoneX({height:88})}
+                    outerContainerStyles={Platform.OS === 'android'? {height:68} : ifIphoneX({height:88})}
                 />
                 <GiftedChat
                     renderComposer={props => this.renderComposer(props)}

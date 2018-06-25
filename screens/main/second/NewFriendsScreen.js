@@ -1,5 +1,5 @@
 import React, {Component} from "react";
-import {View, Text, ScrollView, Alert} from 'react-native';
+import {View, Text, ScrollView, Alert, Platform} from 'react-native';
 import {Header, Input, ListItem, Button} from 'react-native-elements';
 import {getNewFriendsRequest, updateNewFriendsRequestType} from "../../../modules/SqliteClient";
 import firebase from "firebase";
@@ -173,7 +173,7 @@ export default class NewFriendsScreen extends Component {
                 <Header
                     leftComponent={{ icon: 'chevron-left', color: '#fff', onPress:()=>this.props.navigation.goBack()}}
                     centerComponent={{ text: 'New Friends', style: { fontSize:18, fontFamily:'regular', color: '#fff' } }}
-                    outerContainerStyles={ifIphoneX({height:78})}
+                    outerContainerStyles={Platform.OS === 'android'? {height:68} : ifIphoneX({height:88})}
                 />
 
                 <ScrollView>

@@ -55,7 +55,7 @@ export default class TextInput extends React.Component {
         } else {
             if (this.state.refresh) {
                 return null;
-            } 
+            }
             return(
                 <Input
                     {...this.props}

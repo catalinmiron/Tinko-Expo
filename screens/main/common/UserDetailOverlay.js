@@ -1,7 +1,7 @@
 import React, {
     Component
 } from 'react'
-import {Text, Image, AsyncStorage, DeviceEventEmitter, Alert, TouchableOpacity} from 'react-native';
+import {Text, Image, AsyncStorage, DeviceEventEmitter, Alert, TouchableOpacity, Dimensions} from 'react-native';
 import {Button, Header, Avatar, Overlay, Input} from 'react-native-elements'
 import {firestoreDB, getAvatarPlaceholder, getFromAsyncStorage} from "../../../modules/CommonUtility";
 import {getLength,updateUnReadNum} from "../../../modules/ChatStack";
@@ -16,6 +16,7 @@ import {Ionicons} from '@expo/vector-icons'
 import {SQLite} from "expo";
 
 const db = SQLite.openDatabase('db.db');
+const SCREEN_WIDTH = Dimensions.get('window').width;
 
 export default class UserDetailScreen extends Component{
 
@@ -193,7 +194,7 @@ export default class UserDetailScreen extends Component{
         console.log(thisUserData, userData);
         return (
             <Overlay
-                height={295}
+                height={SCREEN_WIDTH-80}
                 borderRadius={25}
                 isVisible={isVisible}
                 onBackdropPress={()=>this.setState({isVisible:false, userData:{}})}

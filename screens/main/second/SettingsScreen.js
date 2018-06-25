@@ -1,5 +1,5 @@
 import React from 'react';
-import {Alert, View, StyleSheet, Text, Switch, ScrollView, Dimensions} from "react-native";
+import {Alert, View, StyleSheet, Text, Switch, ScrollView, Dimensions, Platform} from "react-native";
 import firebase from "firebase";
 import {Avatar, Header, ListItem, Button} from 'react-native-elements';
 import {
@@ -155,7 +155,7 @@ export default class SettingsScreen extends React.Component {
                 <Header
                     leftComponent={{ icon: 'chevron-left', color: '#fff', onPress:()=>this.props.navigation.goBack()}}
                     centerComponent={{ text: 'Settings', style: { fontSize:18, fontFamily:'regular', color: '#fff' } }}
-                    outerContainerStyles={ifIphoneX({height:88})}
+                    outerContainerStyles={Platform.OS === 'android'? {height:68} : ifIphoneX({height:88})}
                 />
                 <ScrollView>
                     {/*<Button*/}

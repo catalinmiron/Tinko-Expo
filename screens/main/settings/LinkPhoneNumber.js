@@ -1,5 +1,5 @@
 import React, {Component} from 'react';
-import {WebView, View, Alert} from 'react-native';
+import {WebView, View, Alert, Platform} from 'react-native';
 import {ifIphoneX} from "react-native-iphone-x-helper";
 import {Header} from 'react-native-elements';
 import {getPostRequest} from "../../../modules/CommonUtility";
@@ -54,7 +54,7 @@ export default class LinkPhoneNumber extends Component {
                 <Header
                     leftComponent={{ icon: 'chevron-left', color: '#fff', onPress:()=>this.props.navigation.goBack()}}
                     centerComponent={{ text: 'Link Phone Number', style: { fontSize:18, fontFamily:'regular', color: '#fff' } }}
-                    outerContainerStyles={ifIphoneX({height:88})}
+                    outerContainerStyles={Platform.OS === 'android'? {height:68} : ifIphoneX({height:88})}
                 />
                 <WebView
                     ref = { ref => this.webview = ref}

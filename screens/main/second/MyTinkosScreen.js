@@ -203,7 +203,7 @@ export default class MyTinkosScreen extends React.Component {
                 <Header
                     leftComponent={{ icon: 'chevron-left', color: '#fff', onPress:()=>this.props.navigation.goBack()}}
                     centerComponent={{ text: 'My Tinkos', style: { fontSize:18, fontFamily:'regular', color: '#fff' } }}
-                    outerContainerStyles={ifIphoneX({height:88})}
+                    outerContainerStyles={Platform.OS === 'android'? {height:68} : ifIphoneX({height:88})}
                 />
                 <FlatList
                     data={this.state.meetsData}

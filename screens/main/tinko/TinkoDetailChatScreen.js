@@ -336,7 +336,7 @@ export default class TinkoDetailChatScreen extends React.Component {
             <View style={{flex:1}}>
                 <Header
                     centerComponent={{ text: 'Discuss', style: { fontSize:18, fontFamily:'regular', color: '#fff' } }}
-                    outerContainerStyles={ifIphoneX({height:88})}
+                    outerContainerStyles={Platform.OS === 'android'? {height:68} : ifIphoneX({height:88})}
                     leftComponent={<MaterialIcons name='details' size={26} color={'white'} backgroundColor={'transparent'}
                                                    onPress={()=>this.props.navigation.navigate('TinkoDetail')}/>}
                 />

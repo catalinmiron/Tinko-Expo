@@ -1,7 +1,7 @@
 import React, {
     Component
 } from 'react'
-import {StyleSheet, View, WebView, ScrollView, Text, DeviceEventEmitter, Image, Alert,AppState} from 'react-native'
+import {StyleSheet, View, WebView, ScrollView, Text, DeviceEventEmitter, Image, Alert,AppState, Platform} from 'react-native'
 import { ListItem, Header, Avatar } from 'react-native-elements'
 import Expo, { Notifications, SQLite, Permissions} from 'expo';
 const db = SQLite.openDatabase('db.db');
@@ -583,7 +583,7 @@ export default class FriendChatListView extends Component {
                 <Header
                     backgroundColor={'#C4ECFF'}
                     centerComponent={{ text: 'Message', style: { fontSize:18, fontFamily:'regular', color: '#000' } }}
-                    outerContainerStyles={ifIphoneX({height:88})}
+                    outerContainerStyles={Platform.OS === 'android'? {height:68} : ifIphoneX({height:88})}
                 />
                 <ScrollView>
                     <this.renderChatList/>

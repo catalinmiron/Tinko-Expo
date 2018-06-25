@@ -10,7 +10,7 @@ import {
     Text,
     TouchableOpacity,
     View,
-    Alert
+    Alert, Platform
 } from 'react-native';
 import {Constants, ImageManipulator, ImagePicker, Permissions} from 'expo';
 import uuid from 'uuid';
@@ -60,7 +60,7 @@ export default class AvatarUploadScreen extends React.Component {
                 <Header
                     leftComponent={{ icon: 'chevron-left', color: '#fff', onPress:()=>this.props.navigation.goBack()}}
                     centerComponent={{ text: 'Avatar', style: { fontSize:18, fontFamily:'regular', color: '#fff' } }}
-                    outerContainerStyles={ifIphoneX({height:88})}
+                    outerContainerStyles={Platform.OS === 'android'? {height:68} : ifIphoneX({height:88})}
                 />
 
                 <View style={{flex:1, alignItems:'center'}}>

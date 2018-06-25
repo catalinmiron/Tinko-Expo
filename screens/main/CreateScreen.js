@@ -698,7 +698,7 @@ export default class CreateScreen extends React.Component {
         const {title, startTime, placeName, placeAddress, description, inputHeight, allFriends, allowParticipantsInvite, allowPeopleNearby,
             selectedFriendsList, maxNo, descriptionHeight, tagsString, tagInputString, tagInputWidth, duration, durationUnit,titleHeight,
             tagsList, editingMode, meetId, userUploadedImages, loadingVisible} = this.state;
-        console.log('createScreen render title:', title);
+        //console.log('createScreen render title:', title);
         let editedUserUploadedImages = userUploadedImages.concat(['UPLOAD']);
         let temp = placeAddress.split(',');
         let area = temp[temp.length-1];
