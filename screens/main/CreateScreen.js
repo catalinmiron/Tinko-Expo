@@ -362,7 +362,7 @@ export default class CreateScreen extends React.Component {
 
         const { title, userUid, startTime, placeName, placeAddress, placeCoordinate, placeId,
             description, allFriends, allowPeopleNearby, oldAllowPeopleNearby, allowParticipantsInvite, postTime,
-            selectedFriendsList, duration, maxNo, tagsList, userPicked, editingMode, meetId, placeCoverPhotoReference } = this.state;
+            selectedFriendsList, duration, maxNo, tagsList, userPicked, editingMode, meetId } = this.state;
 
         let userUploadedImages = await this.processLocalUri();
 
@@ -405,6 +405,10 @@ export default class CreateScreen extends React.Component {
             selectedFriendsListObj[l] = statusTimeObj;
         });
 
+        let placeCoverPhotoReference = this.state.placeCoverPhotoReference;
+        if(!placeCoverPhotoReference){
+            placeCoverPhotoReference='';
+        }
 
 
         var docData = {
