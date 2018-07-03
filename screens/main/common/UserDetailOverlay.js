@@ -3,16 +3,16 @@ import React, {
 } from 'react'
 import {Text, Image, AsyncStorage, DeviceEventEmitter, Alert, TouchableOpacity, Dimensions} from 'react-native';
 import {Button, Header, Avatar, Overlay, Input} from 'react-native-elements'
-import {firestoreDB, getAvatarPlaceholder, getFromAsyncStorage} from "../../../modules/CommonUtility";
+import {firestoreDB, getAvatarPlaceholder, getFromAsyncStorage, getPostRequest} from "../../../modules/CommonUtility";
 import {getLength,updateUnReadNum} from "../../../modules/ChatStack";
 import {sendFriendRequest} from "../../../modules/SocketClient";
 import {CacheManager, Image as CacheImage} from "react-native-expo-image-cache";
-
+import {ListItem} from 'react-native-elements';
 import {
     View
 } from 'react-native'
 import firebase from "firebase";
-import {Ionicons} from '@expo/vector-icons'
+import {Ionicons, Entypo} from '@expo/vector-icons'
 import {SQLite} from "expo";
 
 const db = SQLite.openDatabase('db.db');
@@ -49,6 +49,7 @@ export default class UserDetailScreen extends Component{
             requestMessage:'',
             loading:true,
             thisUserData:{},
+            settingVisible:false
         };
     }
 
@@ -188,16 +189,38 @@ export default class UserDetailScreen extends Component{
         }).catch((error) => Alert.alert('Error', error));
     }
 
+    blockUser(){
+        const { userUid, userData } = this.state;
+        Alert.alert("Alert", `Are you sure to block ${userData.username}?`,
+            [
+                {text: 'Cancel', onPress: () => console.log('Cancel Pressed'), style: 'cancel'},
+                {text: 'Yes', onPress: () => {
+                    if(userUid!==userData.uid){
+                        let bodyData = {requesterUid:userUid, objectUid:userData.uid};
+                        getPostRequest('blockUser', bodyData,
+                            () => {
+                                this.setState({isVisible:false, userData:{}, settingVisible:false});
+                            },
+                            (error) => {
+                                console.log(error);
+                                Alert.alert('error', error);
+                            });
+                    }
+
+                    }, style:"destructive"},
+            ]);
+    }
+
     render() {
         //console.log(this.props);
-        const { thisUserData, userData, userUid, isFriends, isVisible, requestMessage, loading}  = this.state;
+        const { thisUserData, userData, userUid, isFriends, isVisible, requestMessage, loading, settingVisible}  = this.state;
         console.log(thisUserData, userData);
         return (
             <Overlay
                 height={SCREEN_WIDTH-80}
                 borderRadius={25}
                 isVisible={isVisible}
-                onBackdropPress={()=>this.setState({isVisible:false, userData:{}})}
+                onBackdropPress={()=>this.setState({isVisible:false, userData:{}, settingVisible:false})}
             >
                 {loading ?
                     <View/>
@@ -261,8 +284,37 @@ export default class UserDetailScreen extends Component{
                                 />
                             </View>
                         }
+                    <Entypo
+                        name={'dots-three-horizontal'}
+                        size={25}
+                        color={'black'}
+                        style={{position:'absolute', top:SCREEN_WIDTH-120, right:20}}
+                        onPress={()=>this.setState({settingVisible:true})}
+                    />
                     </View>
                 }
+                <Overlay
+                    height={SCREEN_WIDTH-80}
+                    borderRadius={25}
+                    isVisible={settingVisible}
+                    windowBackgroundColor={'transparent'}
+                    containerStyle={{width:SCREEN_WIDTH-80, height:SCREEN_WIDTH-80}}
+                    overlayStyle={{top:0, left:0}}
+                    //onBackdropPress={()=>this.setState({isVisible:false, userData:{}})}
+                >
+                    <View>
+                        <ListItem
+                            title='Block'
+                            titleStyle={{fontFamily:'regular', fontSize:20,}}
+                            onPress={()=>this.blockUser()}
+                        />
+                        <ListItem
+                            title='Cancel'
+                            titleStyle={{fontFamily:'regular', fontSize:17,}}
+                            onPress={()=>this.setState({settingVisible:false})}
+                        />
+                    </View>
+                </Overlay>
             </Overlay>
         )
     }

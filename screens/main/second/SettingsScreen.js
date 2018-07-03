@@ -298,6 +298,13 @@ export default class SettingsScreen extends React.Component {
                         //onPress={()=>this.props.navigation.navigate('TinkoWebView',{title:'Privacy Policy', uri:'https://termsfeed.com/privacy-policy/11f395148fd94535328c9cda80d1ca86'})}
                     />
                     <ListItem
+                        title='Black List'
+                        titleStyle={{fontFamily:'regular', fontSize:18}}
+                        chevron
+                        chevronColor={'black'}
+                        onPress={()=>this.props.navigation.navigate('BlackListScreen')}
+                    />
+                    <ListItem
                         title='Current Version'
                         titleStyle={{fontFamily:'regular', fontSize:18}}
                         //containerStyle={{marginTop:20}}

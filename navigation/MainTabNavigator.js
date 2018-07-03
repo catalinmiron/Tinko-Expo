@@ -27,6 +27,7 @@ import UpdateUsernameScreen from "../screens/main/settings/UpdateUsernameScreen"
 import TinkoDetailScreen from '../screens/main/tinko/TinkoDetailScreen';
 import MyTinkosScreen from "../screens/main/second/MyTinkosScreen";
 import LinkPhoneNumber from "../screens/main/settings/LinkPhoneNumber";
+import BlackListScreen from '../screens/main/settings/BlackListScreen';
 
 const MainTabNavigator = TabNavigator(
   {
@@ -94,6 +95,9 @@ const MainTabNavigatorWithDetailScreens = StackNavigator(
         LinkPhoneNumber:{
             screen: LinkPhoneNumber,
         },
+        BlackListScreen:{
+            screen:BlackListScreen,
+        }
     },
     { headerMode: 'none' }
 );

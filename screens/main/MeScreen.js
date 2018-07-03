@@ -243,6 +243,15 @@ export default class Me extends React.Component {
                 }
                 if (change.type === "removed") {
                     //console.log("Removed city: ", change.doc.data());
+                    let uid = change.doc.id;
+                    let userData = change.doc.data();
+                    this.setState((state)=>{
+                        let friendsList = state.friendsList;
+                        friendsList = _.remove(friendsList,function(userData){
+                            return userData.uid === uid;
+                        });
+                        return{friendsList};
+                    }, ()=>this.deleteFriendship(uid,userData));
                 }
             }),Promise.resolve());
             //this.initFriendsTableAndInsertData(uid,usersData);
@@ -304,6 +313,21 @@ export default class Me extends React.Component {
                 //     this.setState({newFriendsRequestNotSet:false})
                 // }
 
+            }
+        );
+    }
+
+    deleteFriendship(uid,userData){
+        db.transaction(
+            tx => {
+                tx.executeSql(
+                    'insert or replace into friend_list'+uid+' (userId,avatarUrl,username, location, gender, isFriend) values (?,?,?,?,?, ?)',
+                    [userData.uid,userData.photoURL,userData.username,userData.location,userData.gender, 0]);
+            }
+            ,
+            (error) => console.log("这里报错" + error),
+            () => {
+                console.log('deleteFriendshipSql complete');
             }
         );
     }
