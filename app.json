@@ -6,7 +6,7 @@
     "privacy": "public",
     "sdkVersion": "27.0.0",
     "platforms": ["ios", "android"],
-    "version": "1.0.3",
+    "version": "1.0.4",
     "orientation": "portrait",
     "icon": "./assets/images/tinko_icon.png",
     "facebookScheme": "fb765640913609406",
@@ -19,7 +19,12 @@
     },
     "ios": {
       "supportsTablet": false,
-      "bundleIdentifier": "com.kevinscience.Tinko"
+      "bundleIdentifier": "com.kevinscience.Tinko",
+      "infoPlist": {
+        "NSLocationWhenInUseUsageDescription": "Tinko needs to know your current location to find the nearby Tinkos.",
+        "NSCameraUsageDescription": "Tinko uses the camera to let user take picture for uploading Avatar.",
+        "NSPhotoLibraryUsageDescription":"Tinko wants to access Photo Library to let user pick a photo to upload."
+      },
     },
     "android": {
       "package": "com.kevinscience.Tinko",
